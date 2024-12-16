@@ -8,12 +8,13 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
-
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { HeaderComponent } from './header/header.component';
 import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
 import { LoginComponent } from './dashboard/login/login.component';
 import { RegistrationComponent } from './dashboard/registration/registration.component';
+import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-main.component';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import { RegistrationComponent } from './dashboard/registration/registration.com
     SidenavbarComponent,
     LoginComponent,
     RegistrationComponent,
+    DashboardMainComponent,
   ],
   imports: [
     BrowserModule,
@@ -30,6 +32,7 @@ import { RegistrationComponent } from './dashboard/registration/registration.com
     BrowserAnimationsModule,
     MatToolbarModule,
     MatIconModule,
+    ReactiveFormsModule
   ],
   providers: [
     provideAnimationsAsync()

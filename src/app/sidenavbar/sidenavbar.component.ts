@@ -8,5 +8,9 @@ import { Component } from '@angular/core';
   styleUrl: './sidenavbar.component.css'
 })
 export class SidenavbarComponent {
+  isSidebarOpen = true;
 
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
 }

@@ -8,14 +8,16 @@ import { Component, OnInit, ElementRef } from '@angular/core';
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-toggleSidebar() {
-  alert('test');
-}
-getTitle() {
 
-}
-sidebarToggle() {
-  alert('test');
-}
+  logoUrl!: string;
+  headerTitle!: string;
+
+  constructor() {}
+
+
+  ngOnInit(): void {
+    this.logoUrl = 'assets/images/envato-logo-small.svg';
+    this.headerTitle = 'Document Dashboard';
+  }
 
 }

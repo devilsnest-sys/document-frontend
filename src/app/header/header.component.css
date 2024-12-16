@@ -1,0 +1,23 @@
+.title-header-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .logo img {
+    height: 50px;
+    max-width: 100%;
+  }
+  
+  .text-center {
+    flex-grow: 1;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  

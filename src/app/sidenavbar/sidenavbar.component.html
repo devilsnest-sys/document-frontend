@@ -1,1 +1,14 @@
-<p>sidenavbar works!</p>
+<button class="toggle-btn" (click)="toggleSidebar()">
+    <i class="fa-solid fa-arrow-right"></i>
+</button>
+<div class="sidebar" [class.active]="isSidebarOpen">
+
+    <nav>
+        <ul>
+            <li><a routerLink="/dashboard">Dashboard</a></li>
+            <li><a routerLink="/login">Login</a></li>
+            <li><a routerLink="/registration">Registration</a></li>
+            <li><a routerLink="/contact">Contact</a></li>
+        </ul>
+    </nav>
+</div>
