@@ -2,7 +2,7 @@ section.daashboard-container {
     position: relative;
     top: 0;
     height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 main.dashboard-content {
     width: calc(100% - 250px);

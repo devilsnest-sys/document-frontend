@@ -1,1 +1,132 @@
-<p>registration works!</p>
+<div class="container">
+    <h2 class="form-title">Registration Form</h2>
+    <div class="row">
+        <div class="col-lg-12">
+            <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input id="username" formControlName="username" type="text" class="form-control" required />
+                            <div *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('username')?.hasError('required')">Username is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input id="email" formControlName="email" type="email" class="form-control" />
+                            <div *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('email')?.hasError('required')">Email is
+                                    required.</small>
+                                <small *ngIf="registrationForm.get('email')?.hasError('email')">Enter a valid
+                                    email.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input id="password" formControlName="password" type="password" class="form-control"
+                                required />
+                            <div *ngIf="registrationForm.get('password')?.touched && registrationForm.get('password')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('password')?.hasError('required')">Password is
+                                    required.</small>
+                                <small *ngIf="registrationForm.get('password')?.hasError('minlength')">Password must be
+                                    at least 6 characters.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <!-- Confirm Password -->
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password:</label>
+                            <input id="confirmPassword" formControlName="confirmPassword" type="password"
+                                class="form-control" required />
+                            <div *ngIf="registrationForm.get('confirmPassword')?.touched && registrationForm.get('confirmPassword')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">Confirm
+                                    Password is required.</small>
+                                <small
+                                    *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">Passwords
+                                    do not match.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Mobile -->
+                        <div class="form-group">
+                            <label for="mobile">Mobile:</label>
+                            <input id="mobile" formControlName="mobile" type="text" class="form-control" />
+                            <div *ngIf="registrationForm.get('mobile')?.touched && registrationForm.get('mobile')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('mobile')?.hasError('required')">Mobile number is
+                                    required.</small>
+                                <small *ngIf="registrationForm.get('mobile')?.hasError('pattern')">Enter a valid
+                                    10-digit mobile number.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Role -->
+                        <div class="form-group">
+                            <label for="role">Role:</label>
+                            <select id="role" formControlName="role" class="form-control" required>
+                                <option value="" disabled>Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
+                                <option value="emp">Employee</option>
+                                <option value="guest">Guest</option>
+                                <option value="mgr">Manager</option>
+                            </select>
+                            <div *ngIf="registrationForm.get('role')?.touched && registrationForm.get('role')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('role')?.hasError('required')">Role is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Designation -->
+                        <div class="form-group">
+                            <label for="designation">Designation:</label>
+                            <input id="designation" formControlName="designation" type="text" class="form-control"
+                                required />
+                            <div *ngIf="registrationForm.get('designation')?.touched && registrationForm.get('designation')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('designation')?.hasError('required')">Designation is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <!-- Company ID -->
+                        <div class="form-group">
+                            <label for="companyId">Company ID:</label>
+                            <input id="companyId" formControlName="companyId" type="text" class="form-control"
+                                required />
+                            <div *ngIf="registrationForm.get('companyId')?.touched && registrationForm.get('companyId')?.invalid"
+                                class="error-message">
+                                <small *ngIf="registrationForm.get('companyId')?.hasError('required')">Company ID is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" [disabled]="registrationForm.invalid">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
