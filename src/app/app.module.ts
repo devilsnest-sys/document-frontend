@@ -16,6 +16,8 @@ import { LoginComponent } from './dashboard/login/login.component';
 import { RegistrationComponent } from './dashboard/registration/registration.component';
 import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-main.component';
 
+import { HttpClientModule } from '@angular/common/http';
+
 
 @NgModule({
   declarations: [
@@ -32,7 +34,8 @@ import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-mai
     BrowserAnimationsModule,
     MatToolbarModule,
     MatIconModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    HttpClientModule
   ],
   providers: [
     provideAnimationsAsync()
