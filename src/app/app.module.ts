@@ -19,6 +19,7 @@ import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-mai
 import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { LoaderInterceptor } from './services/loader.interceptor';
 import { FooterComponent } from './footer/footer.component';
+import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/orderacknowledgement.component';
 
 
 @NgModule({
@@ -30,6 +31,7 @@ import { FooterComponent } from './footer/footer.component';
     RegistrationComponent,
     DashboardMainComponent,
     FooterComponent,
+    OrderacknowledgementComponent,
   ],
   imports: [
     BrowserModule,

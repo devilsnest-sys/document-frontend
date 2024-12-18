@@ -1,0 +1,74 @@
+.container {
+    width: 100%;
+    max-width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+  }
+  
+  .form-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .input,
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select {
+    font-size: 14px;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  
+  .error-message small {
+    color: red;
+  }
+  
+  .form-control {
+    font-size: 14px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+  }
+  

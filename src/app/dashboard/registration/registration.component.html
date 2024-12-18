@@ -67,12 +67,12 @@
                         <!-- Mobile -->
                         <div class="form-group">
                             <label for="mobile">Mobile:</label>
-                            <input id="mobile" formControlName="mobile" type="text" class="form-control" />
-                            <div *ngIf="registrationForm.get('mobile')?.touched && registrationForm.get('mobile')?.invalid"
+                            <input id="MobileNo" formControlName="MobileNo" type="text" class="form-control" />
+                            <div *ngIf="registrationForm.get('MobileNo')?.touched && registrationForm.get('MobileNo')?.invalid"
                                 class="error-message">
-                                <small *ngIf="registrationForm.get('mobile')?.hasError('required')">Mobile number is
+                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('required')">Mobile number is
                                     required.</small>
-                                <small *ngIf="registrationForm.get('mobile')?.hasError('pattern')">Enter a valid
+                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('pattern')">Enter a valid
                                     10-digit mobile number.</small>
                             </div>
                         </div>

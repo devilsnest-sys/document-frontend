@@ -24,7 +24,7 @@ export class RegistrationComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required, this.matchPasswords.bind(this)]],
-      mobile: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+      MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
       designation: ['', Validators.required],
       companyId: ['', Validators.required],

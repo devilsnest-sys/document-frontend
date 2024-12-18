@@ -1,0 +1,123 @@
+<div class="container mt-5">
+    <h2 class="form-title">Purchase Order Form</h2>
+    <div class="row">
+        <div class="col-lg-12">
+            <form [formGroup]="poForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <!-- PO Description -->
+                        <div class="form-group">
+                            <label for="poDescription">PO Description:</label>
+                            <input id="poDescription" formControlName="poDescription" type="text" class="form-control"
+                                required />
+                            <div *ngIf="poForm.get('poDescription')?.touched && poForm.get('poDescription')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('poDescription')?.hasError('required')">PO Description is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- PO Type -->
+                        <div class="form-group">
+                            <label for="poType">PO Type:</label>
+                            <select id="poType" formControlName="poType" class="form-control" required>
+                                <option value="" disabled>Select PO Type</option>
+                                <option value="standard">Standard</option>
+                                <option value="blanket">Blanket</option>
+                                <option value="contract">Contract</option>
+                            </select>
+                            <div *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('poType')?.hasError('required')">PO Type is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Incoterms -->
+                        <div class="form-group">
+                            <label for="incoterms">Incoterms:</label>
+                            <input id="incoterms" formControlName="incoterms" type="text" class="form-control"
+                                required />
+                            <div *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Shipment Date -->
+                        <div class="form-group">
+                            <label for="shipmentDate">Shipment Date:</label>
+                            <input id="shipmentDate" formControlName="shipmentDate" type="date" class="form-control"
+                                required />
+                            <div *ngIf="poForm.get('shipmentDate')?.touched && poForm.get('shipmentDate')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('shipmentDate')?.hasError('required')">Shipment Date is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Proof of Delivery -->
+                        <div class="form-group">
+                            <label for="proofOfDelivery">Proof of Delivery:</label>
+                            <input id="proofOfDelivery" formControlName="proofOfDelivery" type="text"
+                                class="form-control" required />
+                            <div *ngIf="poForm.get('proofOfDelivery')?.touched && poForm.get('proofOfDelivery')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">Proof of Delivery is
+                                    required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Contact Person Name -->
+                        <div class="form-group">
+                            <label for="contactPersonName">Contact Person Name:</label>
+                            <input id="contactPersonName" formControlName="contactPersonName" type="text"
+                                class="form-control" required />
+                            <div *ngIf="poForm.get('contactPersonName')?.touched && poForm.get('contactPersonName')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('contactPersonName')?.hasError('required')">Contact Person Name
+                                    is required.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Contact Person Email -->
+                        <div class="form-group">
+                            <label for="contactPersonEmail">Contact Person Email:</label>
+                            <input id="contactPersonEmail" formControlName="contactPersonEmail" type="email"
+                                class="form-control" required />
+                            <div *ngIf="poForm.get('contactPersonEmail')?.touched && poForm.get('contactPersonEmail')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('contactPersonEmail')?.hasError('required')">Contact Person
+                                    Email is required.</small>
+                                <small *ngIf="poForm.get('contactPersonEmail')?.hasError('email')">Enter a valid
+                                    email.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- Alternate Email ID -->
+                        <div class="form-group">
+                            <label for="alternateEmailId">Alternate Email ID:</label>
+                            <input id="alternateEmailId" formControlName="alternateEmailId" type="email"
+                                class="form-control" />
+                            <div *ngIf="poForm.get('alternateEmailId')?.touched && poForm.get('alternateEmailId')?.invalid"
+                                class="error-message">
+                                <small *ngIf="poForm.get('alternateEmailId')?.hasError('email')">Enter a valid
+                                    email.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
