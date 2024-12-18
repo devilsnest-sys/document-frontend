@@ -22,6 +22,10 @@ export class AuthService {
     this.isLoggedInSubject.next(true);
   }
 
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }  
+
   isLoggedIn(): boolean {
     return !!localStorage.getItem('authToken');
   }

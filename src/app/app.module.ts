@@ -18,6 +18,7 @@ import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-mai
 
 import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { LoaderInterceptor } from './services/loader.interceptor';
+import { FooterComponent } from './footer/footer.component';
 
 
 @NgModule({
@@ -28,6 +29,7 @@ import { LoaderInterceptor } from './services/loader.interceptor';
     LoginComponent,
     RegistrationComponent,
     DashboardMainComponent,
+    FooterComponent,
   ],
   imports: [
     BrowserModule,
