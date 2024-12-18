@@ -16,7 +16,8 @@ import { LoginComponent } from './dashboard/login/login.component';
 import { RegistrationComponent } from './dashboard/registration/registration.component';
 import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-main.component';
 
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
+import { LoaderInterceptor } from './services/loader.interceptor';
 
 
 @NgModule({
@@ -38,7 +39,8 @@ import { HttpClientModule } from '@angular/common/http';
     HttpClientModule
   ],
   providers: [
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })

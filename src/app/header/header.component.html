@@ -5,5 +5,9 @@
     <div class="text-center">
       <h1>{{ headerTitle }}</h1>
     </div>
+    <div class="login-signup-logout">
+      <button *ngIf="!isLoggedIn" (click)="login()" class="btn btn-success">Login</button>
+      <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-danger">Logout</button>
+    </div>
   </div>
   
