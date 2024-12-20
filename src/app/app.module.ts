@@ -10,6 +10,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule } from '@angular/forms';
 
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { AgGridModule } from 'ag-grid-angular';
+
 import { HeaderComponent } from './header/header.component';
 import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
 import { LoginComponent } from './dashboard/login/login.component';
@@ -20,6 +28,7 @@ import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { LoaderInterceptor } from './services/loader.interceptor';
 import { FooterComponent } from './footer/footer.component';
 import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/orderacknowledgement.component';
+import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
 
 
 @NgModule({
@@ -32,6 +41,7 @@ import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/
     DashboardMainComponent,
     FooterComponent,
     OrderacknowledgementComponent,
+    MasterstagingComponent,
   ],
   imports: [
     BrowserModule,
@@ -40,7 +50,14 @@ import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/
     MatToolbarModule,
     MatIconModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    AgGridModule
   ],
   providers: [
     provideAnimationsAsync(),

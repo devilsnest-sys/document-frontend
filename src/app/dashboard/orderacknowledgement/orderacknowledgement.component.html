@@ -1,123 +1,122 @@
 <div class="container mt-5">
     <h2 class="form-title">Purchase Order Form</h2>
     <div class="row">
-        <div class="col-lg-12">
-            <form [formGroup]="poForm" (ngSubmit)="onSubmit()">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <!-- PO Description -->
-                        <div class="form-group">
-                            <label for="poDescription">PO Description:</label>
-                            <input id="poDescription" formControlName="poDescription" type="text" class="form-control"
-                                required />
-                            <div *ngIf="poForm.get('poDescription')?.touched && poForm.get('poDescription')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('poDescription')?.hasError('required')">PO Description is
-                                    required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- PO Type -->
-                        <div class="form-group">
-                            <label for="poType">PO Type:</label>
-                            <select id="poType" formControlName="poType" class="form-control" required>
-                                <option value="" disabled>Select PO Type</option>
-                                <option value="standard">Standard</option>
-                                <option value="blanket">Blanket</option>
-                                <option value="contract">Contract</option>
-                            </select>
-                            <div *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('poType')?.hasError('required')">PO Type is
-                                    required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Incoterms -->
-                        <div class="form-group">
-                            <label for="incoterms">Incoterms:</label>
-                            <input id="incoterms" formControlName="incoterms" type="text" class="form-control"
-                                required />
-                            <div *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are
-                                    required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Shipment Date -->
-                        <div class="form-group">
-                            <label for="shipmentDate">Shipment Date:</label>
-                            <input id="shipmentDate" formControlName="shipmentDate" type="date" class="form-control"
-                                required />
-                            <div *ngIf="poForm.get('shipmentDate')?.touched && poForm.get('shipmentDate')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('shipmentDate')?.hasError('required')">Shipment Date is
-                                    required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Proof of Delivery -->
-                        <div class="form-group">
-                            <label for="proofOfDelivery">Proof of Delivery:</label>
-                            <input id="proofOfDelivery" formControlName="proofOfDelivery" type="text"
-                                class="form-control" required />
-                            <div *ngIf="poForm.get('proofOfDelivery')?.touched && poForm.get('proofOfDelivery')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">Proof of Delivery is
-                                    required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Contact Person Name -->
-                        <div class="form-group">
-                            <label for="contactPersonName">Contact Person Name:</label>
-                            <input id="contactPersonName" formControlName="contactPersonName" type="text"
-                                class="form-control" required />
-                            <div *ngIf="poForm.get('contactPersonName')?.touched && poForm.get('contactPersonName')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('contactPersonName')?.hasError('required')">Contact Person Name
-                                    is required.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Contact Person Email -->
-                        <div class="form-group">
-                            <label for="contactPersonEmail">Contact Person Email:</label>
-                            <input id="contactPersonEmail" formControlName="contactPersonEmail" type="email"
-                                class="form-control" required />
-                            <div *ngIf="poForm.get('contactPersonEmail')?.touched && poForm.get('contactPersonEmail')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('contactPersonEmail')?.hasError('required')">Contact Person
-                                    Email is required.</small>
-                                <small *ngIf="poForm.get('contactPersonEmail')?.hasError('email')">Enter a valid
-                                    email.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!-- Alternate Email ID -->
-                        <div class="form-group">
-                            <label for="alternateEmailId">Alternate Email ID:</label>
-                            <input id="alternateEmailId" formControlName="alternateEmailId" type="email"
-                                class="form-control" />
-                            <div *ngIf="poForm.get('alternateEmailId')?.touched && poForm.get('alternateEmailId')?.invalid"
-                                class="error-message">
-                                <small *ngIf="poForm.get('alternateEmailId')?.hasError('email')">Enter a valid
-                                    email.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
+      <form [formGroup]="poForm" (ngSubmit)="onSubmit()" class="w-100">
+        <div class="row">
+          <!-- PO Description -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>PO Description</mat-label>
+              <input matInput id="poDescription" formControlName="poDescription" required />
+              <mat-error *ngIf="poForm.get('poDescription')?.touched && poForm.get('poDescription')?.invalid">
+                <span *ngIf="poForm.get('poDescription')?.hasError('required')">PO Description is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- PO Type -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>PO Type</mat-label>
+              <mat-select id="poType" formControlName="poType" required>
+                <mat-option value="" disabled>Select PO Type</mat-option>
+                <mat-option value="standard">Standard</mat-option>
+                <mat-option value="blanket">Blanket</mat-option>
+                <mat-option value="contract">Contract</mat-option>
+              </mat-select>
+              <mat-error *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid">
+                <span *ngIf="poForm.get('poType')?.hasError('required')">PO Type is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Incoterms -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Incoterms</mat-label>
+              <input matInput id="incoterms" formControlName="incoterms" required />
+              <mat-error *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid">
+                <span *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Shipment Date -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Shipment Date</mat-label>
+              <input matInput [matDatepicker]="picker" id="shipmentDate" formControlName="shipmentDate" required />
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error *ngIf="poForm.get('shipmentDate')?.touched && poForm.get('shipmentDate')?.invalid">
+                <span *ngIf="poForm.get('shipmentDate')?.hasError('required')">Shipment Date is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Proof of Delivery -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Proof of Delivery</mat-label>
+              <input matInput id="proofOfDelivery" formControlName="proofOfDelivery" required />
+              <mat-error *ngIf="poForm.get('proofOfDelivery')?.touched && poForm.get('proofOfDelivery')?.invalid">
+                <span *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">Proof of Delivery is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Contact Person Name -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Contact Person Name</mat-label>
+              <input matInput id="contactPersonName" formControlName="contactPersonName" required />
+              <mat-error *ngIf="poForm.get('contactPersonName')?.touched && poForm.get('contactPersonName')?.invalid">
+                <span *ngIf="poForm.get('contactPersonName')?.hasError('required')">Contact Person Name is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Contact Person Email -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Contact Person Email</mat-label>
+              <input matInput type="email" id="contactPersonEmail" formControlName="contactPersonEmail" required />
+              <mat-error *ngIf="poForm.get('contactPersonEmail')?.touched && poForm.get('contactPersonEmail')?.invalid">
+                <span *ngIf="poForm.get('contactPersonEmail')?.hasError('required')">Contact Person Email is required.</span>
+                <span *ngIf="poForm.get('contactPersonEmail')?.hasError('email')">Enter a valid email.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <!-- Alternate Email ID -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Alternate Email ID</mat-label>
+              <input matInput type="email" id="alternateEmailId" formControlName="alternateEmailId" />
+              <mat-error *ngIf="poForm.get('alternateEmailId')?.touched && poForm.get('alternateEmailId')?.invalid">
+                <span *ngIf="poForm.get('alternateEmailId')?.hasError('email')">Enter a valid email.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
+  
+        <!-- Submit Button -->
+        <div class="row mt-3">
+          <div class="col-lg-12 text-center">
+            <button mat-raised-button color="primary" type="submit">Submit</button>
+          </div>
+        </div>
+      </form>
     </div>
-</div>
+  </div>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-lg-12">
+        <div style="width: 100%; height: 400px;" class="ag-theme-alpine">
+          <ag-grid-angular style="width: 100%; height: 100%;" class="ag-theme-alpine" [modules]="modules" [rowData]="rowData"
+            [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'autoHeight'"></ag-grid-angular>
+        </div>
+      </div>
+    </div>
+  </div>
+  

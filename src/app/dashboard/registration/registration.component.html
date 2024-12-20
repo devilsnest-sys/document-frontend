@@ -6,126 +6,107 @@
                 <div class="row">
                     <div class="col-lg-6">
                         <!-- Username -->
-                        <div class="form-group">
-                            <label for="username">Username:</label>
-                            <input id="username" formControlName="username" type="text" class="form-control" required />
-                            <div *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('username')?.hasError('required')">Username is
-                                    required.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Username</mat-label>
+                            <input matInput id="username" formControlName="username" required />
+                            <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
+                                <small *ngIf="registrationForm.get('username')?.hasError('required')">Username is required.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
 
                     <div class="col-lg-6">
                         <!-- Email -->
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input id="email" formControlName="email" type="email" class="form-control" />
-                            <div *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('email')?.hasError('required')">Email is
-                                    required.</small>
-                                <small *ngIf="registrationForm.get('email')?.hasError('email')">Enter a valid
-                                    email.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Email</mat-label>
+                            <input matInput id="email" type="email" formControlName="email" />
+                            <mat-error *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid">
+                                <small *ngIf="registrationForm.get('email')?.hasError('required')">Email is required.</small>
+                                <small *ngIf="registrationForm.get('email')?.hasError('email')">Enter a valid email.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
+
                     <div class="col-lg-6">
                         <!-- Password -->
-                        <div class="form-group">
-                            <label for="password">Password:</label>
-                            <input id="password" formControlName="password" type="password" class="form-control"
-                                required />
-                            <div *ngIf="registrationForm.get('password')?.touched && registrationForm.get('password')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('password')?.hasError('required')">Password is
-                                    required.</small>
-                                <small *ngIf="registrationForm.get('password')?.hasError('minlength')">Password must be
-                                    at least 6 characters.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Password</mat-label>
+                            <input matInput id="password" type="password" formControlName="password" required />
+                            <mat-error *ngIf="registrationForm.get('password')?.touched && registrationForm.get('password')?.invalid">
+                                <small *ngIf="registrationForm.get('password')?.hasError('required')">Password is required.</small>
+                                <small *ngIf="registrationForm.get('password')?.hasError('minlength')">Password must be at least 6 characters.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
 
                     <div class="col-lg-6">
                         <!-- Confirm Password -->
-                        <div class="form-group">
-                            <label for="confirmPassword">Confirm Password:</label>
-                            <input id="confirmPassword" formControlName="confirmPassword" type="password"
-                                class="form-control" required />
-                            <div *ngIf="registrationForm.get('confirmPassword')?.touched && registrationForm.get('confirmPassword')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">Confirm
-                                    Password is required.</small>
-                                <small
-                                    *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">Passwords
-                                    do not match.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Confirm Password</mat-label>
+                            <input matInput id="confirmPassword" type="password" formControlName="confirmPassword" required />
+                            <mat-error *ngIf="registrationForm.get('confirmPassword')?.touched && registrationForm.get('confirmPassword')?.invalid">
+                                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">Confirm Password is required.</small>
+                                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">Passwords do not match.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
+
                     <div class="col-lg-6">
                         <!-- Mobile -->
-                        <div class="form-group">
-                            <label for="mobile">Mobile:</label>
-                            <input id="MobileNo" formControlName="MobileNo" type="text" class="form-control" />
-                            <div *ngIf="registrationForm.get('MobileNo')?.touched && registrationForm.get('MobileNo')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('required')">Mobile number is
-                                    required.</small>
-                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('pattern')">Enter a valid
-                                    10-digit mobile number.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Mobile</mat-label>
+                            <input matInput id="MobileNo" type="text" formControlName="MobileNo" />
+                            <mat-error *ngIf="registrationForm.get('MobileNo')?.touched && registrationForm.get('MobileNo')?.invalid">
+                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('required')">Mobile number is required.</small>
+                                <small *ngIf="registrationForm.get('MobileNo')?.hasError('pattern')">Enter a valid 10-digit mobile number.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
+
                     <div class="col-lg-6">
                         <!-- Role -->
-                        <div class="form-group">
-                            <label for="role">Role:</label>
-                            <select id="role" formControlName="role" class="form-control" required>
-                                <option value="" disabled>Select Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="user">User</option>
-                                <option value="emp">Employee</option>
-                                <option value="guest">Guest</option>
-                                <option value="mgr">Manager</option>
-                            </select>
-                            <div *ngIf="registrationForm.get('role')?.touched && registrationForm.get('role')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('role')?.hasError('required')">Role is
-                                    required.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Role</mat-label>
+                            <mat-select id="role" formControlName="role" required>
+                                <mat-option value="" disabled>Select Role</mat-option>
+                                <mat-option value="admin">Admin</mat-option>
+                                <mat-option value="user">User</mat-option>
+                                <mat-option value="emp">Employee</mat-option>
+                                <mat-option value="guest">Guest</mat-option>
+                                <mat-option value="mgr">Manager</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="registrationForm.get('role')?.touched && registrationForm.get('role')?.invalid">
+                                <small>Role is required.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
+
                     <div class="col-lg-6">
                         <!-- Designation -->
-                        <div class="form-group">
-                            <label for="designation">Designation:</label>
-                            <input id="designation" formControlName="designation" type="text" class="form-control"
-                                required />
-                            <div *ngIf="registrationForm.get('designation')?.touched && registrationForm.get('designation')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('designation')?.hasError('required')">Designation is
-                                    required.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Designation</mat-label>
+                            <input matInput id="designation" type="text" formControlName="designation" required />
+                            <mat-error *ngIf="registrationForm.get('designation')?.touched && registrationForm.get('designation')?.invalid">
+                                <small>Designation is required.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
 
                     <div class="col-lg-6">
                         <!-- Company ID -->
-                        <div class="form-group">
-                            <label for="companyId">Company ID:</label>
-                            <input id="companyId" formControlName="companyId" type="text" class="form-control"
-                                required />
-                            <div *ngIf="registrationForm.get('companyId')?.touched && registrationForm.get('companyId')?.invalid"
-                                class="error-message">
-                                <small *ngIf="registrationForm.get('companyId')?.hasError('required')">Company ID is
-                                    required.</small>
-                            </div>
-                        </div>
+                        <mat-form-field appearance="fill" class="full-width">
+                            <mat-label>Company ID</mat-label>
+                            <input matInput id="companyId" type="text" formControlName="companyId" required />
+                            <mat-error *ngIf="registrationForm.get('companyId')?.touched && registrationForm.get('companyId')?.invalid">
+                                <small>Company ID is required.</small>
+                            </mat-error>
+                        </mat-form-field>
                     </div>
                 </div>
                 <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Submit</button>
+               <div class="text-center">
+                <button mat-raised-button color="primary" type="submit">Submit</button>
+               </div>
             </form>
         </div>
     </div>
