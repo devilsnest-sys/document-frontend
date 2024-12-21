@@ -32,6 +32,8 @@ import { LoaderInterceptor } from './services/loader.interceptor';
 import { FooterComponent } from './footer/footer.component';
 import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/orderacknowledgement.component';
 import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
+import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';
+import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
 
 
 @NgModule({
@@ -45,6 +47,8 @@ import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.
     FooterComponent,
     OrderacknowledgementComponent,
     MasterstagingComponent,
+    MasterdocumentComponent,
+    MasteraddfieldComponent,
   ],
   imports: [
     BrowserModule,
