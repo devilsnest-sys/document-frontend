@@ -1,16 +1,23 @@
 .mat-form-field {
-    width: 100%;
-  }
-  
-  .error-message {
-    color: red;
-    font-size: 12px;
-  }
-  .container {
-    width: 100%;
-    max-width: 80%;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-  }
+  width: 100%;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+}
+
+.container {
+  width: 100%;
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+.srch-tab{
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  align-items: baseline;
+}

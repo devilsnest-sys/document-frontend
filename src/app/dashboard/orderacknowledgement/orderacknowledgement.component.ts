@@ -13,6 +13,8 @@ export class OrderacknowledgementComponent {
   public modules: Module[] = [ClientSideRowModelModule];
   poForm: FormGroup;
   rowData: any[] = [];
+  filteredRowData: any[] = [];
+  poSearchText: string = ''; 
 
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
@@ -54,5 +56,15 @@ export class OrderacknowledgementComponent {
       } else {
           console.log('Form is invalid');
       }
+  }
+
+  onSearchPO(): void {
+    if (this.poSearchText.trim()) {
+      this.filteredRowData = this.rowData.filter(item =>
+        item.poNumber.toLowerCase().includes(this.poSearchText.toLowerCase())
+      );
+    } else {
+      this.filteredRowData = [...this.rowData]; // Reset filter when input is cleared
+    }
   }
 }

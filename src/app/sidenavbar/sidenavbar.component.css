@@ -1,52 +1,87 @@
 .sidebar {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    width: 250px;
-    height: 100%;
-    background-color: #333;
-    color: #fff;
-    overflow-x: hidden;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .sidebar.active {
-    transform: translateX(0);
-  }
-  
-  button.toggle-btn {
-    position: absolute;
-    top: 18px;
-    left: 250px;
-    background-color: #333;
-    color: #fff;
-    border: none;
-    padding: 4px 10px;
-    cursor: pointer;
-    border-radius: 100px;
-    z-index: 9999;
-  }
-  
-  .sidebar nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  /* .sidebar nav ul li {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: #fff;
+  overflow-x: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.active {
+  transform: translateX(0);
+}
+
+button.toggle-btn {
+  position: absolute;
+  top: 18px;
+  left: 250px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 100px;
+  z-index: 9999;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* .sidebar nav ul li {
     padding: 15px;
   } */
-  
-  .sidebar nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    display: block;
-    padding: 20px;
-  }
-  
-  .sidebar nav ul li a:hover {
-    background-color: #575757;
-  }
-  
+
+.sidebar nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 20px;
+}
+
+.sidebar nav ul li a:hover {
+  background-color: #575757;
+}
+
+.sidebar ul .dropdown {
+  display: none;
+  list-style: none;
+  padding-left: 20px;
+}
+
+.sidebar ul .dropdown.open {
+  display: block;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  align-items: center;
+}
+
+.sidebar ul li a:hover {
+  background-color: #f0f0f0;
+}
+
+.sidebar ul li .dropdown li a {
+  padding-left: 32px;
+}
+
+/* Styling for the icon */
+.sidebar ul li a i {
+  transition: transform 0.3s ease;
+}
+
+.sidebar ul li a i.fa-chevron-up {
+  transform: rotate(180deg);
+}

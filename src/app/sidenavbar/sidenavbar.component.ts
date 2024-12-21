@@ -9,6 +9,11 @@ import { Component } from '@angular/core';
 })
 export class SidenavbarComponent {
   isSidebarOpen = true;
+  isDropdownOpen: boolean = false;
+
+toggleDropdown() {
+    this.isDropdownOpen = !this.isDropdownOpen;
+}
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;

@@ -2,11 +2,20 @@
     <i class="fa-solid fa-arrow-right"></i>
 </button>
 <div class="sidebar" [class.active]="isSidebarOpen">
-
     <nav>
         <ul>
             <li><a routerLink="/dashboard">Dashboard</a></li>
-            <li><a routerLink="/master">Master</a></li>
+            <li>
+                <a href="javascript:void(0)" (click)="toggleDropdown()">Master
+                    <i class="fa-solid" [class.fa-chevron-down]="isDropdownOpen" [class.fa-chevron-up]="!isDropdownOpen"></i>
+                </a>
+                <ul class="dropdown" [class.open]="isDropdownOpen">
+                    <li><a routerLink="/master">Stage Master</a></li>
+                    <li><a routerLink="/document-master">Document Master</a></li>
+                    <li><a routerLink="/vendor-master">Vendor Master</a></li>
+                    <li><a routerLink="/report-master">Report Master</a></li>
+                </ul>
+            </li>
             <li><a routerLink="/orderAcknowledgement">PO Number</a></li>
             <li><a routerLink="/registration">Registration</a></li>
             <li><a routerLink="/contact">Contact</a></li>
