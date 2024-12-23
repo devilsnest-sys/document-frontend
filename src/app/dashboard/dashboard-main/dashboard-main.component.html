@@ -1,1 +1,16 @@
-<p>dashboard-main works!</p>
+<div class="container">
+    <ul>
+      <li
+        *ngFor="let step of steps; let i = index"
+        [ngClass]="{
+          'current': i === currentStep,
+          'completed': i < currentStep
+        }"
+      >
+        <div class="content">
+          Step {{ i + 1 }}
+        </div>
+      </li>
+    </ul>
+  </div>
+  
