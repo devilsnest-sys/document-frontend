@@ -8,6 +8,7 @@ import { environment } from '../../environment/environment';
 })
 export class AuthService {
   private loginUrl = `${environment.apiUrl}/v1/users/login`;
+  private vendorLoginUrl = `${environment.apiUrl}/v1/vendorusers/login`;
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.isLoggedIn()); 
 
   constructor(private http: HttpClient) {}
@@ -15,6 +16,11 @@ export class AuthService {
   login(username: string, password: string): Observable<any> {
     const payload = { username, password };
     return this.http.post(this.loginUrl, payload);
+  }
+
+  vendorLogin(username: string, password: string): Observable<any> {
+    const payload = { username, password };
+    return this.http.post(this.vendorLoginUrl, payload);
   }
 
   setToken(token: string): void {

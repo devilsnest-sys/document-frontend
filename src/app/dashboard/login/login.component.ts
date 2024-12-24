@@ -12,6 +12,10 @@ import Swal from 'sweetalert2';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  userTypes = [
+    { value: 'vendor', label: 'Vendor' },
+    { value: 'user', label: 'User' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -19,16 +23,23 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      userType: ['', Validators.required],
+      username: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
   onSubmit() {
     if (this.loginForm.valid) {
-      const { username, password } = this.loginForm.value;
-
-      this.authService.login(username, password).subscribe({
+      const { username, password, userType } = this.loginForm.value;
+  
+      // Determine the appropriate login API endpoint based on the userType
+      const loginApi =
+        userType === 'vendor'
+          ? this.authService.vendorLogin(username, password)
+          : this.authService.login(username, password);
+  
+      loginApi.subscribe({
         next: (response) => {
           if (response.token) {
             this.authService.setToken(response.token);
@@ -72,4 +83,5 @@ export class LoginComponent {
       });
     }
   }
+  
 }
