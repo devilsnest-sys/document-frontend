@@ -1,24 +1,23 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environment/environment';
+import { ColDef, Module } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-orderacknowledgement',
-  standalone: false,
-  
+  standalone: false,  
   templateUrl: './orderacknowledgement.component.html',
   styleUrl: './orderacknowledgement.component.css'
 })
 export class OrderacknowledgementComponent {
-  public modules: Module[] = [ClientSideRowModelModule];
   poForm: FormGroup;
   rowData: any[] = [];
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
-
+ public modules: Module[] = [ClientSideRowModelModule];
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
     { field: 'poType', headerName: 'PO Type' },

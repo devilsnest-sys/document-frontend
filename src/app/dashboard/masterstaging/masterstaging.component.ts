@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environment/environment';
-import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
-
+import { ColDef, Module } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-masterstaging',
@@ -16,7 +16,7 @@ import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
 export class MasterstagingComponent {
   stageForm!: FormGroup;
   isSubmitting = false;
-  public modules: Module[] = [ClientSideRowModelModule];
+   public modules: Module[] = [ClientSideRowModelModule];
   rowData: any[] = [];
 
   columnDefs: ColDef[] = [
@@ -48,14 +48,29 @@ export class MasterstagingComponent {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
     this.http.get<any[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
-      next: (data) => {
-        this.rowData = data;
-        console.log('Stages fetched successfully:', data);
-      },
-      error: (error) => {
-        console.error('Error fetching stages:', error);
-      },
-    });
+    //   next: (data) => {
+    //     // this.rowData = data;
+    //     console.log('Stages fetched successfully:', data);
+
+        
+        
+    //   },
+    //   error: (error) => {
+    //     console.error('Error fetching stages:', error);
+    //   },
+    // });
+    
+    next: (data) => {
+      this.rowData = data.map(item => {
+        const { stageStatuses, ...rest } = item;  
+        return rest;  
+      });
+      console.log('Stages fetched successfully:', this.rowData);
+    },
+    error: (error) => {
+      console.error('Error fetching stages:', error);
+    },
+  });
   }
 
   onSubmit(): void {

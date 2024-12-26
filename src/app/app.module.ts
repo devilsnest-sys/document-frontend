@@ -19,8 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
-import { AgGridModule } from 'ag-grid-angular';
-
+import { AgGridModule } from '@ag-grid-community/angular';
 import { HeaderComponent } from './header/header.component';
 import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
 import { LoginComponent } from './dashboard/login/login.component';

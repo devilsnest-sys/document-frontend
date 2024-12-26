@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
-import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
+import { ColDef, Module } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 
 @Component({
   selector: 'app-additionalfield',
@@ -13,7 +14,7 @@ import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
 export class AdditionalfieldComponent {
   additionalFieldForm!: FormGroup;
   isSubmitting = false;
-  public modules: Module[] = [ClientSideRowModelModule];
+ public modules: Module[] = [ClientSideRowModelModule];
   rowData: any[] = [];
 
   columnDefs: ColDef[] = [

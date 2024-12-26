@@ -3,7 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environment/environment';
-import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
+import { ColDef, Module } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 
 @Component({
   selector: 'app-masterdocument',
@@ -17,7 +18,7 @@ export class MasterdocumentComponent {
   rowData: any[] = [];
   isSubmitting = false;
 
-  public modules: Module[] = [ClientSideRowModelModule];
+   public modules: Module[] = [ClientSideRowModelModule];
 
   columnDefs: ColDef[] = [
     { field: 'id', headerName: 'ID', filter: 'agNumberColumnFilter' },
