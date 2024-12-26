@@ -7,6 +7,7 @@ import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/
 import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
 import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';
 import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
+import { AdditionalfieldComponent } from './dashboard/additionalfield/additionalfield.component';
 
 import { AuthGuard } from './services/auth.guard';
 
@@ -18,6 +19,7 @@ const routes: Routes = [
   { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: 'masterDocument', component: MasterdocumentComponent, canActivate: [AuthGuard] },
   { path: 'masterAddField', component: MasteraddfieldComponent, canActivate: [AuthGuard] },
+  { path: 'additionalField', component: AdditionalfieldComponent, canActivate: [AuthGuard] },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

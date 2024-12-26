@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject  } from 'rxjs';
 import { environment } from '../../environment/environment';
 
@@ -9,7 +9,9 @@ import { environment } from '../../environment/environment';
 export class AuthService {
   private loginUrl = `${environment.apiUrl}/v1/users/login`;
   private vendorLoginUrl = `${environment.apiUrl}/v1/vendorusers/login`;
+  private usersUrl = `${environment.apiUrl}/v1/users`;
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.isLoggedIn()); 
+  
 
   constructor(private http: HttpClient) {}
 
@@ -31,6 +33,15 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('authToken');
   }  
+  
+  getUserId(): Observable<any> {
+    const token = this.getToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : undefined;
+
+    return this.http.get(this.usersUrl, { headers });
+  }
 
   isLoggedIn(): boolean {
     return !!localStorage.getItem('authToken');

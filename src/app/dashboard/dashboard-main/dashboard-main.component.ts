@@ -8,6 +8,6 @@ import { Component } from '@angular/core';
   styleUrl: './dashboard-main.component.css'
 })
 export class DashboardMainComponent {
-  steps = Array(5).fill(0); // Generates an array with 15 steps
+  steps = Array(5).fill(0);
   currentStep = 3;
 }

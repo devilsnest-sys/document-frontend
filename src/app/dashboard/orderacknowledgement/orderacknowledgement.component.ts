@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ColDef, ClientSideRowModelModule, Module } from 'ag-grid-community';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environment/environment';
 
 @Component({
   selector: 'app-orderacknowledgement',
@@ -35,7 +38,7 @@ export class OrderacknowledgementComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
       this.poForm = this.fb.group({
           poDescription: ['', Validators.required],
           poType: ['', Validators.required],
@@ -48,23 +51,83 @@ export class OrderacknowledgementComponent {
       });
   }
 
-  onSubmit(): void {
-      if (this.poForm.valid) {
-          console.log('Form Submitted:', this.poForm.value);
-          this.rowData = [...this.rowData, this.poForm.value];
-          this.poForm.reset();
-      } else {
-          console.log('Form is invalid');
-      }
+  ngOnInit(): void {
+    this.fetchPo();
   }
 
-  onSearchPO(): void {
-    if (this.poSearchText.trim()) {
-      this.filteredRowData = this.rowData.filter(item =>
-        item.poNumber.toLowerCase().includes(this.poSearchText.toLowerCase())
-      );
+  fetchPo(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+      next: (data) => {
+        this.rowData = data;
+        console.log('Stages fetched successfully:', data);
+      },
+      error: (error) => {
+        console.error('Error fetching stages:', error);
+      },
+    });
+  }
+
+  onSubmit(): void {
+    if (this.poForm.valid) {
+      console.log('Form Submitted:', this.poForm.value);
+  
+      const token = localStorage.getItem('authToken');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      const payload = {
+        id: 0, 
+        pO_NO: 0, 
+        poDescription: this.poForm.value.poDescription,
+        poType: this.poForm.value.poType,
+        incoterms: this.poForm.value.incoterms,
+        shipmentDate: this.poForm.value.shipmentDate,
+        proofOfDelivery: this.poForm.value.proofOfDelivery,
+        contactPersonName: this.poForm.value.contactPersonName,
+        contactPersonEmailId: this.poForm.value.contactPersonEmail,
+        alternateEmailId: this.poForm.value.alternateEmailId,
+        createdAt: new Date().toISOString(), 
+        createdBy: 0, 
+        updatedAt: new Date().toISOString(), 
+        updatedBy: 0, 
+        isDeleted: false
+      };
+      this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, payload, { headers }).subscribe({
+        next: (response) => {
+          console.log('PO submitted successfully:', response);
+          this.rowData = [...this.rowData, this.poForm.value];
+          this.poForm.reset();
+        },
+        error: (error) => {
+          console.error('Error submitting PO:', error);
+        },
+      });
     } else {
-      this.filteredRowData = [...this.rowData]; // Reset filter when input is cleared
+      console.log('Form is invalid');
     }
   }
+  
+  onSearchPO(): void {
+    if (this.poSearchText.trim()) {
+      const token = localStorage.getItem('authToken');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      this.http.get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poSearchText.trim()}`, { headers }).subscribe({
+        next: (data) => {
+
+          this.filteredRowData = [data];
+          console.log('PO found:', data);
+        },
+        error: (error) => {
+          console.error('Error fetching PO:', error);
+
+          this.filteredRowData = [];
+        },
+      });
+    } else {
+      this.filteredRowData = [...this.rowData]; 
+    }
+  }
+  
 }

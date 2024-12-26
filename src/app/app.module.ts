@@ -34,6 +34,7 @@ import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/
 import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
 import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';
 import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
+import { AdditionalfieldComponent } from './dashboard/additionalfield/additionalfield.component';
 
 
 @NgModule({
@@ -49,6 +50,7 @@ import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfie
     MasterstagingComponent,
     MasterdocumentComponent,
     MasteraddfieldComponent,
+    AdditionalfieldComponent,
   ],
   imports: [
     BrowserModule,
