@@ -8,7 +8,7 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <!-- Company Name -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>business</mat-icon>
               <mat-label>Company Name</mat-label>
@@ -21,11 +21,11 @@
           </div>
     
           <!-- Mailing Address -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>mail</mat-icon>
               <mat-label>Mailing Address</mat-label>
-              <textarea matInput formControlName="mailingAddress" required></textarea>
+              <textarea matInput formControlName="mailingAddress" rows="1" required></textarea>
               <mat-error
                 *ngIf="registrationForm.get('mailingAddress')?.touched && registrationForm.get('mailingAddress')?.invalid">
                 <small>Mailing Address is required.</small>
@@ -34,7 +34,7 @@
           </div>
     
           <!-- Telephone -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>call</mat-icon>
               <mat-label>Telephone</mat-label>
@@ -47,7 +47,7 @@
           </div>
     
           <!-- Fax -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>print</mat-icon>
               <mat-label>Fax</mat-label>
@@ -56,7 +56,7 @@
           </div>
     
           <!-- Email -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>email</mat-icon>
               <mat-label>Email</mat-label>
@@ -69,7 +69,7 @@
           </div>
     
           <!-- Website -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>public</mat-icon>
               <mat-label>Website</mat-label>
@@ -78,7 +78,7 @@
           </div>
     
           <!-- Point of Contact Name & Title -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>person</mat-icon>
               <mat-label>Point of Contact Name & Title</mat-label>
@@ -91,7 +91,7 @@
           </div>
     
           <!-- Contact Email -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>alternate_email</mat-icon>
               <mat-label>Contact Email</mat-label>
@@ -104,7 +104,7 @@
           </div>
     
           <!-- Contact Phone 1 -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>phone</mat-icon>
               <mat-label>Contact Phone 1</mat-label>
@@ -117,7 +117,7 @@
           </div>
     
           <!-- Contact Phone 2 -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>smartphone</mat-icon>
               <mat-label>Contact Phone 2</mat-label>
@@ -126,7 +126,7 @@
           </div>
     
           <!-- Username -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>account_circle</mat-icon>
               <mat-label>Username</mat-label>
@@ -139,7 +139,7 @@
           </div>
     
           <!-- Password -->
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>lock</mat-icon>
               <mat-label>Password</mat-label>

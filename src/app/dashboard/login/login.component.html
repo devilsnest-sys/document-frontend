@@ -1,47 +1,67 @@
-<div class="login-container mat-elevation-z8">
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <h2 class="title">Login</h2>
-    
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>User Type</mat-label>
-      <mat-select formControlName="userType">
-        <mat-option *ngFor="let type of userTypes" [value]="type.value">
-          {{ type.label }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="loginForm.get('userType')?.errors?.['required']">
-        User Type is required.
-      </mat-error>
-    </mat-form-field>
-    
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Username</mat-label>
-      <input matInput id="username" type="text" formControlName="username" />
-      <mat-error *ngIf="loginForm.get('username')?.errors?.['required']">
-        Username is required.
-      </mat-error>
-    </mat-form-field>
-    
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Password</mat-label>
-      <input matInput id="password" type="password" formControlName="password" />
-      <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">
-        Password is required.
-      </mat-error>
-      <mat-error *ngIf="loginForm.get('password')?.errors?.['minlength']">
-        Password must be at least 6 characters long.
-      </mat-error>
-    </mat-form-field>
-    
-    <div class="text-center">
-      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
-        Login
-      </button>
+<div class="login-container mt-5">
+  <div class="card">
+    <div class="card-header bg-dark text-white">
+      <h3 class="text-center">Login</h3>
     </div>
-  </form>
-  
-  <div class="links">
-    <a mat-button routerLink="/forgot-password">Forgot Password?</a>
-    <a mat-button routerLink="/registration">Register</a>
+    <div class="card-body">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-md-12">
+            <!-- User Type -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>User Type</mat-label>
+              <mat-icon matPrefix>assignment_ind</mat-icon>
+              <mat-select formControlName="userType" required>
+                <mat-option *ngFor="let type of userTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="loginForm.get('userType')?.errors?.['required']">
+                <small>User Type is required.</small>
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-12">
+            <!-- Username -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Username</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
+              <input matInput id="username" type="text" formControlName="username" required />
+              <mat-error *ngIf="loginForm.get('username')?.errors?.['required']">
+                <small>Username is required.</small>
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-12">
+            <!-- Password -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Password</mat-label>
+              <mat-icon matPrefix>lock</mat-icon>
+              <input matInput id="password" type="password" formControlName="password" required />
+              <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">
+                <small>Password is required.</small>
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('password')?.errors?.['minlength']">
+                <small>Password must be at least 6 characters long.</small>
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mt-3">
+          <button mat-raised-button color="accent" type="submit" [disabled]="loginForm.invalid">
+            Login
+          </button>
+        </div>
+      </form>
+
+      <div class="text-center mt-3">
+        <a mat-button routerLink="/forgot-password">Forgot Password?</a>
+        <a mat-button routerLink="/registration">Register</a>
+      </div>
+    </div>
   </div>
 </div>
