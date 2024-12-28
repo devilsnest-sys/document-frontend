@@ -19,6 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 import { AgGridModule } from '@ag-grid-community/angular';
 import { HeaderComponent } from './header/header.component';
 import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
@@ -34,6 +35,9 @@ import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.
 import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';
 import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
 import { AdditionalfieldComponent } from './dashboard/additionalfield/additionalfield.component';
+import { AdditionalfieldselectionComponent } from './dashboard/additionalfieldselection/additionalfieldselection.component';
+import { DocumentselectionComponent } from './dashboard/documentselection/documentselection.component';
+import { VendorRegistrationComponent } from './dashboard/vendor-registration/vendor-registration.component';
 
 
 @NgModule({
@@ -50,6 +54,9 @@ import { AdditionalfieldComponent } from './dashboard/additionalfield/additional
     MasterdocumentComponent,
     MasteraddfieldComponent,
     AdditionalfieldComponent,
+    AdditionalfieldselectionComponent,
+    DocumentselectionComponent,
+    VendorRegistrationComponent,
   ],
   imports: [
     BrowserModule,
@@ -67,7 +74,8 @@ import { AdditionalfieldComponent } from './dashboard/additionalfield/additional
     MatNativeDateModule,
     AgGridModule,
     FormsModule,
-    MatTableModule
+    MatTableModule,
+    MatCardModule
   ],
   providers: [
     provideAnimationsAsync(),

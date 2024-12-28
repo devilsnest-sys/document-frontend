@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-additionalfield',
@@ -80,6 +81,14 @@ export class AdditionalfieldComponent {
           console.log('Additional field created successfully:', response);
           this.additionalFieldForm.reset();
           this.fetchAdditionalFields();
+          Swal.fire({
+            icon: 'success',
+            title: 'Created Successfully:',
+            text: 'Additional field created successfully:',
+            timerProgressBar: true,
+            showConfirmButton: false,
+            timer: 1500,
+          })
         },
         error: (error) => {
           console.error('Error creating additional field:', error);

@@ -8,7 +8,9 @@ import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.
 import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';
 import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
 import { AdditionalfieldComponent } from './dashboard/additionalfield/additionalfield.component';
-
+import { AdditionalfieldselectionComponent } from './dashboard/additionalfieldselection/additionalfieldselection.component';
+import { DocumentselectionComponent } from './dashboard/documentselection/documentselection.component';
+import { VendorRegistrationComponent } from './dashboard/vendor-registration/vendor-registration.component';
 import { AuthGuard } from './services/auth.guard';
 
 const routes: Routes = [
@@ -20,6 +22,9 @@ const routes: Routes = [
   { path: 'masterDocument', component: MasterdocumentComponent, canActivate: [AuthGuard] },
   { path: 'masterAddField', component: MasteraddfieldComponent, canActivate: [AuthGuard] },
   { path: 'additionalField', component: AdditionalfieldComponent, canActivate: [AuthGuard] },
+  { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
+  { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
+  { path: 'vendorRegistration', component: VendorRegistrationComponent, canActivate: [AuthGuard] },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

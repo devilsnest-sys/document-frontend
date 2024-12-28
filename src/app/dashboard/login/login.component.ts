@@ -8,13 +8,13 @@ import Swal from 'sweetalert2';
   selector: 'app-login',
   standalone: false,
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
 })
 export class LoginComponent {
   loginForm: FormGroup;
   userTypes = [
     { value: 'vendor', label: 'Vendor' },
-    { value: 'user', label: 'User' }
+    { value: 'user', label: 'User' },
   ];
 
   constructor(
@@ -25,21 +25,14 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       userType: ['', Validators.required],
       username: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
   onSubmit() {
     if (this.loginForm.valid) {
       const { username, password, userType } = this.loginForm.value;
-  
-      // Determine the appropriate login API endpoint based on the userType
-      const loginApi =
-        userType === 'vendor'
-          ? this.authService.vendorLogin(username, password)
-          : this.authService.login(username, password);
-  
-      loginApi.subscribe({
+      this.authService.login(username, password, userType).subscribe({
         next: (response) => {
           if (response.token) {
             this.authService.setToken(response.token);
@@ -48,7 +41,8 @@ export class LoginComponent {
               title: 'Login Successful',
               text: 'Welcome back!',
               timerProgressBar: true,
-              showConfirmButton: true,
+              showConfirmButton: false,
+              timer: 1500,
             }).then(() => {
               this.router.navigate(['/dashboard']);
             });
@@ -59,6 +53,7 @@ export class LoginComponent {
               text: 'Invalid credentials. Please try again!',
               timerProgressBar: true,
               showConfirmButton: true,
+              timer: 1500,
             });
           }
         },
@@ -69,6 +64,7 @@ export class LoginComponent {
             text: 'Something went wrong. Please try again later!',
             timerProgressBar: true,
             showConfirmButton: true,
+            timer: 1500,
           });
         },
       });
@@ -83,5 +79,4 @@ export class LoginComponent {
       });
     }
   }
-  
 }

@@ -83,6 +83,7 @@ export class MasterstagingComponent {
         id: 0,
         sequence: this.stageForm.value.sequence,
         stageName: this.stageForm.value.stageName,
+        StageStatuses: []
       };
 
       this.http.post(`${environment.apiUrl}/v1/stages`, payload, { headers }).subscribe({
