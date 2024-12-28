@@ -43,7 +43,7 @@ button.toggle-btn {
   color: #fff;
   text-decoration: none;
   display: block;
-  padding: 20px;
+  padding: 10px;
 }
 
 .sidebar nav ul li a:hover {
@@ -74,7 +74,7 @@ button.toggle-btn {
 }
 
 .sidebar ul li .dropdown li a {
-  padding-left: 32px;
+  padding-left: 10px;
 }
 
 /* Styling for the icon */
@@ -84,4 +84,11 @@ button.toggle-btn {
 
 .sidebar ul li a i.fa-chevron-up {
   transform: rotate(180deg);
+}
+.material-icons{
+  font-size: 16px;
+}
+.mat-icon{
+  height: 16px;
+  width: 30px;
 }

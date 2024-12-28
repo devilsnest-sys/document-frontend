@@ -4,22 +4,22 @@
 <div class="sidebar" [class.active]="isSidebarOpen">
     <nav>
         <ul>
-            <li><a routerLink="/dashboard">Dashboard</a></li>
+            <li><a routerLink="/dashboard"><mat-icon>apps</mat-icon>Dashboard</a></li>
             <li>
-                <a href="javascript:void(0)" (click)="toggleDropdown()">Master
+                <a href="javascript:void(0)" (click)="toggleDropdown()"><mat-icon>folder</mat-icon>Master
                     <i class="fa-solid" [class.fa-chevron-down]="isDropdownOpen" [class.fa-chevron-up]="!isDropdownOpen"></i>
                 </a>
                 <ul class="dropdown" [class.open]="isDropdownOpen">
-                    <li><a routerLink="/master">Stage Master</a></li>
-                    <li><a routerLink="/masterDocument">Document Master</a></li>
-                    <li><a routerLink="/additionalField">Additional Field</a></li>
-                    <li><a routerLink="/additionalFieldSelection">Additional Field Selection</a></li>
-                    <li><a routerLink="/documentSelection">Document Selection</a></li>
+                    <li><a routerLink="/master"><mat-icon>folder</mat-icon>Stage Master</a></li>
+                    <li><a routerLink="/masterDocument"><mat-icon>folder_open</mat-icon>Document Master</a></li>
+                    <li><a routerLink="/additionalField"><mat-icon>edit</mat-icon>Additional Field</a></li>
+                    <li><a routerLink="/additionalFieldSelection"> <mat-icon>check_circle</mat-icon>Additional Field Selection</a></li>
+                    <li><a routerLink="/documentSelection"><mat-icon>description</mat-icon>Document Selection</a></li>
                 </ul>
             </li>
-            <li><a routerLink="/orderAcknowledgement">PO Number</a></li>
-            <li><a routerLink="/registration">Registration</a></li>
-            <li><a routerLink="/vendorRegistration">Register Vendor</a></li>
+            <li><a routerLink="/orderAcknowledgement"><mat-icon>check_circle_outline</mat-icon>PO Number</a></li>
+            <li><a routerLink="/registration"><mat-icon>person_add</mat-icon>Registration</a></li>
+            <li><a routerLink="/vendorRegistration"><mat-icon>business</mat-icon>Register Vendor</a></li>
         </ul>
     </nav>
 </div>

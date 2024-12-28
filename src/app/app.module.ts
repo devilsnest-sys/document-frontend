@@ -20,6 +20,11 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatMenuModule } from '@angular/material/menu';
+
 import { AgGridModule } from '@ag-grid-community/angular';
 import { HeaderComponent } from './header/header.component';
 import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
@@ -75,7 +80,11 @@ import { VendorRegistrationComponent } from './dashboard/vendor-registration/ven
     AgGridModule,
     FormsModule,
     MatTableModule,
-    MatCardModule
+    MatCardModule,
+    MatSidenavModule,
+    MatListModule,
+    MatExpansionModule,
+    MatMenuModule
   ],
   providers: [
     provideAnimationsAsync(),
