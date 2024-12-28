@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import { ToastserviceService } from '../../services/toastservice.service';
 
 @Component({
   selector: 'app-masterdocument',
@@ -38,7 +39,8 @@ export class MasterdocumentComponent {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private ToastserviceService: ToastserviceService
   ) {}
 
   ngOnInit(): void {
@@ -95,9 +97,11 @@ export class MasterdocumentComponent {
           console.log('Document Created:', response);
           this.documentTypeForm.reset();
           this.fetchDocumentTypes();
+          this.ToastserviceService.showToast('success', 'Document Created Successfully');
         },
         error: (err) => {
           console.error('Error creating document:', err);
+          this.ToastserviceService.showToast('error', 'Document Creation Failed');
         },
         complete: () => {
           this.isSubmitting = false;

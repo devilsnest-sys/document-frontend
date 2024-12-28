@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl  } from '@angular/f
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environment/environment';
-import Swal from 'sweetalert2';
+import { ToastserviceService } from '../../services/toastservice.service';
 
 @Component({
   selector: 'app-registration',
@@ -16,7 +16,7 @@ export class RegistrationComponent {
   registrationForm!: FormGroup;
   private registrationUrl = `${environment.apiUrl}/v1/users`;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private http: HttpClient, private ToastserviceService: ToastserviceService) {}
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
@@ -44,7 +44,7 @@ export class RegistrationComponent {
       console.log(`Token: ${token}`);
   
       if (!token) {
-        Swal.fire('Error', 'User is not logged in. Please log in first.', 'error');
+        this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
         return;
       }
   
@@ -53,16 +53,16 @@ export class RegistrationComponent {
   
       this.http.post(this.registrationUrl, payload, { headers }).subscribe({
         next: () => {
-          Swal.fire('Success!', 'Registration successful.', 'success');
+          this.ToastserviceService.showToast('success', 'Registration Successful');
           this.registrationForm.reset();
         },
         error: (err) => {
           console.error(err);
-          Swal.fire('Error', 'Failed to register. Please check your authentication.', 'error');
+          this.ToastserviceService.showToast('error', 'Registration Failed');
         },
       });
     } else {
-      Swal.fire('Error', 'Please fill out all required fields correctly.', 'error');
+      this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
     }
   }
   

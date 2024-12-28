@@ -5,6 +5,7 @@ import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 import { AuthService } from '../../services/auth.service';
+import { ToastserviceService } from '../../services/toastservice.service';
 
 @Component({
   selector: 'app-masterstaging',
@@ -33,7 +34,7 @@ export class MasterstagingComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private http: HttpClient, private ToastserviceService: ToastserviceService) {}
 
   ngOnInit(): void {
     this.stageForm = this.fb.group({
@@ -48,18 +49,6 @@ export class MasterstagingComponent {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
     this.http.get<any[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
-    //   next: (data) => {
-    //     // this.rowData = data;
-    //     console.log('Stages fetched successfully:', data);
-
-        
-        
-    //   },
-    //   error: (error) => {
-    //     console.error('Error fetching stages:', error);
-    //   },
-    // });
-    
     next: (data) => {
       this.rowData = data.map(item => {
         const { stageStatuses, ...rest } = item;  
@@ -92,9 +81,10 @@ export class MasterstagingComponent {
           this.stageForm.reset();
           this.stageForm.patchValue({ sequence: 1 });
           this.fetchStages();
+          this.ToastserviceService.showToast('success', 'Stage Created Successfully');
         },
         error: (error) => {
-          console.error('Error saving stage:', error);
+          this.ToastserviceService.showToast('error', 'Stage Creation Failed');
         },
         complete: () => {
           this.isSubmitting = false;

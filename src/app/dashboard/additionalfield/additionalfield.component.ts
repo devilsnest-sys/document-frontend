@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
-import Swal from 'sweetalert2';
+import { ToastserviceService } from '../../services/toastservice.service';
 
 @Component({
   selector: 'app-additionalfield',
@@ -34,7 +34,7 @@ export class AdditionalfieldComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private http: HttpClient, private ToastserviceService: ToastserviceService) {}
 
   ngOnInit(): void {
     this.additionalFieldForm = this.fb.group({
@@ -81,17 +81,10 @@ export class AdditionalfieldComponent {
           console.log('Additional field created successfully:', response);
           this.additionalFieldForm.reset();
           this.fetchAdditionalFields();
-          Swal.fire({
-            icon: 'success',
-            title: 'Created Successfully:',
-            text: 'Additional field created successfully:',
-            timerProgressBar: true,
-            showConfirmButton: false,
-            timer: 1500,
-          })
+          this.ToastserviceService.showToast('success', 'Field Created Successfully');
         },
         error: (error) => {
-          console.error('Error creating additional field:', error);
+          this.ToastserviceService.showToast('error', 'Field Creation Failed');
         },
         complete: () => {
           this.isSubmitting = false;

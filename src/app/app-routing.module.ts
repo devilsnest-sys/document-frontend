@@ -24,7 +24,7 @@ const routes: Routes = [
   { path: 'additionalField', component: AdditionalfieldComponent, canActivate: [AuthGuard] },
   { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
-  { path: 'vendorRegistration', component: VendorRegistrationComponent, canActivate: [AuthGuard] },
+  { path: 'vendorRegistration', component: VendorRegistrationComponent },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

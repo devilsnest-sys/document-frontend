@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import Swal from 'sweetalert2';
+import { ToastserviceService } from '../../services/toastservice.service';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +20,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private ToastserviceService: ToastserviceService
   ) {
     this.loginForm = this.fb.group({
       userType: ['', Validators.required],
@@ -36,47 +37,18 @@ export class LoginComponent {
         next: (response) => {
           if (response.token) {
             this.authService.setToken(response.token);
-            Swal.fire({
-              icon: 'success',
-              title: 'Login Successful',
-              text: 'Welcome back!',
-              timerProgressBar: true,
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              this.router.navigate(['/dashboard']);
-            });
+            this.ToastserviceService.showToast('success', 'Login Successful'); // Show success toast
+            this.router.navigate(['/dashboard']);
           } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Login Failed',
-              text: 'Invalid credentials. Please try again!',
-              timerProgressBar: true,
-              showConfirmButton: true,
-              timer: 1500,
-            });
+            this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
           }
         },
         error: () => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Login Error',
-            text: 'Something went wrong. Please try again later!',
-            timerProgressBar: true,
-            showConfirmButton: true,
-            timer: 1500,
-          });
+          this.ToastserviceService.showToast('error', 'Login Error', 'Something went wrong. Please try again later!');
         },
       });
     } else {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Input',
-        text: 'Please fill out the form correctly before submitting.',
-        timer: 1500,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
+      this.ToastserviceService.showToast('warning', 'Invalid Input', 'Please fill out the form correctly before submitting.');
     }
   }
 }
