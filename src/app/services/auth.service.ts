@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environment/environment';
 
@@ -8,8 +8,8 @@ import { environment } from '../../environment/environment';
 })
 export class AuthService {
   private loginUrl = `${environment.apiUrl}/v1/users/login`;
-  private usersUrl = `${environment.apiUrl}/v1/users`;
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.isLoggedIn());
+  private userNameSubject = new BehaviorSubject<string | null>(this.getUserName());
 
   constructor(private http: HttpClient) {}
 
@@ -18,22 +18,24 @@ export class AuthService {
     return this.http.post(this.loginUrl, payload);
   }
 
-  setToken(token: string): void {
+  setToken(token: string, userName: string, id: number): void {
     localStorage.setItem('authToken', token);
+    localStorage.setItem('userName', userName);
+    localStorage.setItem('userId', id.toString());
     this.isLoggedInSubject.next(true);
+    this.userNameSubject.next(userName);
   }
 
   getToken(): string | null {
     return localStorage.getItem('authToken');
   }
 
-  getUserId(): Observable<any> {
-    const token = this.getToken();
-    const headers = token
-      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-      : undefined;
+  getUserName(): string | null {
+    return localStorage.getItem('userName');
+  }
 
-    return this.http.get(this.usersUrl, { headers });
+  getUserId(): string | null {
+    return localStorage.getItem('userId');
   }
 
   isLoggedIn(): boolean {
@@ -42,10 +44,17 @@ export class AuthService {
 
   clearToken(): void {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
     this.isLoggedInSubject.next(false);
+    this.userNameSubject.next(null);
   }
 
   getLoginState(): Observable<boolean> {
     return this.isLoggedInSubject.asObservable();
+  }
+
+  getUserNameState(): Observable<string | null> {
+    return this.userNameSubject.asObservable();
   }
 }

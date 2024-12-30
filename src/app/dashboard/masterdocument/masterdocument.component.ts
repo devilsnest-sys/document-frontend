@@ -16,14 +16,14 @@ import Swal from 'sweetalert2';
 })
 export class MasterdocumentComponent {
   documentTypeForm!: FormGroup;
-  userId: string = '1';
+  userId: string | null | undefined;
   rowData: any[] = [];
   isSubmitting = false;
 
   public modules: Module[] = [ClientSideRowModelModule];
 
   columnDefs: ColDef[] = [
-    { field: 'id', headerName: 'ID', filter: 'agNumberColumnFilter' },
+    // { field: 'id', headerName: 'ID', filter: 'agNumberColumnFilter' },
     { field: 'sno', headerName: 'S No', valueGetter: 'node.rowIndex + 1' },
     {
       field: 'documentName',
@@ -82,16 +82,8 @@ export class MasterdocumentComponent {
     this.documentTypeForm = this.fb.group({
       documentName: ['', [Validators.required, Validators.minLength(3)]],
     });
-
-    this.authService.getUserId().subscribe(
-      (response) => {
-        this.userId = response.id; // Assuming the API response contains an `id` field
-      },
-      (error) => {
-        console.error('Failed to fetch user ID:', error);
-      }
-    );
-
+    this.userId = this.authService.getUserId();
+    console.log(this.userId);
     this.fetchDocumentTypes();
   }
 

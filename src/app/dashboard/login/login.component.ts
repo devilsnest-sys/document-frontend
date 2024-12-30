@@ -36,8 +36,8 @@ export class LoginComponent {
       this.authService.login(username, password, userType).subscribe({
         next: (response) => {
           if (response.token) {
-            this.authService.setToken(response.token);
-            this.ToastserviceService.showToast('success', 'Login Successful'); // Show success toast
+            this.authService.setToken(response.token, response.userName, response.id);
+            this.ToastserviceService.showToast('success', 'Login Successful');
             this.router.navigate(['/dashboard']);
           } else {
             this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
@@ -50,5 +50,5 @@ export class LoginComponent {
     } else {
       this.ToastserviceService.showToast('warning', 'Invalid Input', 'Please fill out the form correctly before submitting.');
     }
-  }
+  }  
 }

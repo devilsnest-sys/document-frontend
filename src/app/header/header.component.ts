@@ -13,7 +13,9 @@ export class HeaderComponent {
   logoUrl!: string;
   headerTitle!: string;
   isLoggedIn!: boolean;
+  userName: string | null = null;
   private loginStateSubscription!: Subscription;
+  private userNameSubscription!: Subscription;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -23,15 +25,19 @@ export class HeaderComponent {
     this.loginStateSubscription = this.authService.getLoginState().subscribe(
       (loggedIn) => {
         this.isLoggedIn = loggedIn;
-        // console.log('Login state changed:', loggedIn);
+      }
+    );
+
+    this.userNameSubscription = this.authService.getUserNameState().subscribe(
+      (name) => {
+        this.userName = name;
       }
     );
   }
 
   ngOnDestroy(): void {
-    if (this.loginStateSubscription) {
-      this.loginStateSubscription.unsubscribe();
-    }
+    this.loginStateSubscription.unsubscribe();
+    this.userNameSubscription.unsubscribe();
   }
 
   login(): void {

@@ -1,13 +1,13 @@
 <div class="title-header-bar">
-    <div class="logo">
-      <img [src]="logoUrl" alt="Logo">
-    </div>
-    <div class="text-center">
-      <h1>{{ headerTitle }}</h1>
-    </div>
-    <div class="login-signup-logout">
-      <button *ngIf="!isLoggedIn" (click)="login()" class="btn btn-success">Login</button>
-      <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-danger">Logout</button>
-    </div>
+  <div class="logo">
+    <img [src]="logoUrl" alt="Logo">
   </div>
-  
+  <div class="text-center">
+    <h1>{{ headerTitle }}</h1>
+  </div>
+  <div class="login-signup-logout">
+    <span *ngIf="isLoggedIn" class="username">Welcome, {{ userName }}</span>
+    <button *ngIf="!isLoggedIn" (click)="login()" class="btn btn-success">Login</button>
+    <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-danger">Logout</button>
+  </div>
+</div>
