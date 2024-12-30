@@ -10,8 +10,7 @@
       </div>
       <div style="width: 100%;" class="ag-theme-alpine">
         <ag-grid-angular style="width: 100%; height: 100%;" class="ag-theme-alpine" [modules]="modules"
-          [rowData]="filteredRowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef"
-          [domLayout]="'autoHeight'">
+          [rowData]="filteredRowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'autoHeight'">
         </ag-grid-angular>
       </div>
     </div>
@@ -29,126 +28,109 @@
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>PO Description</mat-label>
+              <mat-icon matPrefix>description</mat-icon>
               <input matInput id="poDescription" formControlName="poDescription" required />
               <mat-error *ngIf="poForm.get('poDescription')?.touched && poForm.get('poDescription')?.invalid">
-                <span *ngIf="poForm.get('poDescription')?.hasError('required')">
-                  PO Description is required.
-                </span>
+                <span *ngIf="poForm.get('poDescription')?.hasError('required')">PO Description is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- PO Type -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>PO Type</mat-label>
+              <mat-icon matPrefix>list</mat-icon>
               <mat-select id="poType" formControlName="poType" required>
                 <mat-option value="" disabled>Select PO Type</mat-option>
-                <mat-option value="standard">Standard</mat-option>
-                <mat-option value="blanket">Blanket</mat-option>
-                <mat-option value="contract">Contract</mat-option>
+                <mat-option value="0">Standard</mat-option>
+                <mat-option value="1">Blanket</mat-option>
+                <mat-option value="2">Contract</mat-option>
               </mat-select>
               <mat-error *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid">
-                <span *ngIf="poForm.get('poType')?.hasError('required')">
-                  PO Type is required.
-                </span>
+                <span *ngIf="poForm.get('poType')?.hasError('required')">PO Type is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- Incoterms -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Incoterms</mat-label>
+              <mat-icon matPrefix>sync</mat-icon>
               <input matInput id="incoterms" formControlName="incoterms" required />
               <mat-error *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid">
-                <span *ngIf="poForm.get('incoterms')?.hasError('required')">
-                  Incoterms are required.
-                </span>
+                <span *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- Shipment Date -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Shipment Date</mat-label>
+              <mat-icon matPrefix>calendar_today</mat-icon>
               <input matInput [matDatepicker]="picker" id="shipmentDate" formControlName="shipmentDate" required />
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
               <mat-error *ngIf="poForm.get('shipmentDate')?.touched && poForm.get('shipmentDate')?.invalid">
-                <span *ngIf="poForm.get('shipmentDate')?.hasError('required')">
-                  Shipment Date is required.
-                </span>
+                <span *ngIf="poForm.get('shipmentDate')?.hasError('required')">Shipment Date is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- Proof of Delivery -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Proof of Delivery</mat-label>
+              <mat-icon matPrefix>receipt</mat-icon>
               <input matInput id="proofOfDelivery" formControlName="proofOfDelivery" required />
               <mat-error *ngIf="poForm.get('proofOfDelivery')?.touched && poForm.get('proofOfDelivery')?.invalid">
-                <span *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">
-                  Proof of Delivery is required.
-                </span>
+                <span *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">Proof of Delivery is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- Contact Person Name -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Contact Person Name</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
               <input matInput id="contactPersonName" formControlName="contactPersonName" required />
               <mat-error *ngIf="poForm.get('contactPersonName')?.touched && poForm.get('contactPersonName')?.invalid">
-                <span *ngIf="poForm.get('contactPersonName')?.hasError('required')">
-                  Contact Person Name is required.
-                </span>
+                <span *ngIf="poForm.get('contactPersonName')?.hasError('required')">Contact Person Name is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
+      
           <!-- Contact Person Email -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Contact Person Email</mat-label>
-              <input matInput type="email" id="contactPersonEmail" formControlName="contactPersonEmail" required />
-              <mat-error *ngIf="poForm.get('contactPersonEmail')?.touched && poForm.get('contactPersonEmail')?.invalid">
-                <span *ngIf="poForm.get('contactPersonEmail')?.hasError('required')">
-                  Contact Person Email is required.
-                </span>
-                <span *ngIf="poForm.get('contactPersonEmail')?.hasError('email')">
-                  Enter a valid email.
-                </span>
+              <mat-icon matPrefix>email</mat-icon>
+              <input matInput id="contactPersonEmailId" formControlName="contactPersonEmailId" required />
+              <mat-error *ngIf="poForm.get('contactPersonEmailId')?.touched && poForm.get('contactPersonEmailId')?.invalid">
+                <span *ngIf="poForm.get('contactPersonEmailId')?.hasError('required')">Valid email is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
-
-          <!-- Alternate Email ID -->
+      
+          <!-- Alternate Email -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Alternate Email ID</mat-label>
-              <input matInput type="email" id="alternateEmailId" formControlName="alternateEmailId" />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+              <input matInput id="alternateEmailId" formControlName="alternateEmailId" />
               <mat-error *ngIf="poForm.get('alternateEmailId')?.touched && poForm.get('alternateEmailId')?.invalid">
-                <span *ngIf="poForm.get('alternateEmailId')?.hasError('email')">
-                  Enter a valid email.
-                </span>
+                <span *ngIf="poForm.get('alternateEmailId')?.hasError('email')">Valid email is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
         </div>
-
-        <!-- Submit Button -->
-        <div class="row mt-4">
-          <div class="col-lg-12 text-center">
-            <button mat-raised-button color="primary" type="submit" [disabled]="poForm.invalid">
-              Submit
-            </button>
-          </div>
-        </div>
+      
+        <button mat-raised-button color="primary" type="submit">Submit</button>
       </form>
+      
     </div>
   </div>
 </div>

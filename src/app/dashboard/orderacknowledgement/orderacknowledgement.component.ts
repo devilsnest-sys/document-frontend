@@ -17,7 +17,7 @@ export class OrderacknowledgementComponent {
   rowData: any[] = [];
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
- public modules: Module[] = [ClientSideRowModelModule];
+  public modules: Module[] = [ClientSideRowModelModule];
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
     { field: 'poType', headerName: 'PO Type' },
@@ -38,16 +38,16 @@ export class OrderacknowledgementComponent {
   };
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
-      this.poForm = this.fb.group({
-          poDescription: ['', Validators.required],
-          poType: ['', Validators.required],
-          incoterms: ['', Validators.required],
-          shipmentDate: ['', Validators.required],
-          proofOfDelivery: ['', Validators.required],
-          contactPersonName: ['', Validators.required],
-          contactPersonEmail: ['', [Validators.required, Validators.email]],
-          alternateEmailId: ['', Validators.email],
-      });
+    this.poForm = this.fb.group({
+      poDescription: ['', Validators.required],
+      poType: ['', Validators.required],
+      incoterms: ['', Validators.required],
+      shipmentDate: ['', Validators.required],
+      proofOfDelivery: ['', Validators.required],
+      contactPersonName: ['', Validators.required],
+      contactPersonEmailId: ['', [Validators.required, Validators.email]],
+      alternateEmailId: ['', Validators.email],
+    });
   }
 
   ngOnInit(): void {
@@ -57,46 +57,53 @@ export class OrderacknowledgementComponent {
   fetchPo(): void {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
+  
     this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
       next: (data) => {
-        this.rowData = data;
-        console.log('Stages fetched successfully:', data);
+        this.rowData = data.map(item => ({
+          ...item,
+          shipmentDate: new Date(item.shipmentDate).toLocaleDateString(), 
+          createdAt: new Date(item.createdAt).toLocaleDateString(),
+          updatedAt: new Date(item.updatedAt).toLocaleDateString()
+        }));
+  
+        this.filteredRowData = this.rowData;
       },
       error: (error) => {
         console.error('Error fetching stages:', error);
       },
     });
   }
+  
 
   onSubmit(): void {
     if (this.poForm.valid) {
-      console.log('Form Submitted:', this.poForm.value);
-  
       const token = localStorage.getItem('authToken');
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
       const payload = {
-        id: 0, 
-        pO_NO: 0, 
+        id: 0,
+        pO_NO: 0,
         poDescription: this.poForm.value.poDescription,
-        poType: this.poForm.value.poType,
-        incoterms: this.poForm.value.incoterms,
+        poType: parseInt(this.poForm.value.poType, 10),
+        incoterms: parseInt(this.poForm.value.incoterms, 10),
         shipmentDate: this.poForm.value.shipmentDate,
         proofOfDelivery: this.poForm.value.proofOfDelivery,
         contactPersonName: this.poForm.value.contactPersonName,
-        contactPersonEmailId: this.poForm.value.contactPersonEmail,
+        contactPersonEmailId: this.poForm.value.contactPersonEmailId,
         alternateEmailId: this.poForm.value.alternateEmailId,
-        createdAt: new Date().toISOString(), 
-        createdBy: 0, 
-        updatedAt: new Date().toISOString(), 
-        updatedBy: 0, 
-        isDeleted: false
+        createdAt: new Date().toISOString(),
+        createdBy: 0,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 0,
+        isDeleted: false,
+        vendorId: 0,
+        stageStatuses: [],
       };
+
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, payload, { headers }).subscribe({
         next: (response) => {
           console.log('PO submitted successfully:', response);
-          this.rowData = [...this.rowData, this.poForm.value];
           this.poForm.reset();
         },
         error: (error) => {

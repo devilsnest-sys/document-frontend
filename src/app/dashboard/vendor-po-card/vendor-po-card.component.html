@@ -1,0 +1,46 @@
+<div class="container mt-5">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h3 class="text-center">Vendor and Purchase Order Selection</h3>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="vendorPoForm">
+          <div class="row">
+            <!-- Vendor Dropdown -->
+            <div class="col-md-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Select Vendor</mat-label>
+                <mat-select formControlName="vendor" (selectionChange)="onVendorChange($event.value)">
+                  <mat-option *ngFor="let vendor of vendors" [value]="vendor.id">
+                    {{ vendor.companyName }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+  
+            <!-- PO Dropdown -->
+            <div class="col-md-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Select Purchase Order</mat-label>
+                <mat-select formControlName="po" [disabled]="!vendorPoForm.get('vendor')?.value">
+                  <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
+                    {{ po.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+  
+          <div class="text-center mt-4">
+            <button mat-raised-button color="primary" type="submit" [disabled]="vendorPoForm.invalid">
+              Submit
+            </button>
+            <button mat-raised-button color="warn" type="button" (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  

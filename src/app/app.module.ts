@@ -43,6 +43,7 @@ import { AdditionalfieldComponent } from './dashboard/additionalfield/additional
 import { AdditionalfieldselectionComponent } from './dashboard/additionalfieldselection/additionalfieldselection.component';
 import { DocumentselectionComponent } from './dashboard/documentselection/documentselection.component';
 import { VendorRegistrationComponent } from './dashboard/vendor-registration/vendor-registration.component';
+import { VendorPoCardComponent } from './dashboard/vendor-po-card/vendor-po-card.component';
 
 
 @NgModule({
@@ -62,6 +63,7 @@ import { VendorRegistrationComponent } from './dashboard/vendor-registration/ven
     AdditionalfieldselectionComponent,
     DocumentselectionComponent,
     VendorRegistrationComponent,
+    VendorPoCardComponent,
   ],
   imports: [
     BrowserModule,
