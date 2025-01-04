@@ -28,6 +28,7 @@ export class RegistrationComponent {
       role: ['', Validators.required],
       designation: ['', Validators.required],
       companyId: ['', Validators.required],
+      userType: "user"
     });
   }
 

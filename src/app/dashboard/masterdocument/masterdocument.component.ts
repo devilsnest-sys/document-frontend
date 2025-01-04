@@ -83,7 +83,7 @@ export class MasterdocumentComponent {
       documentName: ['', [Validators.required, Validators.minLength(3)]],
     });
     this.userId = this.authService.getUserId();
-    console.log(this.userId);
+    // console.log(this.userId);
     this.fetchDocumentTypes();
   }
 

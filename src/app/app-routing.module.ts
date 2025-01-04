@@ -15,7 +15,7 @@ import { AuthGuard } from './services/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'registration', component: RegistrationComponent, canActivate: [AuthGuard] },
+  { path: 'registration', component: RegistrationComponent },
   { path: 'dashboard', component: DashboardMainComponent, canActivate: [AuthGuard] },
   { path: 'orderAcknowledgement', component: OrderacknowledgementComponent, canActivate: [AuthGuard] },
   { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
@@ -24,7 +24,7 @@ const routes: Routes = [
   { path: 'additionalField', component: AdditionalfieldComponent, canActivate: [AuthGuard] },
   { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
-  { path: 'vendorRegistration', component: VendorRegistrationComponent, canActivate: [AuthGuard] },
+  { path: 'vendorRegistration', component: VendorRegistrationComponent},
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

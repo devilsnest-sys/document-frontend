@@ -24,7 +24,7 @@
                 <mat-label>Select Purchase Order</mat-label>
                 <mat-select formControlName="po" [disabled]="!vendorPoForm.get('vendor')?.value">
                   <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
-                    {{ po.name }}
+                    {{ po.pO_NO }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>

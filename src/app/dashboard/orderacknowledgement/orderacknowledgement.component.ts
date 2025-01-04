@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 export class OrderacknowledgementComponent {
   poForm: FormGroup;
   rowData: any[] = [];
+  vendorId: string | null = null;
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
   public modules: Module[] = [ClientSideRowModelModule];
@@ -37,7 +38,7 @@ export class OrderacknowledgementComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private authService: AuthService) {
     this.poForm = this.fb.group({
       poDescription: ['', Validators.required],
       poType: ['', Validators.required],
@@ -52,6 +53,7 @@ export class OrderacknowledgementComponent {
 
   ngOnInit(): void {
     this.fetchPo();
+    this.vendorId = this.authService.getUserId();
   }
 
   fetchPo(): void {
@@ -97,7 +99,7 @@ export class OrderacknowledgementComponent {
         updatedAt: new Date().toISOString(),
         updatedBy: 0,
         isDeleted: false,
-        vendorId: 0,
+        vendorId: this.vendorId,
         stageStatuses: [],
       };
 

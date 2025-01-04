@@ -1,19 +1,22 @@
-section.daashboard-container {
+/* General Styles */
+section.dashboard-container {
     position: relative;
     top: 0;
     height: 100vh;
     overflow-x: hidden;
 }
+
 main.dashboard-content {
     width: calc(100% - 250px);
     margin: 0 0 0 auto;
-    
     height: 100%;
+    margin-bottom: 200px;
 }
-.dashboard-main{
+
+.dashboard-main {
     height: 100%;
     background: rgb(238, 231, 231);
-    margin-top: 70px; 
+    margin-top: 70px;
 }
 
 /* Loader Container Styles */
@@ -29,15 +32,54 @@ main.dashboard-content {
     align-items: center;
     z-index: 9999;
 }
-.loader-container img{
+.loader-container img {
     width: 200px;
 }
+
+/* Dashboard Header */
 .dashboard-header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1000; 
-    background-color: white; 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    z-index: 1000;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    main.dashboard-content {
+        width: 100%; /* Full width for smaller screens */
+        margin: 0; /* Remove auto margin */
+    }
+
+    .dashboard-main {
+        margin-top: 60px; /* Adjust margin for smaller screens */
+    }
+
+    .dashboard-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@media (max-width: 480px) {
+    .loader-container img {
+        width: 150px; /* Smaller loader for very small screens */
+    }
+
+    .dashboard-main {
+        margin-top: 50px; /* Further adjust margin */
+    }
+
+    .dashboard-header {
+        font-size: 14px; /* Adjust font size for smaller screens */
+        padding: 10px; /* Add some padding for smaller devices */
+    }
 }
