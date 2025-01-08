@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { environment } from '../../../environment/environment';
+import { environment } from '../../../../environment/environment';
 
 interface DocumentTypeRow {
   id: number;
