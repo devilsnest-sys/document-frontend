@@ -26,15 +26,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 
 import { AgGridModule } from '@ag-grid-community/angular';
-import { HeaderComponent } from './header/header.component';
-import { SidenavbarComponent } from './sidenavbar/sidenavbar.component';
+import { HeaderComponent } from './shared/header/header.component';
+import { SidenavbarComponent } from './shared/sidenavbar/sidenavbar.component';
 import { LoginComponent } from './dashboard/login/login.component';
 import { RegistrationComponent } from './dashboard/registration/registration.component';
 import { DashboardMainComponent } from './dashboard/dashboard-main/dashboard-main.component';
 
 import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
-import { LoaderInterceptor } from './services/loader.interceptor';
-import { FooterComponent } from './footer/footer.component';
+import { LoaderInterceptor } from './core/services/loader.interceptor';
+import { FooterComponent } from './shared/footer/footer.component';
 import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/orderacknowledgement.component';
 import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
 import { MasterdocumentComponent } from './dashboard/masterdocument/masterdocument.component';

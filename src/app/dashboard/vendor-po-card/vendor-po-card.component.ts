@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
-import { ToastserviceService } from '../../services/toastservice.service';
+import { ToastserviceService } from '../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 
 @Component({

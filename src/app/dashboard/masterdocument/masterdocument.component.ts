@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environment/environment';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ToastserviceService } from '../../services/toastservice.service';
+import { ToastserviceService } from '../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 
 @Component({

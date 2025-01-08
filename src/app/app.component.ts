@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
-import { LoaderService } from './services/loader-service.service';
+import { LoaderService } from './core/services/loader-service.service';
 
 @Component({
   selector: 'app-root',

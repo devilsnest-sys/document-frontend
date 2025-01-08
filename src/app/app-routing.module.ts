@@ -11,7 +11,7 @@ import { AdditionalfieldComponent } from './dashboard/additionalfield/additional
 import { AdditionalfieldselectionComponent } from './dashboard/additionalfieldselection/additionalfieldselection.component';
 import { DocumentselectionComponent } from './dashboard/documentselection/documentselection.component';
 import { VendorRegistrationComponent } from './dashboard/vendor-registration/vendor-registration.component';
-import { AuthGuard } from './services/auth.guard';
+import { AuthGuard } from './core/services/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
