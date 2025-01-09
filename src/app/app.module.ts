@@ -35,8 +35,8 @@ import { DashboardMainComponent } from './features/dashboard/dashboard-main/dash
 import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { LoaderInterceptor } from './core/services/loader.interceptor';
 import { FooterComponent } from './shared/footer/footer.component';
-import { OrderacknowledgementComponent } from './dashboard/orderacknowledgement/orderacknowledgement.component';
-import { MasterstagingComponent } from './dashboard/masterstaging/masterstaging.component';
+import { OrderacknowledgementComponent } from './features/dashboard/orderacknowledgement/orderacknowledgement.component';
+import { MasterstagingComponent } from './features/dashboard/masterstaging/masterstaging.component';
 import { MasterdocumentComponent } from './features/dashboard/masterdocument/masterdocument.component';
 import { MasteraddfieldComponent } from './dashboard/masteraddfield/masteraddfield.component';
 import { AdditionalfieldComponent } from './features/dashboard/additionalfield/additionalfield.component';

@@ -21,7 +21,7 @@ export class HeaderComponent {
 
   ngOnInit(): void {
     this.logoUrl = 'assets/images/envato-logo-small.svg';
-    this.headerTitle = 'Document Dashboard';
+    this.headerTitle = 'Post Order Activity';
     this.loginStateSubscription = this.authService.getLoginState().subscribe(
       (loggedIn) => {
         this.isLoggedIn = loggedIn;

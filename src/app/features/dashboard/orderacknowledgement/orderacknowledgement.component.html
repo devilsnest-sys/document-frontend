@@ -1,13 +1,13 @@
 <div class="container mt-5 mb-5">
   <div class="row">
     <div class="col-lg-12">
-      <div class="srch-tab">
-        <mat-form-field class="example-full-width" appearance="outline">
+      <!-- <div class="srch-tab"> -->
+        <!-- <mat-form-field class="example-full-width" appearance="outline">
           <mat-label>Search by PO Number</mat-label>
           <input matInput type="text" [(ngModel)]="poSearchText" (keyup.enter)="onSearchPO()" />
-        </mat-form-field>
-        <button mat-raised-button color="primary" class="search-button" (click)="onSearchPO()">Search</button>
-      </div>
+        </mat-form-field> -->
+        <!-- <button mat-raised-button color="primary" class="search-button" (click)="onSearchPO()">Search</button> -->
+      <!-- </div> -->
       <div style="width: 100%;" class="ag-theme-alpine">
         <ag-grid-angular style="width: 100%; height: 100%;" class="ag-theme-alpine" [modules]="modules"
           [rowData]="filteredRowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'autoHeight'">
@@ -65,31 +65,33 @@
             </mat-form-field>
           </div>
       
-          <!-- Shipment Date -->
-          <div class="col-lg-6">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Shipment Date</mat-label>
-              <mat-icon matPrefix>calendar_today</mat-icon>
-              <input matInput [matDatepicker]="picker" id="shipmentDate" formControlName="shipmentDate" required />
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-              <mat-error *ngIf="poForm.get('shipmentDate')?.touched && poForm.get('shipmentDate')?.invalid">
-                <span *ngIf="poForm.get('shipmentDate')?.hasError('required')">Shipment Date is required.</span>
-              </mat-error>
-            </mat-form-field>
-          </div>
-      
-          <!-- Proof of Delivery -->
-          <div class="col-lg-6">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Proof of Delivery</mat-label>
-              <mat-icon matPrefix>receipt</mat-icon>
-              <input matInput id="proofOfDelivery" formControlName="proofOfDelivery" required />
-              <mat-error *ngIf="poForm.get('proofOfDelivery')?.touched && poForm.get('proofOfDelivery')?.invalid">
-                <span *ngIf="poForm.get('proofOfDelivery')?.hasError('required')">Proof of Delivery is required.</span>
-              </mat-error>
-            </mat-form-field>
-          </div>
+              <!-- Contractual Delivery Date -->
+        <div class="col-lg-6">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Contractual Delivery Date</mat-label>
+            <mat-icon matPrefix>calendar_today</mat-icon>
+            <input matInput [matDatepicker]="contractualDatePicker" id="contractualDeliveryDate" formControlName="contractualDeliveryDate" required />
+            <mat-datepicker-toggle matSuffix [for]="contractualDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #contractualDatePicker></mat-datepicker>
+            <mat-error *ngIf="poForm.get('contractualDeliveryDate')?.touched && poForm.get('contractualDeliveryDate')?.invalid">
+              <span *ngIf="poForm.get('contractualDeliveryDate')?.hasError('required')">Contractual Delivery Date is required.</span>
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Actual Delivery Date -->
+        <div class="col-lg-6">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Actual Delivery Date</mat-label>
+            <mat-icon matPrefix>receipt</mat-icon>
+            <input matInput [matDatepicker]="actualDatePicker" id="actualDeliveryDate" formControlName="actualDeliveryDate" required />
+            <mat-datepicker-toggle matSuffix [for]="actualDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #actualDatePicker></mat-datepicker>
+            <mat-error *ngIf="poForm.get('actualDeliveryDate')?.touched && poForm.get('actualDeliveryDate')?.invalid">
+              <span *ngIf="poForm.get('actualDeliveryDate')?.hasError('required')">Actual Delivery Date is required.</span>
+            </mat-error>
+          </mat-form-field>
+        </div>
       
           <!-- Contact Person Name -->
           <div class="col-lg-6">
@@ -118,16 +120,33 @@
           <!-- Alternate Email -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Alternate Email ID</mat-label>
-              <mat-icon matPrefix>alternate_email</mat-icon>
-              <input matInput id="alternateEmailId" formControlName="alternateEmailId" />
-              <mat-error *ngIf="poForm.get('alternateEmailId')?.touched && poForm.get('alternateEmailId')?.invalid">
-                <span *ngIf="poForm.get('alternateEmailId')?.hasError('email')">Valid email is required.</span>
+              <mat-label>Contact Number</mat-label>
+              <mat-icon matPrefix>phone</mat-icon>
+              <input matInput id="contactNumber" formControlName="contactNumber" required />
+              <mat-error *ngIf="poForm.get('contactNumber')?.touched && poForm.get('contactNumber')?.invalid">
+                <span *ngIf="poForm.get('contactNumber')?.hasError('required')">Contact Number is required.</span>
               </mat-error>
             </mat-form-field>
           </div>
+
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>PO Number</mat-label>
+              <mat-icon matPrefix>format_list_numbered</mat-icon>
+              <input matInput id="poNo" formControlName="poNo" required />
+              <mat-error *ngIf="poForm.get('poNo')?.touched && poForm.get('poNo')?.invalid">
+                <span *ngIf="poForm.get('poNo')?.hasError('required')">PO Number is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
+  
+          <div class="col-lg-6">
+            <mat-icon>upload</mat-icon>
+              <input type="file" (change)="onFileSelected($event)" />
+          </div>
         </div>
-      
+        
+        <!-- Upload File -->
         <button mat-raised-button color="primary" type="submit">Submit</button>
       </form>
       
