@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl  } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../core/services/auth.service';
-import { environment } from '../../../environment/environment';
+import { VendorService } from './vendor-registration.service';
+import { ToastserviceService } from '../../core/services/toastservice.service';
 
 @Component({
   selector: 'app-vendor-registration',
@@ -13,10 +12,9 @@ import { environment } from '../../../environment/environment';
 })
 export class VendorRegistrationComponent {
   registrationForm!: FormGroup;
-  private registrationUrl = `${environment.apiUrl}/v1/vendors`;
   isSubmitting = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private vendorService: VendorService, private toastservice : ToastserviceService) {}
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
@@ -39,29 +37,24 @@ export class VendorRegistrationComponent {
 
   onSubmit(): void {
     if (this.registrationForm.valid) {
-      const token = localStorage.getItem('authToken');
-      console.log(`Token: ${token}`);
-      
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
       this.isSubmitting = true;
 
-      this.http.post(this.registrationUrl, this.registrationForm.value, { headers }).subscribe(
+      this.vendorService.registerVendor(this.registrationForm.value).subscribe(
         (response) => {
           console.log('Vendor registered successfully:', response);
           this.isSubmitting = false;
-          alert('Vendor registered successfully!');
+          this.toastservice.showToast('success', 'Registration Successful');
           this.registrationForm.reset();
         },
         (error) => {
           console.error('Error registering vendor:', error);
           this.isSubmitting = false;
-          alert('Error occurred during registration. Please try again.');
+          this.toastservice.showToast('error', 'Registration Failed');
         }
       );
     } else {
       console.log('Form is invalid');
-      alert('Please fill in all required fields correctly.');
+      this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
     }
   }
 }
