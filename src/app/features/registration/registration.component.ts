@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl  } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AuthService } from '../../core/services/auth.service';
-import { environment } from '../../../environment/environment';
+import { RegistrationService } from './registration.service';
 import { ToastserviceService } from '../../core/services/toastservice.service';
 
 @Component({
@@ -14,9 +12,8 @@ import { ToastserviceService } from '../../core/services/toastservice.service';
 })
 export class RegistrationComponent {
   registrationForm!: FormGroup;
-  private registrationUrl = `${environment.apiUrl}/v1/users`;
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private ToastserviceService: ToastserviceService) {}
+  constructor(private fb: FormBuilder, private toastservice: ToastserviceService, private registrationService: RegistrationService) {}
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
@@ -42,28 +39,24 @@ export class RegistrationComponent {
   onSubmit(): void {
     if (this.registrationForm.valid) {
       const token = localStorage.getItem('authToken');
-      console.log(`Token: ${token}`);
-  
       if (!token) {
-        this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
+        this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
         return;
       }
-  
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       const payload = this.registrationForm.value;
   
-      this.http.post(this.registrationUrl, payload, { headers }).subscribe({
+      this.registrationService.registerUser(payload, token).subscribe({
         next: () => {
-          this.ToastserviceService.showToast('success', 'Registration Successful');
+          this.toastservice.showToast('success', 'Registration Successful');
           this.registrationForm.reset();
         },
         error: (err) => {
           console.error(err);
-          this.ToastserviceService.showToast('error', 'Registration Failed');
+          this.toastservice.showToast('error', 'Registration Failed');
         },
       });
     } else {
-      this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
+      this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
     }
   }
   
