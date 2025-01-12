@@ -1,0 +1,67 @@
+<div class="container mt-5">
+    <h2 class="text-center">Purchase Order Details</h2>
+    <div *ngIf="isLoading" class="text-center">
+      <!-- <mat-spinner></mat-spinner> -->
+    </div>
+  
+    <table *ngIf="!isLoading" mat-table [dataSource]="poData" class="mat-elevation-z8">
+  
+      <!-- PO Number -->
+      <ng-container matColumnDef="pO_NO">
+        <th mat-header-cell *matHeaderCellDef> PO Number </th>
+        <td mat-cell *matCellDef="let element"> {{ element.pO_NO }} </td>
+      </ng-container>
+  
+      <!-- PO Description -->
+      <ng-container matColumnDef="poDescription">
+        <th mat-header-cell *matHeaderCellDef> Description </th>
+        <td mat-cell *matCellDef="let element"> {{ element.poDescription }} </td>
+      </ng-container>
+  
+      <!-- Actual Delivery Date -->
+      <ng-container matColumnDef="actualDeliveryDate">
+        <th mat-header-cell *matHeaderCellDef> Actual Delivery Date </th>
+        <td mat-cell *matCellDef="let element"> {{ element.actualDeliveryDate | date }} </td>
+      </ng-container>
+  
+      <!-- Contractual Delivery Date -->
+      <ng-container matColumnDef="contractualDeliveryDate">
+        <th mat-header-cell *matHeaderCellDef> Contractual Delivery Date </th>
+        <td mat-cell *matCellDef="let element"> {{ element.contractualDeliveryDate | date }} </td>
+      </ng-container>
+  
+      <!-- Contact Person -->
+      <ng-container matColumnDef="contactPersonName">
+        <th mat-header-cell *matHeaderCellDef> Contact Person </th>
+        <td mat-cell *matCellDef="let element"> {{ element.contactPersonName }} </td>
+      </ng-container>
+  
+      <!-- Contact Email -->
+      <ng-container matColumnDef="contactPersonEmailId">
+        <th mat-header-cell *matHeaderCellDef> Email </th>
+        <td mat-cell *matCellDef="let element"> {{ element.contactPersonEmailId }} </td>
+      </ng-container>
+  
+      <!-- Contact Number -->
+      <ng-container matColumnDef="contactNo">
+        <th mat-header-cell *matHeaderCellDef> Contact Number </th>
+        <td mat-cell *matCellDef="let element"> {{ element.contactNo }} </td>
+      </ng-container>
+  
+      <!-- Incoterms -->
+      <ng-container matColumnDef="incoterms">
+        <th mat-header-cell *matHeaderCellDef> Incoterms </th>
+        <td mat-cell *matCellDef="let element"> {{ element.incoterms }} </td>
+      </ng-container>
+  
+      <!-- PO Type -->
+      <ng-container matColumnDef="poType">
+        <th mat-header-cell *matHeaderCellDef> PO Type </th>
+        <td mat-cell *matCellDef="let element"> {{ element.poType }} </td>
+      </ng-container>
+  
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+  

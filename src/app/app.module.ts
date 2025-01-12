@@ -44,6 +44,8 @@ import { AdditionalfieldselectionComponent } from './features/dashboard/addition
 import { DocumentselectionComponent } from './features/dashboard/documentselection/documentselection.component';
 import { VendorRegistrationComponent } from './features/vendor-registration/vendor-registration.component';
 import { VendorPoCardComponent } from './shared/components/vendor-po-card/vendor-po-card.component';
+import { StageStep1Component } from './stage-steps/stage-step1/stage-step1.component';
+import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.component';
 
 
 @NgModule({
@@ -64,6 +66,8 @@ import { VendorPoCardComponent } from './shared/components/vendor-po-card/vendor
     DocumentselectionComponent,
     VendorRegistrationComponent,
     VendorPoCardComponent,
+    StageStep1Component,
+    StageStep2Component,
   ],
   imports: [
     BrowserModule,

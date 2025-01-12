@@ -11,6 +11,8 @@ import { AdditionalfieldComponent } from './features/dashboard/additionalfield/a
 import { AdditionalfieldselectionComponent } from './features/dashboard/additionalfieldselection/additionalfieldselection.component';
 import { DocumentselectionComponent } from './features/dashboard/documentselection/documentselection.component';
 import { VendorRegistrationComponent } from './features/vendor-registration/vendor-registration.component';
+import { StageStep1Component } from './stage-steps/stage-step1/stage-step1.component';
+import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
@@ -25,6 +27,8 @@ const routes: Routes = [
   { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
   { path: 'vendorRegistration', component: VendorRegistrationComponent},
+  { path: 'stages/step1', component: StageStep1Component },
+  { path: 'stages/step2', component: StageStep2Component },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

@@ -1,17 +1,62 @@
-<div class="container">
-    <ul>
-      <li
-        *ngFor="let step of steps; let i = index"
-        [ngClass]="{
+<!-- <app-vendor-po-card></app-vendor-po-card> -->
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header bg-dark text-white">
+      <h3 class="text-center">Vendor and Purchase Order Selection</h3>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="vendorPoForm">
+        <div class="row">
+          <!-- Vendor Dropdown -->
+          <div class="col-md-6">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Vendor</mat-label>
+              <mat-select formControlName="vendor" (selectionChange)="onVendorChange($event.value)">
+                <mat-option *ngFor="let vendor of vendors" [value]="vendor.id">
+                  {{ vendor.companyName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- PO Dropdown -->
+          <div class="col-md-6">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Purchase Order</mat-label>
+              <mat-select formControlName="po" [disabled]="!vendorPoForm.get('vendor')?.value">
+                <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
+                  {{ po.pO_NO }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <button mat-raised-button color="primary" type="submit" [disabled]="vendorPoForm.invalid">
+            Submit
+          </button>
+          <button mat-raised-button color="warn" type="button" (click)="onCancel()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="container mt-5" *ngIf="isStepBarVisible()">
+  <ul>
+    <li *ngFor="let step of steps; let i = index" [ngClass]="{
           'current': i === currentStep,
           'completed': i < currentStep
-        }"
-      >
+        }">
+      <a [routerLink]="['/stages', 'step' + (i + 1)]">
         <div class="content">
           Step {{ i + 1 }}
         </div>
-      </li>
-    </ul>
-  </div>
-  <app-vendor-po-card></app-vendor-po-card>
-  
+      </a>
+    </li>
+  </ul>
+</div>
