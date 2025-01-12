@@ -7,6 +7,17 @@
     <div class="card-body">
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
+          <div class="col-lg-4">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-icon matPrefix>code</mat-icon>
+              <mat-label>Vendor Code</mat-label>
+              <input matInput formControlName="vendorCode" required />
+              <mat-error
+                *ngIf="registrationForm.get('vendorCode')?.touched && registrationForm.get('vendorCode')?.invalid">
+                <small>Vendor Code is required.</small>
+              </mat-error>
+            </mat-form-field>
+          </div>
           <!-- Company Name -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
@@ -152,11 +163,11 @@
           </div>
     
           <!-- General Details -->
-          <div class="col-lg-12">
+          <div class="col-lg-8">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>description</mat-icon>
               <mat-label>General Details of Services/Goods</mat-label>
-              <textarea matInput formControlName="generalDetails"></textarea>
+              <textarea matInput rows="1" formControlName="generalDetails"></textarea>
             </mat-form-field>
           </div>
     

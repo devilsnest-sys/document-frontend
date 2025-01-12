@@ -18,6 +18,7 @@ export class VendorRegistrationComponent {
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
+      vendorCode: ['', Validators.required],
       companyName: ['', Validators.required],
       mailingAddress: ['', Validators.required],
       telephone: ['', Validators.required],
