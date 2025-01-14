@@ -46,6 +46,7 @@ import { VendorRegistrationComponent } from './features/vendor-registration/vend
 import { VendorPoCardComponent } from './shared/components/vendor-po-card/vendor-po-card.component';
 import { StageStep1Component } from './stage-steps/stage-step1/stage-step1.component';
 import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.component';
+import { DocumentUploadComponent } from './shared/components/document-upload/document-upload.component';
 
 
 @NgModule({
@@ -68,6 +69,7 @@ import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.compo
     VendorPoCardComponent,
     StageStep1Component,
     StageStep2Component,
+    DocumentUploadComponent,
   ],
   imports: [
     BrowserModule,
@@ -90,7 +92,7 @@ import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.compo
     MatSidenavModule,
     MatListModule,
     MatExpansionModule,
-    MatMenuModule
+    MatMenuModule,
   ],
   providers: [
     provideAnimationsAsync(),

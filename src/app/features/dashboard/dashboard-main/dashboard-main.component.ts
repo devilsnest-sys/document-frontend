@@ -6,6 +6,7 @@ import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard-main',
@@ -23,7 +24,14 @@ export class DashboardMainComponent {
   purchaseOrders: any[] = [];
   isSubmitting = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private toastService: ToastserviceService) {}
+  constructor(private fb: FormBuilder, private http: HttpClient, private toastService: ToastserviceService, private router: Router) {}
+
+  navigateToStep(step: number): void {
+    const poNumber = this.vendorPoForm.get('po')?.value;
+    if (poNumber) {
+      this.router.navigate(['/stages', 'step' + step, poNumber]);
+    }
+  }
 
   ngOnInit(): void {
     this.vendorPoForm = this.fb.group({

@@ -52,11 +52,13 @@
           'current': i === currentStep,
           'completed': i < currentStep
         }">
-      <a [routerLink]="['/stages', 'step' + (i + 1)]">
+      <a [routerLink]="['/stages', 'step' + (i + 1), vendorPoForm.get('po')?.value]">
         <div class="content">
           Step {{ i + 1 }}
         </div>
       </a>
     </li>
   </ul>
+
+  
 </div>
