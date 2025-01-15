@@ -1,10 +1,7 @@
 <div class="container mt-5">
     <h2 class="text-center">Purchase Order Details</h2>
-    <div *ngIf="isLoading" class="text-center">
-      Loading...
-    </div>
   
-    <table *ngIf="!isLoading" mat-table [dataSource]="poData" class="mat-elevation-z8">
+    <table mat-table [dataSource]="poData" class="mat-elevation-z8">
       <!-- PO Number -->
       <ng-container matColumnDef="pO_NO">
         <th mat-header-cell *matHeaderCellDef> PO Number </th>
@@ -76,7 +73,7 @@
             [defaultColDef]="defaultColDef"
             [rowData]="rowData"
             [modules]="modules"
-            
+            (gridReady)="onGridReady($event)"
             [pagination]="true"
             [paginationPageSize]="10"
             [rowSelection]="'single'"
