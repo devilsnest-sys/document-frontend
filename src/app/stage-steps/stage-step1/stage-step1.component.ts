@@ -10,13 +10,12 @@ import Swal from 'sweetalert2';
 import { DocumentUploadComponent } from '../../shared/components/document-upload/document-upload.component';
 import { AgGridModule } from '@ag-grid-community/angular';
 
-
 @Component({
   selector: 'app-stage-step1',
   standalone: false,
-  
+
   templateUrl: './stage-step1.component.html',
-  styleUrl: './stage-step1.component.css'
+  styleUrl: './stage-step1.component.css',
 })
 export class StageStep1Component implements OnInit {
   poData: any[] = [];
@@ -34,25 +33,6 @@ export class StageStep1Component implements OnInit {
   isLoading = true;
   public modules: Module[] = [ClientSideRowModelModule];
   rowData: any[] = [];
-  // rowData = [
-  //   {
-  //     sno: 1,
-  //     documentName: 'Document 1',
-  //     docs: [
-  //       { uploaddoc: 'Upload Button', docname: 'Uploaded Document Name' },
-  //       { uploaddoc: 'Upload Button', docname: 'Uploaded Document Name 2' },
-  //     ],
-  //   },
-  //   {
-  //     sno: 2,
-  //     documentName: 'Document 2',
-  //     docs: [
-  //       { uploaddoc: 'Upload Button', docname: 'Uploaded Document 2 Name' },
-  //       { uploaddoc: 'Upload Button', docname: 'Uploaded Document 2 Name 2' },
-  //     ],
-  //   },
-  // ];
-  
 
   frameworkComponents = {
     fileUploadRenderer: DocumentUploadComponent,
@@ -60,11 +40,16 @@ export class StageStep1Component implements OnInit {
 
   columnDefs: ColDef[] = [
     { headerName: 'S.No', field: 'sno', valueGetter: 'node.rowIndex + 1' },
-    { headerName: 'Doc Type', field: 'documentName', sortable: true, filter: true },
+    {
+      headerName: 'Doc Type',
+      field: 'documentName',
+      sortable: true,
+      filter: true,
+    },
     {
       headerName: 'Upload Doc',
       field: 'uploaddoc',
-      cellRenderer: DocumentUploadComponent, // Use the renderer
+      cellRenderer: DocumentUploadComponent,
     },
     { headerName: 'Doc Name', field: 'docname', sortable: true, filter: true },
     {
@@ -73,39 +58,40 @@ export class StageStep1Component implements OnInit {
       cellRenderer: this.actionCellRenderer2.bind(this),
     },
     { headerName: 'Status', field: 'status', sortable: true, filter: true },
-    { headerName: 'Reviewed By', field: 'reviewby', sortable: true, filter: true },
-    { headerName: 'Review Date', field: 'reviewdate', sortable: true, filter: true },
+    {
+      headerName: 'Reviewed By',
+      field: 'reviewby',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Review Date',
+      field: 'reviewdate',
+      sortable: true,
+      filter: true,
+    },
     { headerName: 'Remark', field: 'remark', sortable: true, filter: true },
+    {
+      headerName: 'Submit',
+      field: 'submit',
+      cellRenderer: this.submitCellRenderer.bind(this),
+      sortable: true,
+      filter: true,
+    },
   ];
 
   defaultColDef = {
     flex: 1,
-    minWidth: 150,
+    minWidth: 50,
     resizable: true,
   };
 
-  gridOptions: GridOptions = {
-    context: {
-      componentParent: this, // Reference to the parent component
-    },
-  };
-  
-
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
-actionCellRenderer(params: any): string {
-  return `
-    <div class="upload-container">
-      <input type="file" id="upload_${params.rowIndex}" style="display: none;"
-             (change)="uploadFile($event, ${params.rowIndex})" />
-      <button class="btn-action upload-btn" 
-              (click)="document.getElementById('upload_${params.rowIndex}').click()">
-        <span class="material-icons">upload</span>
-      </button>
-    </div>
-  `;
-}
-
+  submitCellRenderer(params: any): string {
+    return `
+    <button type="button" class="btn btn-info btn-sm">Info</button>`;
+  }
 
   actionCellRenderer2(params: any) {
     const documentUrl = params.data.documentUrl;
@@ -154,36 +140,38 @@ actionCellRenderer(params: any): string {
       this.isLoading = false;
       return;
     }
-  
-    const token = localStorage.getItem('authToken'); // Get token from local storage
+
+    const token = localStorage.getItem('authToken');
     const url = `${environment.apiUrl}/v1/PurchaseOrder/${poNumber}`;
     const headers = {
       Authorization: `Bearer ${token}`,
       Accept: 'text/plain',
     };
-  
+
     this.http.get<any>(url, { headers }).subscribe({
       next: (response) => {
-        console.log('API Response:', response); // Log the API response for debugging
-        
-        // Wrap the response in an array if it's a single object
-        if (response && typeof response === 'object' && !Array.isArray(response)) {
-          this.poData = [response]; // Convert object to array
+        console.log('API Response:', response);
+
+        if (
+          response &&
+          typeof response === 'object' &&
+          !Array.isArray(response)
+        ) {
+          this.poData = [response];
         } else if (Array.isArray(response)) {
-          this.poData = response; // Assign directly if already an array
+          this.poData = response;
         } else {
           console.error('Unexpected API response format:', response);
-          this.poData = []; // Fallback to empty array
+          this.poData = [];
         }
-  
+
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching PO data:', err);
-        this.poData = []; // Ensure poData is initialized to an empty array
+        this.poData = [];
         this.isLoading = false;
       },
     });
   }
-    
 }
