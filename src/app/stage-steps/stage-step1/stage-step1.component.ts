@@ -60,6 +60,7 @@ export class StageStep1Component implements OnInit {
       field: 'uploaddoc',
       cellRenderer: this.actionCellRenderer.bind(this),
     },
+    { field: 'file', headerName: 'File', hide: true },
     { headerName: 'Doc Name', field: 'docname', sortable: true, filter: true },
     {
       headerName: 'Action',
@@ -108,14 +109,23 @@ export class StageStep1Component implements OnInit {
   onFileSelected(rowIndex: string, event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput.files && fileInput.files[0]) {
-      const fileName = fileInput.files[0].name;
+      const file = fileInput.files[0];
       const rowIndexNumber = parseInt(rowIndex, 10);
       const rowNode = this.gridApi.getDisplayedRowAtIndex(rowIndexNumber);
       if (rowNode) {
-        rowNode.setDataValue('docname', fileName);
+        const updatedData = { ...rowNode.data, docname: file.name, file };
+        rowNode.setData(updatedData); 
+        // console.log('Row updated:', updatedData);
+      } else {
+        console.error('Row node not found for index:', rowIndex);
       }
+    } else {
+      console.error('No file provided for upload.');
     }
   }
+  
+  
+  
 
   fetchDocumentTypes(): void {
     const token = localStorage.getItem('authToken');
@@ -175,8 +185,6 @@ export class StageStep1Component implements OnInit {
     const rowNode = this.gridApi.getDisplayedRowAtIndex(parseInt(rowIndex, 10));
     if (rowNode) {
       const rowData = rowNode.data;
-  
-      // Find matching document type by `documentName`
       const documentType = this.rowData.find(doc => doc.documentName === rowData.documentName);
       const documentTypeId = documentType ? documentType.id : null;
       if (!documentTypeId) {
@@ -188,22 +196,29 @@ export class StageStep1Component implements OnInit {
         console.error('Purchase Order data not loaded or empty.');
         return;
       }
-  
       const poDetails = this.poData[0];
   
-      const payload = {
-        Id: 0, // Assuming new submission
-        PoId: poDetails.id, // Use ID from PO data
-        StageId: rowData.stageId || 1, // Provide a default StageId if not available
-        DocumentTypeId: documentTypeId, // ID from document type
-        DocumentName: rowData.docname, // Document Name from grid data
-        UploadedBy: poDetails.createdBy, // Use CreatedBy from PO data
-        UploadedDate: new Date().toISOString(), // Current date-time
-        ReviewedBy: rowData.reviewedBy || 1, // Default Reviewer ID
-        DocReviewDate: rowData.reviewDate || new Date().toISOString(),
-        Status: rowData.status || 'Pending',
-        ReviewRemark: rowData.remark || 'No remarks',
-      };
+      // Retrieve the file from row data
+      const file = rowData.file; // Ensure the file object is available
+      if (!file) {
+        console.error('No file provided for upload.');
+        return;
+      }
+  
+      // Create form data object
+      const formData = new FormData();
+      formData.append('DocumentName', rowData.docname);
+      formData.append('ReviewedBy', rowData.reviewedBy || '1'); // Default Reviewer ID
+      formData.append('UploadedDate', new Date().toISOString());
+      formData.append('DocumentTypeId', documentTypeId.toString());
+      formData.append('Status', rowData.status || 'Pending');
+      formData.append('UploadedBy', poDetails.createdBy.toString());
+      formData.append('ReviewRemark', rowData.remark || 'No remarks');
+      formData.append('StageId', rowData.stageId || '1'); // Default Stage ID
+      formData.append('PoId', poDetails.id.toString());
+      formData.append('Id', '0'); // Assuming new submission
+      formData.append('DocReviewDate', rowData.reviewDate || new Date().toISOString());
+      formData.append('file', file, file.name); // Append the file object
   
       const token = localStorage.getItem('authToken');
       const headers = new HttpHeaders({
@@ -211,7 +226,7 @@ export class StageStep1Component implements OnInit {
       });
   
       this.http
-        .post(`${environment.apiUrl}/v1/UploadedDocument`, payload, { headers })
+        .post(`${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`, formData, { headers })
         .subscribe({
           next: (response) => {
             console.log('Submit successful:', response);
@@ -219,13 +234,13 @@ export class StageStep1Component implements OnInit {
           },
           error: (error) => {
             console.error('Error submitting document:', error);
-            console.log(payload);
           },
         });
     } else {
       console.error('Row data not found for submission');
     }
-  }
+  }  
+  
   
 
   submitCellRenderer(params: any): string {
