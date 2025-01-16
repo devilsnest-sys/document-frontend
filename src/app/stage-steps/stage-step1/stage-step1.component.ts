@@ -38,6 +38,9 @@ export class StageStep1Component implements OnInit {
   public modules: Module[] = [ClientSideRowModelModule];
   rowData: any[] = [];
   gridApi: any;
+  selectedPoId: any;
+  selectedDocumentId: any;
+  selectedStageId: any;
 
   onGridReady(params: any): void {
     this.gridApi = params.api;
@@ -96,7 +99,7 @@ export class StageStep1Component implements OnInit {
     resizable: true,
   };
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) { }
+  constructor(private http: HttpClient, private route: ActivatedRoute, private toastservice: ToastserviceService) { }
 
   ngOnInit(): void {
     window['angularCallback'] = this.onFileSelected.bind(this);
@@ -104,7 +107,33 @@ export class StageStep1Component implements OnInit {
     const poNumber = this.route.snapshot.paramMap.get('poNumber');
     this.fetchPurchaseOrderData(poNumber);
     this.fetchDocumentTypes();
+    // this.fetchdocumentuploaded();
   }
+
+// fetchdocumentuploaded() {
+//   const token = localStorage.getItem('authToken');
+//   const headers = new HttpHeaders()
+//     .set('Authorization', `Bearer ${token}`)
+//     .set('Content-Type', 'application/json');
+
+//   const payload = {
+//     documentId: this.selectedDocumentId,
+//     poId: this.selectedPoId,
+//     stageId: this.selectedStageId,
+//   };
+
+//   this.http
+//     .post<any[]>(`${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`, payload, { headers })
+//     .subscribe({
+//       next: (data) => {
+//         this.rowData = data;
+//         console.log('Document flows fetched successfully:', data);
+//       },
+//       error: (error) => {
+//         console.error('Error fetching document flows:', error);
+//       },
+//     });
+// }
 
   onFileSelected(rowIndex: string, event: Event): void {
     const fileInput = event.target as HTMLInputElement;
@@ -114,18 +143,18 @@ export class StageStep1Component implements OnInit {
       const rowNode = this.gridApi.getDisplayedRowAtIndex(rowIndexNumber);
       if (rowNode) {
         const updatedData = { ...rowNode.data, docname: file.name, file };
-        rowNode.setData(updatedData); 
+        rowNode.setData(updatedData);
+        this.toastservice.showToast('success', 'Document Added');
         // console.log('Row updated:', updatedData);
       } else {
         console.error('Row node not found for index:', rowIndex);
+        this.toastservice.showToast('error', 'Row node not found');
       }
     } else {
       console.error('No file provided for upload.');
+      this.toastservice.showToast('error', 'No file provided for upload.');
     }
   }
-  
-  
-  
 
   fetchDocumentTypes(): void {
     const token = localStorage.getItem('authToken');
@@ -136,7 +165,9 @@ export class StageStep1Component implements OnInit {
       .subscribe({
         next: (data) => {
           this.rowData = data;
-          console.log('Document Types fetched successfully:', data);
+          this.selectedDocumentId = this.rowData[0].id;
+
+          console.log('Document Types fetched successfully:', this.selectedDocumentId);
         },
         error: (error) => {
           console.error('Error fetching document types:', error);
@@ -159,7 +190,7 @@ export class StageStep1Component implements OnInit {
 
     this.http.get<any>(url, { headers }).subscribe({
       next: (response) => {
-        console.log('API Response:', response);
+        // console.log('API Response:', response);
 
         if (
           response &&
@@ -191,57 +222,60 @@ export class StageStep1Component implements OnInit {
         console.error('Document Type ID not found for the selected document.');
         return;
       }
-  
+
       if (!this.poData || this.poData.length === 0) {
         console.error('Purchase Order data not loaded or empty.');
         return;
       }
       const poDetails = this.poData[0];
-  
-      // Retrieve the file from row data
-      const file = rowData.file; // Ensure the file object is available
+      const file = rowData.file;
       if (!file) {
         console.error('No file provided for upload.');
         return;
       }
-  
-      // Create form data object
       const formData = new FormData();
-      formData.append('DocumentName', rowData.docname);
-      formData.append('ReviewedBy', rowData.reviewedBy || '1'); // Default Reviewer ID
+      formData.append('IsApproved', 'false');
+      formData.append('IsDocSubmited', 'false');
+      formData.append('DocumentName', rowData.docname || 'test');
+      formData.append('DocReviewedBy', rowData.reviewedBy || '1');
+      formData.append('IsRejected', 'false');
+      formData.append('ReviewedBy', rowData.reviewedBy || '1');
       formData.append('UploadedDate', new Date().toISOString());
-      formData.append('DocumentTypeId', documentTypeId.toString());
-      formData.append('Status', rowData.status || 'Pending');
-      formData.append('UploadedBy', poDetails.createdBy.toString());
-      formData.append('ReviewRemark', rowData.remark || 'No remarks');
-      formData.append('StageId', rowData.stageId || '1'); // Default Stage ID
-      formData.append('PoId', poDetails.id.toString());
-      formData.append('Id', '0'); // Assuming new submission
+      formData.append('DocUploadedBy', poDetails.createdBy.toString());
+      formData.append('DocumentTypeId', documentTypeId.toString() || '1');
+      formData.append('Status', rowData.status || 'pass');
+      formData.append('UploadedBy', poDetails.createdBy.toString() || '1');
+      formData.append('ReviewRemark', rowData.remark || 'remark');
+      formData.append('StageId', rowData.stageId || '1');
+      formData.append('PoId', poDetails.id.toString() || '1');
+      formData.append('Id', '0');
       formData.append('DocReviewDate', rowData.reviewDate || new Date().toISOString());
-      formData.append('file', file, file.name); // Append the file object
-  
+      formData.append('file', file, file.name);
+
       const token = localStorage.getItem('authToken');
       const headers = new HttpHeaders({
         Authorization: `Bearer ${token}`,
       });
-  
+
       this.http
         .post(`${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`, formData, { headers })
         .subscribe({
           next: (response) => {
-            console.log('Submit successful:', response);
-            // Optionally update the grid to show success
+            // console.log('Submit successful:', response);
+            this.toastservice.showToast('success', 'Document uploaded');
           },
           error: (error) => {
             console.error('Error submitting document:', error);
+            this.toastservice.showToast('error', 'Document upload Failed');
           },
         });
     } else {
       console.error('Row data not found for submission');
+      this.toastservice.showToast('error', 'Row data not found for submission');
     }
-  }  
-  
-  
+  }
+
+
 
   submitCellRenderer(params: any): string {
     return `
