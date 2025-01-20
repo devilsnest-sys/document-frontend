@@ -12,7 +12,7 @@ import { ToastserviceService } from '../../core/services/toastservice.service';
 })
 export class RegistrationComponent {
   registrationForm!: FormGroup;
-
+  stages: Array<{ id: number; stageName: string }> = [];
   constructor(private fb: FormBuilder, private toastservice: ToastserviceService, private registrationService: RegistrationService) {}
 
   ngOnInit(): void {
@@ -25,10 +25,28 @@ export class RegistrationComponent {
       role: ['', Validators.required],
       designation: ['', Validators.required],
       companyId: ['', Validators.required],
+      UserDesignationForstageId: [[], Validators.required], // Multi-select control
       userType: "user"
     });
-  }
 
+    // Fetch stages for the dropdown
+    this.fetchStages();
+  }
+  fetchStages(): void {
+    this.registrationService.getStages().subscribe({
+      next: (data) => {
+        this.stages = data.map((stage) => ({
+          id: stage.id,
+          stageName: stage.stageName, // Ensure `stageName` is used here
+        }));
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastservice.showToast('error', 'Failed to load stages');
+      },
+    });
+  }
+  
   matchPasswords(control: AbstractControl): { [key: string]: boolean } | null {
     if (control.value !== this.registrationForm?.get('password')?.value) {
       return { passwordMismatch: true };
@@ -43,7 +61,14 @@ export class RegistrationComponent {
         this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
         return;
       }
-      const payload = this.registrationForm.value;
+      // Clone the form value to avoid mutating the original form data
+    const payload = { ...this.registrationForm.value };
+
+    // Convert UserDesignationForstageId to a comma-separated string
+    if (Array.isArray(payload.UserDesignationForstageId)) {
+      payload.UserDesignationForstageId = payload.UserDesignationForstageId.join(', ');
+    }
+
   
       this.registrationService.registerUser(payload, token).subscribe({
         next: () => {

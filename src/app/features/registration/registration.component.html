@@ -152,6 +152,29 @@
                 </mat-error>
               </mat-form-field>
             </div>
+
+            <div class="col-md-6">
+              <!-- User Designation For Stage -->
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>User Designation For Stage</mat-label>
+                <mat-select
+                  id="UserDesignationForstageId"
+                  formControlName="UserDesignationForstageId"
+                  multiple
+                >
+                  <mat-option *ngFor="let stage of stages" [value]="stage.id">
+                    {{ stage.stageName }}
+                  </mat-option>
+                </mat-select>
+                <mat-error
+                  *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid"
+                >
+                  <small>User Designation For Stage is required.</small>
+                </mat-error>
+              </mat-form-field>
+            </div>
+            
+            
           </div>
   
           <!-- Submit Button -->
