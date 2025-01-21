@@ -107,33 +107,33 @@ export class StageStep1Component implements OnInit {
     const poNumber = this.route.snapshot.paramMap.get('poNumber');
     this.fetchPurchaseOrderData(poNumber);
     this.fetchDocumentTypes();
-    // this.fetchdocumentuploaded();
+    this.fetchdocumentuploaded();
   }
 
-// fetchdocumentuploaded() {
-//   const token = localStorage.getItem('authToken');
-//   const headers = new HttpHeaders()
-//     .set('Authorization', `Bearer ${token}`)
-//     .set('Content-Type', 'application/json');
+fetchdocumentuploaded() {
+  const token = localStorage.getItem('authToken');
+  const headers = new HttpHeaders()
+    .set('Authorization', `Bearer ${token}`)
+    .set('Content-Type', 'application/json');
 
-//   const payload = {
-//     documentId: this.selectedDocumentId,
-//     poId: this.selectedPoId,
-//     stageId: this.selectedStageId,
-//   };
+  const payload = {
+    documentId: this.selectedDocumentId,
+    poId: this.selectedPoId,
+    stageId: this.selectedStageId,
+  };
 
-//   this.http
-//     .post<any[]>(`${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`, payload, { headers })
-//     .subscribe({
-//       next: (data) => {
-//         this.rowData = data;
-//         console.log('Document flows fetched successfully:', data);
-//       },
-//       error: (error) => {
-//         console.error('Error fetching document flows:', error);
-//       },
-//     });
-// }
+  this.http
+    .post<any[]>(`${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`, payload, { headers })
+    .subscribe({
+      next: (data) => {
+        this.rowData = data;
+        console.log('Document flows fetched successfully:', data);
+      },
+      error: (error) => {
+        console.error('Error fetching document flows:', error);
+      },
+    });
+}
 
   onFileSelected(rowIndex: string, event: Event): void {
     const fileInput = event.target as HTMLInputElement;

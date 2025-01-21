@@ -1,11 +1,84 @@
-<div class="upload-container">
-    <input 
-      type="file" 
-      id="fileInput" 
-      (change)="onFileSelected($event)" 
-      style="display: none;"
-    />
-    <button class="btn-action upload-btn" (click)="triggerFileInput()">
-      <span class="material-icons">upload</span>
-    </button>
+<div class="document-upload-container mt-5">
+  <!-- Loading and Error States -->
+  <div *ngIf="isLoading" class="loading-spinner">
+    Loading documents...
   </div>
+
+  <div *ngIf="errorMessage" class="error-message alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Main Content -->
+  <div class="data-grid" *ngIf="!isLoading && !errorMessage">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Document Name</th>
+          <th>Upload Document</th>
+          <th>Uploaded Document Name</th>
+          <th>Status</th>
+          <th>Reviewed By</th>
+          <th>Doc Review Date</th>
+          <th>Review Remark</th>
+          <th>Uploaded By</th>
+          <th>Uploaded Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let group of groupedDocuments">
+          <!-- Document Type Header -->
+          <tr (click)="toggleGroup(group.documentType.id)" 
+              class="group-header" 
+              [class.expanded]="isGroupExpanded(group.documentType.id)">
+            <td colspan="12">
+              <div class="group-title">
+                <i class="fas" 
+                   [class.fa-chevron-down]="isGroupExpanded(group.documentType.id)" 
+                   [class.fa-chevron-right]="!isGroupExpanded(group.documentType.id)"></i>
+                {{ group.documentType.documentName }}
+                <span class="document-count">({{ getDocumentCount(group.documentType.id) }} documents)</span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Uploaded Documents -->
+          <tr *ngFor="let doc of group.uploadedDocuments" 
+              [hidden]="!isGroupExpanded(group.documentType.id)"
+              class="document-row">
+              <td>{{ group.documentType.documentName }}</td>
+              <td><div class="upload-container">
+                <input 
+                  type="file" 
+                  id="fileInput-${params.node.id}" 
+                  style="display: none;"
+                  onchange="angularCallback('${params.node.id}', event)"
+                />
+                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${params.node.id}').click()">
+                  <span class="material-icons">upload</span>
+                </button>
+              </div></td>
+              <td>{{ doc.uploadedDocumentName }}</td>
+            <td>
+              <span class="status-badge" [class]="doc.status?.toLowerCase()">
+                {{ doc.status || 'N/A' }}
+              </span>
+            </td>
+            <td>{{ doc.docReviewedBy || 'N/A' }}</td>
+            <td>{{ doc.docReviewDate }}</td>
+            <td>{{ doc.reviewRemark || 'N/A' }}</td>
+            <td>{{ doc.docUploadedBy || 'N/A' }}</td>
+            <td>{{ doc.uploadedDate }}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" 
+                      (click)="submit(doc)"
+                      [disabled]="doc.isDocSubmited">
+                {{ doc.isDocSubmited ? 'Submitted' : 'Submit' }}
+              </button>
+            </td>
+          </tr>
+        </ng-container>      
+      </tbody>
+    </table>
+  </div>
+</div>

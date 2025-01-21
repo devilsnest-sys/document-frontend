@@ -1,1 +1,47 @@
-<p>masteraddfield works!</p>
+<div class="data-grid">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Document Name</th>
+          <th>Status</th>
+          <th>Reviewed By</th>
+          <th>Doc Review Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let group of groupedData">
+          <!-- Group Header -->
+          <tr (click)="toggleGroup(group.groupName)" class="group-header">
+            <td colspan="5">
+              <div class="group-title">
+                {{ group.groupName }}
+                <span class="toggle-icon">
+                  {{ expandedGroups[group.groupName] ? '-' : '+' }}
+                </span>
+              </div>
+            </td>
+          </tr>
+  
+          <!-- Documents -->
+          <tr *ngFor="let document of paginateDocuments(group.documents)" [hidden]="!expandedGroups[group.groupName]">
+            <td>{{ document.uploadedDocumentName }}</td>
+            <td>{{ document.status }}</td>
+            <td>{{ document.reviewedBy }}</td>
+            <td>{{ document.docReviewDate }}</td>
+            <td><button class="btn btn-submit" (click)="submit(document)">Submit</button></td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  
+    <!-- Pagination Controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button *ngFor="let page of [].constructor(totalPages); let i = index" 
+              [disabled]="currentPage === i + 1" 
+              (click)="changePage(i + 1)">
+        {{ i + 1 }}
+      </button>
+    </div>
+  </div>
+  
