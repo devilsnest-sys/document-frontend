@@ -48,6 +48,7 @@
   gap: 0.5rem;
   font-weight: bold;
   color: #2c3e50;
+  font-size: 14px;
 }
 
 .document-count {
@@ -128,6 +129,27 @@
 ::ng-deep .delete-btn .material-icons {
   font-size: 16px;
   color: #f44336; /* Red for delete */
+}
+
+/* Approve button color */
+::ng-deep .approve-btn .material-icons {
+  color: #4caf50; /* Soft green */
+}
+
+::ng-deep .approve-btn:hover .material-icons {
+  color: #388e3c; /* Darker green for hover */
+}
+
+/* Reject button color */
+::ng-deep .reject-btn .material-icons {
+  color: #f44336; /* Soft red */
+}
+
+::ng-deep .reject-btn:hover .material-icons {
+  color: #d32f2f; /* Darker red for hover */
+}
+table th, table td{
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {

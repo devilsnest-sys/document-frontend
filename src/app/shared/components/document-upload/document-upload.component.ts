@@ -39,6 +39,17 @@ interface DocumentGroup {
   uploadedDocuments: UploadedDocument[];
 }
 
+interface DocumentReviewPayload {
+  id: number;
+  isApproved: boolean;
+  isRejected: boolean;
+  reviewedBy: number;
+  docReviewedBy: string;
+  status: string;
+  reviewRemark: string;
+  docReviewDate: string;
+}
+
 @Component({
   selector: 'app-document-upload',
   standalone: false,
@@ -152,6 +163,65 @@ export class DocumentUploadComponent implements OnInit {
   getDocumentCount(documentId: number): number {
     const group = this.groupedDocuments.find(g => g.documentType.id === documentId);
     return group ? group.uploadedDocuments.length : 0;
+  }
+
+  async reviewDocument(document: UploadedDocument, isApproved: boolean): Promise<void> {
+    try {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      const currentUser = localStorage.getItem('userId') || '1'; // Get actual user ID from your auth service
+      const currentUserName = localStorage.getItem('userName') || '1'; // Get actual username
+
+      const payload: DocumentReviewPayload = {
+        id: document.id,
+        isApproved: isApproved,
+        isRejected: !isApproved,
+        reviewedBy: parseInt(currentUser),
+        docReviewedBy: currentUserName,
+        status: isApproved ? 'Approved' : 'Rejected',
+        reviewRemark: isApproved ? 'Document approved' : 'Document rejected',
+        docReviewDate: new Date().toISOString()
+      };
+
+      await this.http.patch(
+        `${environment.apiUrl}/api/v1/UploadedDocument/${document.id}`,
+        payload,
+        { headers: this.getHeaders() }
+      ).pipe(
+        catchError(this.handleError.bind(this)),
+        finalize(() => this.isLoading = false)
+      ).toPromise();
+
+      // Update local state
+      const updatedDoc = this.uploadedDocuments.find(doc => doc.id === document.id);
+      if (updatedDoc) {
+        Object.assign(updatedDoc, {
+          isApproved: payload.isApproved,
+          isRejected: payload.isRejected,
+          status: payload.status,
+          reviewedBy: payload.reviewedBy,
+          docReviewedBy: payload.docReviewedBy,
+          reviewRemark: payload.reviewRemark,
+          docReviewDate: payload.docReviewDate
+        });
+      }
+
+      // Refresh the document list
+      this.groupDocuments();
+
+    } catch (error) {
+      console.error('Error reviewing document:', error);
+      this.errorMessage = 'Failed to review document. Please try again.';
+    }
+  }
+
+  async approveDocument(document: UploadedDocument): Promise<void> {
+    await this.reviewDocument(document, true);
+  }
+
+  async rejectDocument(document: UploadedDocument): Promise<void> {
+    await this.reviewDocument(document, false);
   }
 
   submit(document: UploadedDocument): void {

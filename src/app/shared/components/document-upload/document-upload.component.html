@@ -23,6 +23,8 @@
           <th>Uploaded By</th>
           <th>Uploaded Date</th>
           <th>Actions</th>
+          <th>Submit</th> 
+          <th>Approve/Reject</th>         
         </tr>
       </thead>
       <tbody>
@@ -41,24 +43,26 @@
               </div>
             </td>
           </tr>
-
+        
           <!-- Uploaded Documents -->
           <tr *ngFor="let doc of group.uploadedDocuments" 
               [hidden]="!isGroupExpanded(group.documentType.id)"
               class="document-row">
-              <td>{{ group.documentType.documentName }}</td>
-              <td><div class="upload-container">
+            <td>{{ group.documentType.documentName }}</td>
+            <td>
+              <div class="upload-container">
                 <input 
                   type="file" 
-                  id="fileInput-${params.node.id}" 
+                  id="fileInput-${group.documentType.id}" 
                   style="display: none;"
-                  onchange="angularCallback('${params.node.id}', event)"
+                  onchange="angularCallback('${group.documentType.id}', event)"
                 />
-                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${params.node.id}').click()">
+                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${group.documentType.id}').click()">
                   <span class="material-icons">upload</span>
                 </button>
-              </div></td>
-              <td>{{ doc.uploadedDocumentName }}</td>
+              </div>
+            </td>
+            <td>{{ doc.uploadedDocumentName }}</td>
             <td>
               <span class="status-badge" [class]="doc.status?.toLowerCase()">
                 {{ doc.status || 'N/A' }}
@@ -70,14 +74,57 @@
             <td>{{ doc.docUploadedBy || 'N/A' }}</td>
             <td>{{ doc.uploadedDate }}</td>
             <td>
+              <button class="btn-action upload-btn"><span class="material-icons">visibility</span></button>
+              <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
+            </td>
+            <td>
               <button class="btn btn-primary btn-sm" 
                       (click)="submit(doc)"
                       [disabled]="doc.isDocSubmited">
                 {{ doc.isDocSubmited ? 'Submitted' : 'Submit' }}
               </button>
             </td>
+            <td>
+              <button 
+                class="btn-action upload-btn approve-btn" 
+                aria-label="Approve"
+                (click)="approveDocument(doc)"
+                [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                [title]="doc.isApproved ? 'Already approved' : 'Approve'">
+                <span class="material-icons">check_circle</span>
+              </button>
+              <button 
+                class="btn-action upload-btn reject-btn" 
+                aria-label="Reject"
+                (click)="rejectDocument(doc)"
+                [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
+                <span class="material-icons">cancel</span>
+              </button>
+            </td>
           </tr>
-        </ng-container>      
+        
+          <!-- Show Upload Row if No Documents -->
+          <tr *ngIf="group.uploadedDocuments.length === 0 && isGroupExpanded(group.documentType.id)"
+              class="document-row">
+            <td>{{ group.documentType.documentName }}</td>
+            <td>
+              <div class="upload-container">
+                <input 
+                  type="file" 
+                  id="fileInput-${group.documentType.id}-empty" 
+                  style="display: none;"
+                  onchange="angularCallback('${group.documentType.id}', event)"
+                />
+                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${group.documentType.id}-empty').click()">
+                  <span class="material-icons">upload</span>
+                </button>
+              </div>
+            </td>
+            <td colspan="8">No documents available. Upload a document to get started.</td>
+          </tr>
+        </ng-container>
+             
       </tbody>
     </table>
   </div>
