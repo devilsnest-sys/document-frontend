@@ -52,12 +52,16 @@
             <td>
               <div class="upload-container">
                 <input 
+                  #fileInput
                   type="file" 
-                  id="fileInput-${group.documentType.id}" 
+                  [id]="'fileInput-' + group.documentType.id" 
                   style="display: none;"
-                  onchange="angularCallback('${group.documentType.id}', event)"
+                  (change)="uploadDocument($event, group.documentType.id)"
                 />
-                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${group.documentType.id}').click()">
+                <button 
+                  class="btn-action upload-btn" 
+                  (click)="fileInput.click()"
+                >
                   <span class="material-icons">upload</span>
                 </button>
               </div>
@@ -111,12 +115,16 @@
             <td>
               <div class="upload-container">
                 <input 
+                  #fileInput
                   type="file" 
-                  id="fileInput-${group.documentType.id}-empty" 
+                  [id]="'fileInput-' + group.documentType.id" 
                   style="display: none;"
-                  onchange="angularCallback('${group.documentType.id}', event)"
+                  (change)="uploadDocument($event, group.documentType.id)"
                 />
-                <button class="btn-action upload-btn" onclick="document.getElementById('fileInput-${group.documentType.id}-empty').click()">
+                <button 
+                  class="btn-action upload-btn" 
+                  (click)="fileInput.click()"
+                >
                   <span class="material-icons">upload</span>
                 </button>
               </div>

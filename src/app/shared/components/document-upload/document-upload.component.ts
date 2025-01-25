@@ -185,7 +185,7 @@ export class DocumentUploadComponent implements OnInit {
       };
 
       await this.http.patch(
-        `${environment.apiUrl}/api/v1/UploadedDocument/${document.id}`,
+        `${environment.apiUrl}/v1/UploadedDocument/${document.id}`,
         payload,
         { headers: this.getHeaders() }
       ).pipe(
@@ -213,6 +213,71 @@ export class DocumentUploadComponent implements OnInit {
     } catch (error) {
       console.error('Error reviewing document:', error);
       this.errorMessage = 'Failed to review document. Please try again.';
+    }
+  }
+
+  async uploadDocument(event: Event, documentTypeId: number): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      console.error('No file selected');
+      return;
+    }
+
+    try {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      // Prepare form data for upload
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Populate other required fields from local storage or default values
+      const currentUser = localStorage.getItem('userId') || '1';
+      const currentDate = new Date().toISOString();
+
+      formData.append('isApproved', 'false');
+      formData.append('isDocSubmited', 'false');
+      formData.append('isRejected', 'false');
+      formData.append('docReviewedBy', currentUser);
+      formData.append('uploadedDocumentName', file.name);
+      formData.append('uploadedDocLocation', 'new');
+      formData.append('reviewedBy', currentUser);
+      formData.append('uploadedDate', currentDate);
+      formData.append('docUploadedBy', currentUser);
+      formData.append('documentTypeId', documentTypeId.toString());
+      formData.append('status', 'Pending');
+      formData.append('uploadedBy', currentUser);
+      formData.append('reviewRemark', 'Initial upload');
+      formData.append('stageId', '2'); // Default stage, adjust as needed
+      formData.append('poId', '3'); // Default PO ID, adjust as needed
+      formData.append('id', '0');
+      formData.append('docReviewDate', currentDate);
+
+      // Get headers (note: for file upload, do not set Content-Type manually)
+      const headers = new HttpHeaders()
+        .set('Authorization', `Bearer ${localStorage.getItem('authToken')}`);
+
+      // Upload document
+      await this.http.post(
+        `${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`,
+        formData,
+        { headers }
+      ).pipe(
+        catchError(this.handleError.bind(this)),
+        finalize(() => this.isLoading = false)
+      ).toPromise();
+
+      // Refresh document list after successful upload
+      this.fetchUploadedDocuments();
+
+      // Optional: show success message
+      alert('Document uploaded successfully');
+
+    } catch (error) {
+      console.error('Document upload failed:', error);
+      this.errorMessage = 'Failed to upload document. Please try again.';
     }
   }
 
