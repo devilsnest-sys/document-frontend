@@ -13,6 +13,7 @@
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
+          <th>Sr No.</th>
           <th>Document Name</th>
           <th>Upload Document</th>
           <th>Uploaded Document Name</th>
@@ -47,9 +48,10 @@
           </tr>
         
           <!-- Uploaded Documents -->
-          <tr *ngFor="let doc of group.uploadedDocuments" 
+          <tr *ngFor="let doc of group.uploadedDocuments; let docIndex = index" 
               [hidden]="!isGroupExpanded(group.documentType.id)"
               class="document-row">
+            <td>{{ docIndex + 1 }}</td>
             <td>{{ group.documentType.documentName }}</td>
             <td>
               <div class="upload-container">
