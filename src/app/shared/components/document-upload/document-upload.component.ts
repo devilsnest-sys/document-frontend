@@ -68,6 +68,7 @@ export class DocumentUploadComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
+
   ngOnInit(): void {
     this.fetchDocumentTypes();
   }
@@ -78,7 +79,11 @@ export class DocumentUploadComponent implements OnInit {
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
   }
-
+  isGroupVisible(group: any): boolean {
+    return (     
+      group.uploadedDocuments.some((doc: { isRejected: any; }) => doc.isRejected) ||(group.uploadedDocuments.length === 0 && this.isGroupExpanded(group.documentType.id)) 
+    ) ;
+  }
   fetchDocumentTypes(): void {
     this.isLoading = true;
     this.errorMessage = '';

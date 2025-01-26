@@ -85,15 +85,13 @@
               </button>
             </td>
             <td>{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</td>
-            <td>{{ doc.docReviewedBy || 'N/A' }}</td>
-           
+            <td>{{ doc.docReviewedBy || 'N/A' }}</td>           
             <td>{{ doc.docReviewDate|| 'N/A'  }}</td>
             <td>{{ doc.reviewRemark || 'N/A' }}</td>         
             <td>
               <button class="btn-action upload-btn"><span class="material-icons">visibility</span></button>
               <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
-            </td>      
-            
+            </td> 
             <td>
               <button 
                 class="btn-action upload-btn approve-btn" 
@@ -115,27 +113,24 @@
           </tr>
         
           <!-- Show Upload Row if No Documents -->
-          <tr *ngIf="group.uploadedDocuments.length === 0 && isGroupExpanded(group.documentType.id)"
-              class="document-row">
+           <!-- Show Upload Row for Rejected Documents or No Documents -->
+           <tr *ngIf="isGroupVisible(group)" class="document-row">
             <td>{{ group.documentType.documentName }}</td>
             <td>
               <div class="upload-container">
                 <input 
                   #fileInput
-                  type="file" 
-                  [id]="'fileInput-' + group.documentType.id" 
+                  type="file"
+                  [id]="'fileInput-' + group.documentType.id"
                   style="display: none;"
                   (change)="uploadDocument($event, group.documentType.id)"
                 />
-                <button 
-                  class="btn-action upload-btn" 
-                  (click)="fileInput.click()"
-                >
+                <button class="btn-action upload-btn" (click)="fileInput.click()">
                   <span class="material-icons">upload</span>
                 </button>
               </div>
             </td>
-            <td colspan="8">No documents available. Upload a document to get started.</td>
+            <td colspan="8">No documents available or a document was rejected. Upload a document to get started.</td>
           </tr>
         </ng-container>
              
