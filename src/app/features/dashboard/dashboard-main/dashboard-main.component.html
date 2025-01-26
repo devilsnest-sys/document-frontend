@@ -13,7 +13,7 @@
               <mat-label>Select Vendor</mat-label>
               <mat-select formControlName="vendor" (selectionChange)="onVendorChange($event.value)">
                 <mat-option *ngFor="let vendor of vendors" [value]="vendor.id">
-                  {{ vendor.companyName }}
+                  {{ vendor.vendorCode }}-{{ vendor.companyName }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -52,7 +52,7 @@
           'current': i === currentStep,
           'completed': i < currentStep
         }">
-      <a [routerLink]="['/stages', 'step' + (i + 1), vendorPoForm.get('po')?.value]">
+      <a [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
         <div class="content">
           Step {{ i + 1 }}
         </div>

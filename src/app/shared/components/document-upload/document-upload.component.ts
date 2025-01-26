@@ -32,6 +32,7 @@ interface UploadedDocument {
   isDocSubmited: boolean;
   docUploadedBy: string;
   docReviewedBy: string;
+  userNameAccToUploadDoc: string;
 }
 
 interface DocumentGroup {
@@ -237,23 +238,35 @@ export class DocumentUploadComponent implements OnInit {
       const currentUser = localStorage.getItem('userId') || '1';
       const currentDate = new Date().toISOString();
 
+      const siteUrl = window.location.href;
+      const regex = /\/stages\/(\d+)\/(\d+)/;
+      const match = siteUrl.match(regex); 
+      let value1='';
+      let value2='';
+      if (match) {
+         value1 = match[1]; // '1'
+         value2 = match[2]; // '5'
+      
+        console.log(value1, value2);
+      }
+
       formData.append('isApproved', 'false');
-      formData.append('isDocSubmited', 'false');
+      formData.append('isDocSubmited', 'true');
       formData.append('isRejected', 'false');
-      formData.append('docReviewedBy', currentUser);
+     // formData.append('docReviewedBy', '');
       formData.append('uploadedDocumentName', file.name);
-      formData.append('uploadedDocLocation', 'new');
-      formData.append('reviewedBy', currentUser);
+     // formData.append('uploadedDocLocation', '');
+     // formData.append('reviewedBy', '');
       formData.append('uploadedDate', currentDate);
-      formData.append('docUploadedBy', currentUser);
+      formData.append('docUploadedBy', localStorage.getItem('userType')?.toString()!);
       formData.append('documentTypeId', documentTypeId.toString());
       formData.append('status', 'Pending');
       formData.append('uploadedBy', currentUser);
-      formData.append('reviewRemark', 'Initial upload');
-      formData.append('stageId', '2'); // Default stage, adjust as needed
-      formData.append('poId', '3'); // Default PO ID, adjust as needed
+      //formData.append('reviewRemark', '');
+      formData.append('stageId', value1); // Default stage, adjust as needed
+      formData.append('poId', value2); // Default PO ID, adjust as needed
       formData.append('id', '0');
-      formData.append('docReviewDate', currentDate);
+      //formData.append('docReviewDate', '');
 
       // Get headers (note: for file upload, do not set Content-Type manually)
       const headers = new HttpHeaders()

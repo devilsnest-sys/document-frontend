@@ -37,6 +37,9 @@ export class LoginComponent {
         next: (response) => {
           if (response.token) {
             this.authService.setToken(response.token, response.userName, response.id);
+            if(response.userType!){
+              localStorage.setItem('userType', response.userType);
+              }
             this.ToastserviceService.showToast('success', 'Login Successful');
             this.router.navigate(['/dashboard']);
           } else {

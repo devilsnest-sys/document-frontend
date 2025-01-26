@@ -28,7 +28,7 @@ const routes: Routes = [
   { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
   { path: 'vendorRegistration', component: VendorRegistrationComponent},
-  { path: 'stages/step1/:poNumber', component: StageStep1Component },
+  { path: 'stages/1/:poNumber', component: StageStep1Component },
   { path: 'stages/step1', component: StageStep2Component },
   { path: 'DocumentUploadComponent', component: DocumentUploadComponent },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },

@@ -30,7 +30,7 @@ export class HeaderComponent {
 
     this.userNameSubscription = this.authService.getUserNameState().subscribe(
       (name) => {
-        this.userName = name;
+        this.userName = name;        
       }
     );
   }

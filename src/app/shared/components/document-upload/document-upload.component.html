@@ -17,13 +17,14 @@
           <th>Upload Document</th>
           <th>Uploaded Document Name</th>
           <th>Status</th>
+          <th>Doc Uploaded By</th>
+          <th>User Type</th>
+          <th>Uploaded Date</th>
+          <th>Submit</th> 
           <th>Reviewed By</th>
           <th>Doc Review Date</th>
           <th>Review Remark</th>
-          <th>Uploaded By</th>
-          <th>Uploaded Date</th>
-          <th>Actions</th>
-          <th>Submit</th> 
+          <th>Actions</th>          
           <th>Approve/Reject</th>         
         </tr>
       </thead>
@@ -72,15 +73,9 @@
                 {{ doc.status || 'N/A' }}
               </span>
             </td>
-            <td>{{ doc.docReviewedBy || 'N/A' }}</td>
-            <td>{{ doc.docReviewDate }}</td>
-            <td>{{ doc.reviewRemark || 'N/A' }}</td>
+            <td>{{ doc.userNameAccToUploadDoc || 'N/A' }}</td>
             <td>{{ doc.docUploadedBy || 'N/A' }}</td>
             <td>{{ doc.uploadedDate }}</td>
-            <td>
-              <button class="btn-action upload-btn"><span class="material-icons">visibility</span></button>
-              <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
-            </td>
             <td>
               <button class="btn btn-primary btn-sm" 
                       (click)="submit(doc)"
@@ -88,6 +83,15 @@
                 {{ doc.isDocSubmited ? 'Submitted' : 'Submit' }}
               </button>
             </td>
+            
+            <td>{{ doc.docReviewedBy || 'N/A' }}</td>
+            <td>{{ doc.docReviewDate|| 'N/A'  }}</td>
+            <td>{{ doc.reviewRemark || 'N/A' }}</td>         
+            <td>
+              <button class="btn-action upload-btn"><span class="material-icons">visibility</span></button>
+              <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
+            </td>      
+            
             <td>
               <button 
                 class="btn-action upload-btn approve-btn" 
