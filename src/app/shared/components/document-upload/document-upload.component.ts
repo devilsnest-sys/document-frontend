@@ -33,6 +33,7 @@ interface UploadedDocument {
   docUploadedBy: string;
   docReviewedBy: string;
   userNameAccToUploadDoc: string;
+  vendorNameAccToReviewDoc:string;
 }
 
 interface DocumentGroup {
@@ -173,13 +174,13 @@ export class DocumentUploadComponent implements OnInit {
 
       const currentUser = localStorage.getItem('userId') || '1'; // Get actual user ID from your auth service
       const currentUserName = localStorage.getItem('userName') || '1'; // Get actual username
-
+      const currentUserType=localStorage.getItem('userType') || null
       const payload: DocumentReviewPayload = {
         id: document.id,
         isApproved: isApproved,
         isRejected: !isApproved,
         reviewedBy: parseInt(currentUser),
-        docReviewedBy: currentUserName,
+        docReviewedBy: currentUserType!,
         status: isApproved ? 'Approved' : 'Rejected',
         reviewRemark: isApproved ? 'Document approved' : 'Document rejected',
         docReviewDate: new Date().toISOString()

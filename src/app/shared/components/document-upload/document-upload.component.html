@@ -18,10 +18,11 @@
           <th>Uploaded Document Name</th>
           <th>Status</th>
           <th>Doc Uploaded By</th>
-          <th>User Type</th>
+          <th>Uploaded User Type</th>
           <th>Uploaded Date</th>
           <th>Submit</th> 
           <th>Reviewed By</th>
+          <th>Reviewed User Type</th>
           <th>Doc Review Date</th>
           <th>Review Remark</th>
           <th>Actions</th>          
@@ -83,8 +84,9 @@
                 {{ doc.isDocSubmited ? 'Submitted' : 'Submit' }}
               </button>
             </td>
-            
+            <td>{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</td>
             <td>{{ doc.docReviewedBy || 'N/A' }}</td>
+           
             <td>{{ doc.docReviewDate|| 'N/A'  }}</td>
             <td>{{ doc.reviewRemark || 'N/A' }}</td>         
             <td>
