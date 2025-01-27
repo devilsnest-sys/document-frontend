@@ -95,22 +95,50 @@
               <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
             </td> 
             <td>
-              <button 
-                class="btn-action upload-btn approve-btn" 
-                aria-label="Approve"
-                (click)="approveDocument(doc)"
-                [disabled]="doc.isApproved || doc.isRejected || isLoading"
-                [title]="doc.isApproved ? 'Already approved' : 'Approve'">
-                <span class="material-icons">check_circle</span>
-              </button>
-              <button 
-                class="btn-action upload-btn reject-btn" 
-                aria-label="Reject"
-                (click)="rejectDocument(doc)"
-                [disabled]="doc.isApproved || doc.isRejected || isLoading"
-                [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
-                <span class="material-icons">cancel</span>
-              </button>
+               <!-- Show Approve/Reject buttons only if docUploadedBy is vendor and not user -->
+               <ng-container *ngIf="!doc.isApproved">
+                <!-- Condition: doc uploaded by vendor, userType is user -->
+                <ng-container *ngIf="doc.docUploadedBy === 'vendor' && userType === 'user'">
+    <button 
+      class="btn-action upload-btn approve-btn" 
+      aria-label="Approve"
+      (click)="approveDocument(doc)"
+      [disabled]="doc.isApproved || doc.isRejected || isLoading"
+      [title]="doc.isApproved ? 'Already approved' : 'Approve'">
+      <span class="material-icons">check_circle</span>
+    </button>
+    <button 
+      class="btn-action upload-btn reject-btn" 
+      aria-label="Reject"
+      (click)="rejectDocument(doc)"
+      [disabled]="doc.isApproved || doc.isRejected || isLoading"
+      [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
+      <span class="material-icons">cancel</span>
+    </button>
+  
+  </ng-container>
+
+  <!-- Show Approve/Reject buttons only if docUploadedBy is user -->
+  <ng-container *ngIf="doc.docUploadedBy === 'user' && userType === 'vendor'">
+  
+    <button 
+      class="btn-action upload-btn approve-btn" 
+      aria-label="Approve"
+      (click)="approveDocument(doc)"
+      [disabled]="doc.isApproved || doc.isRejected || isLoading"
+      [title]="doc.isApproved ? 'Already approved' : 'Approve'">
+      <span class="material-icons">check_circle</span>
+    </button>
+    <button 
+      class="btn-action upload-btn reject-btn" 
+      aria-label="Reject"
+      (click)="rejectDocument(doc)"
+      [disabled]="doc.isApproved || doc.isRejected || isLoading"
+      [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
+      <span class="material-icons">cancel</span>
+    </button>
+  </ng-container>
+  </ng-container>
             </td>
           </tr>
         

@@ -65,11 +65,12 @@ export class DocumentUploadComponent implements OnInit {
   expandedGroups: { [key: number]: boolean } = {};
   isLoading: boolean = false;
   errorMessage: string = '';
-
+  userType: string | null = '';
   constructor(private http: HttpClient) {}
 
 
   ngOnInit(): void {
+    this.userType = localStorage.getItem('userType');
     this.fetchDocumentTypes();
   }
 
