@@ -21,7 +21,6 @@
           <th>Doc Uploaded By</th>
           <th>Uploaded User Type</th>
           <th>Uploaded Date</th>
-          <th>Submit</th> 
           <th>Reviewed By</th>
           <th>Reviewed User Type</th>
           <th>Doc Review Date</th>
@@ -79,13 +78,7 @@
             <td>{{ doc.userNameAccToUploadDoc || 'N/A' }}</td>
             <td>{{ doc.docUploadedBy || 'N/A' }}</td>
             <td>{{ doc.uploadedDate }}</td>
-            <td>
-              <button class="btn btn-primary btn-sm" 
-                      (click)="submit(doc)"
-                      [disabled]="doc.isDocSubmited">
-                {{ doc.isDocSubmited ? 'Submitted' : 'Submit' }}
-              </button>
-            </td>
+            
             <td>{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</td>
             <td>{{ doc.docReviewedBy || 'N/A' }}</td>           
             <td>{{ doc.docReviewDate|| 'N/A'  }}</td>
@@ -96,7 +89,7 @@
             </td> 
             <td>
                <!-- Show Approve/Reject buttons only if docUploadedBy is vendor and not user -->
-               <ng-container *ngIf="!doc.isApproved">
+               <ng-container *ngIf="!(doc.isApproved || doc.isRejected)">
                 <!-- Condition: doc uploaded by vendor, userType is user -->
                 <ng-container *ngIf="doc.docUploadedBy === 'vendor' && userType === 'user'">
     <button 
