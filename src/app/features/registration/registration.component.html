@@ -46,14 +46,14 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Password</mat-label>
                 <mat-icon matPrefix>lock</mat-icon>
-                <input matInput id="password" type="password" formControlName="password" required />
+                <input matInput id="HashedPassword" type="password" formControlName="HashedPassword" required />
                 <mat-error
-                  *ngIf="registrationForm.get('password')?.touched && registrationForm.get('password')?.invalid"
+                  *ngIf="registrationForm.get('HashedPassword')?.touched && registrationForm.get('HashedPassword')?.invalid"
                 >
-                  <small *ngIf="registrationForm.get('password')?.hasError('required')">
+                  <small *ngIf="registrationForm.get('HashedPassword')?.hasError('required')">
                     Password is required.
                   </small>
-                  <small *ngIf="registrationForm.get('password')?.hasError('minlength')">
+                  <small *ngIf="registrationForm.get('HashedPassword')?.hasError('minlength')">
                     Password must be at least 6 characters.
                   </small>
                 </mat-error>

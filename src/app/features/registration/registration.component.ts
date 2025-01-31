@@ -19,7 +19,7 @@ export class RegistrationComponent {
     this.registrationForm = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      HashedPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required, this.matchPasswords.bind(this)]],
       MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
@@ -49,7 +49,7 @@ export class RegistrationComponent {
   }
   
   matchPasswords(control: AbstractControl): { [key: string]: boolean } | null {
-    if (control.value !== this.registrationForm?.get('password')?.value) {
+    if (control.value !== this.registrationForm?.get('HashedPassword')?.value) {
       return { passwordMismatch: true };
     }
     return null;

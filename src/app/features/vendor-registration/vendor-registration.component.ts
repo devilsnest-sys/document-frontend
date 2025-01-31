@@ -31,8 +31,9 @@ export class VendorRegistrationComponent {
       contactPhone2: [''],
       generalDetails: [''],
       username: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      userType: "vendor"
+      HashedPassword: ['', [Validators.required, Validators.minLength(6)]],
+      userType: "vendor",
+      salt: ['']
     });
   }
 
