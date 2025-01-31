@@ -11,6 +11,10 @@ main.dashboard-content {
     margin: 0 0 0 auto;
     height: 100%;
     margin-bottom: 200px;
+    transition: width 0.3s ease;
+}
+main.dashboard-content.full-width {
+    width: 100%;
 }
 
 .dashboard-main {

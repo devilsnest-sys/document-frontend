@@ -15,9 +15,9 @@
         <div class="container-fluid">
             <div class="row">
                 <aside class="dashboard-sidenav">
-                    <app-sidenavbar></app-sidenavbar>
+                    <app-sidenavbar (sidebarToggle)="onSidebarToggle($event)"></app-sidenavbar>
                 </aside>
-                <main class="dashboard-content">
+                <main class="dashboard-content" [class.full-width]="!isSidebarOpen">
                     <router-outlet></router-outlet>
                 </main>
                 <footer>

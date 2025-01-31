@@ -11,6 +11,7 @@ import { LoaderService } from './core/services/loader-service.service';
 export class AppComponent {
   title = 'document-frontend';
   isLoading = false;
+  isSidebarOpen = true;
 
   constructor(private router: Router, private loaderService: LoaderService) {}
 
@@ -32,5 +33,9 @@ export class AppComponent {
         this.isLoading = false; // Hide loader on navigation end, cancel, or error
       }
     });
+  }
+
+  onSidebarToggle(isOpen: boolean) {
+    this.isSidebarOpen = isOpen;
   }
 }

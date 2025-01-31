@@ -1,6 +1,7 @@
-<button class="toggle-btn" (click)="toggleSidebar()">
+<button class="toggle-btn" *ngIf="isLoggedIn" (click)="toggleSidebar()">
     <i class="fa-solid fa-arrow-right"></i>
 </button>
+<div  *ngIf="isLoggedIn">
 <div class="sidebar" [class.active]="isSidebarOpen">
     <nav>
         <ul>
@@ -22,4 +23,5 @@
             <li><a routerLink="/vendorRegistration"><mat-icon>business</mat-icon>Register Vendor</a></li>
         </ul>
     </nav>
+</div>
 </div>
