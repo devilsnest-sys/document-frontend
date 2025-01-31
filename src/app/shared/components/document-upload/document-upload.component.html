@@ -55,12 +55,12 @@
             <td>
               <div class="upload-container">
                 <input 
-                  #fileInput
-                  type="file" 
-                  [id]="'fileInput-' + group.documentType.id" 
-                  style="display: none;"
-                  (change)="uploadDocument($event, group.documentType.id)"
-                />
+                #fileInput
+                type="file" 
+                [id]="'fileInput-' + group.documentType.id" 
+                style="display: none;"
+                (change)="confirmUpload($event, group.documentType.id)"
+              />              
                 <button 
                   class="btn-action upload-btn" 
                   (click)="fileInput.click()"

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import Swal from 'sweetalert2';
 
 interface DocumentType {
   id: number;
@@ -324,4 +325,19 @@ export class DocumentUploadComponent implements OnInit {
     console.log('Submitting document:', document);
     // Implement your submit logic here
   }
+
+  confirmUpload(event: Event, documentTypeId: number): void {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action cannot be undone!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes!',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.uploadDocument(event, documentTypeId);
+      }
+    });
+  }  
 }
