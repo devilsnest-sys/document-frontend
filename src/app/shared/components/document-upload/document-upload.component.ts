@@ -81,9 +81,16 @@ export class DocumentUploadComponent implements OnInit {
       .set('Content-Type', 'application/json');
   }
   isGroupVisible(group: any): boolean {
-    return (     
-      group.uploadedDocuments.some((doc: { isRejected: any; }) => doc.isRejected) ||(group.uploadedDocuments.length === 0 && this.isGroupExpanded(group.documentType.id)) 
-    ) ;
+    // Return false if any document is approved
+    if (group.uploadedDocuments.some((doc: { isApproved: boolean }) => doc.isApproved)) {
+      return false;
+    }
+  
+    // Return true if any document is rejected or group has no documents and is expanded
+    return (
+      group.uploadedDocuments.some((doc: { isRejected: boolean }) => doc.isRejected) ||
+      (group.uploadedDocuments.length === 0 && this.isGroupExpanded(group.documentType.id))
+    );
   }
   fetchDocumentTypes(): void {
     this.isLoading = true;
