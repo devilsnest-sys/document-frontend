@@ -24,6 +24,7 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
+    "@ng-select/ng-select": "^14.2.0",
     "@syncfusion/ej2-angular-grids": "^28.1.35",
     "@syncfusion/ej2-base": "^28.1.33",
     "@syncfusion/ej2-data": "^28.1.33",

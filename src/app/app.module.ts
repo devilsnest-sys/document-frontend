@@ -24,6 +24,8 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+
 
 import { AgGridModule } from '@ag-grid-community/angular';
 import { HeaderComponent } from './shared/header/header.component';
@@ -93,6 +95,7 @@ import { DocumentUploadComponent } from './shared/components/document-upload/doc
     MatListModule,
     MatExpansionModule,
     MatMenuModule,
+    MatAutocompleteModule
   ],
   providers: [
     provideAnimationsAsync(),
