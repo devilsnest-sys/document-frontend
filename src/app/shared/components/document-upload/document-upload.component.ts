@@ -326,6 +326,24 @@ export class DocumentUploadComponent implements OnInit {
     // Implement your submit logic here
   }
 
+  viewDocument(documentName: number): void {
+    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
+    window.open(documentUrl, '_blank');
+  }
+
+  downloadDocument(documentName: number): void {
+    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/download/${encodeURIComponent(documentName)}`;
+    
+    // Create an invisible anchor element to trigger the download
+    const link = document.createElement('a');
+  link.href = documentUrl;
+  link.setAttribute('download', `document_${document}`); // Set a generic filename
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);  // Clean up
+  }
+  
+
   confirmUpload(event: Event, documentTypeId: number): void {
     Swal.fire({
       title: 'Are you sure?',

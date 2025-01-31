@@ -84,9 +84,14 @@
             <td>{{ doc.docReviewDate|| 'N/A'  }}</td>
             <td>{{ doc.reviewRemark || 'N/A' }}</td>         
             <td>
-              <button class="btn-action upload-btn"><span class="material-icons">visibility</span></button>
-              <button class="btn-action upload-btn"> <span class="material-icons">download</span></button>
-            </td> 
+              <button class="btn-action upload-btn" (click)="viewDocument(doc.id)">
+                <span class="material-icons">visibility</span>
+              </button>
+              <button class="btn-action upload-btn" (click)="downloadDocument(doc.id)">
+                <span class="material-icons">download</span>
+              </button>
+            </td>
+             
             <td>
                <!-- Show Approve/Reject buttons only if docUploadedBy is vendor and not user -->
                <ng-container *ngIf="!(doc.isApproved || doc.isRejected)">
