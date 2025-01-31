@@ -29,7 +29,7 @@ const routes: Routes = [
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
   { path: 'vendorRegistration', component: VendorRegistrationComponent},
   { path: 'stages/1/:poNumber', component: StageStep1Component },
-  { path: 'stages/step1', component: StageStep2Component },
+  { path: 'stages/2/:poNumber', component: StageStep2Component },
   { path: 'DocumentUploadComponent', component: DocumentUploadComponent },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 

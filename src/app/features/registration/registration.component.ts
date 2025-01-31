@@ -26,7 +26,8 @@ export class RegistrationComponent {
       designation: ['', Validators.required],
       companyId: ['', Validators.required],
       UserDesignationForstageId: [[], Validators.required], // Multi-select control
-      userType: "user"
+      userType: "user",
+      salt: ['']
     });
 
     // Fetch stages for the dropdown

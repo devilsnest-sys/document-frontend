@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
@@ -59,6 +59,9 @@ interface DocumentReviewPayload {
   styleUrls: ['./document-upload.component.css']
 })
 export class DocumentUploadComponent implements OnInit {
+
+  @Input() stageNumber!: number;
+
   documentTypes: DocumentType[] = [];
   uploadedDocuments: UploadedDocument[] = [];
   groupedDocuments: DocumentGroup[] = [];
@@ -72,6 +75,7 @@ export class DocumentUploadComponent implements OnInit {
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
     this.fetchDocumentTypes();
+    console.log(this.stageNumber);
   }
 
   private getHeaders(): HttpHeaders {
@@ -96,7 +100,7 @@ export class DocumentUploadComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<DocumentType[]>(`${environment.apiUrl}/v1/DocumentType`, { headers: this.getHeaders() })
+    this.http.get<DocumentType[]>(`${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}`, { headers: this.getHeaders() })
       .pipe(
         catchError(this.handleError.bind(this)),
         finalize(() => this.isLoading = false)
