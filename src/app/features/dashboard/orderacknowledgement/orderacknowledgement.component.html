@@ -43,9 +43,9 @@
               <mat-icon matPrefix>list</mat-icon>
               <mat-select id="poType" formControlName="poType" required>
                 <mat-option value="" disabled>Select PO Type</mat-option>
-                <mat-option value="0">Standard</mat-option>
-                <mat-option value="1">Blanket</mat-option>
-                <mat-option value="2">Contract</mat-option>
+                <mat-option value="0">DD</mat-option>
+                <mat-option value="1">CD</mat-option>
+                <mat-option value="2">AS</mat-option>
               </mat-select>
               <mat-error *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid">
                 <span *ngIf="poForm.get('poType')?.hasError('required')">PO Type is required.</span>
@@ -58,12 +58,17 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Incoterms</mat-label>
               <mat-icon matPrefix>sync</mat-icon>
-              <input matInput id="incoterms" formControlName="incoterms" required />
+              <mat-select id="incoterms" formControlName="incoterms" required>
+                <mat-option value="0">CIF</mat-option>
+                <mat-option value="1">DFG</mat-option>
+                <mat-option value="2">SED</mat-option>
+              </mat-select>
               <mat-error *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid">
                 <span *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are required.</span>
               </mat-error>
             </mat-form-field>
           </div>
+          
       
               <!-- Contractual Delivery Date -->
         <div class="col-lg-6">
