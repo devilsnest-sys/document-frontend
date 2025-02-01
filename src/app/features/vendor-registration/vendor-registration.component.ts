@@ -13,6 +13,7 @@ import { ToastserviceService } from '../../core/services/toastservice.service';
 export class VendorRegistrationComponent {
   registrationForm!: FormGroup;
   isSubmitting = false;
+  selectedFile: File | null = null;
 
   constructor(private fb: FormBuilder, private vendorService: VendorService, private toastservice : ToastserviceService) {}
 
@@ -58,5 +59,30 @@ export class VendorRegistrationComponent {
       console.log('Form is invalid');
       this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
     }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
+  uploadFile(): void {
+    if (!this.selectedFile) {
+      this.toastservice.showToast('error', 'Upload Failed', 'Please select a file first.');
+      return;
+    }
+  
+    this.vendorService.bulkRegisterVendors(this.selectedFile).subscribe(
+      (response) => {
+        console.log('Bulk upload successful:', response);
+        this.toastservice.showToast('success', 'Bulk Upload Successful');
+      },
+      (error) => {
+        console.error('Error in bulk upload:', error);
+        this.toastservice.showToast('error', 'Bulk Upload Failed');
+      }
+    );
   }
 }

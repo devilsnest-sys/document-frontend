@@ -1,5 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpHeaders,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -34,7 +38,7 @@ interface UploadedDocument {
   docUploadedBy: string;
   docReviewedBy: string;
   userNameAccToUploadDoc: string;
-  vendorNameAccToReviewDoc:string;
+  vendorNameAccToReviewDoc: string;
 }
 
 interface DocumentGroup {
@@ -57,10 +61,9 @@ interface DocumentReviewPayload {
   selector: 'app-document-upload',
   standalone: false,
   templateUrl: './document-upload.component.html',
-  styleUrls: ['./document-upload.component.css']
+  styleUrls: ['./document-upload.component.css'],
 })
 export class DocumentUploadComponent implements OnInit {
-
   @Input() stageNumber!: number;
 
   documentTypes: DocumentType[] = [];
@@ -71,7 +74,6 @@ export class DocumentUploadComponent implements OnInit {
   errorMessage: string = '';
   userType: string | null = '';
   constructor(private http: HttpClient) {}
-
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
@@ -87,35 +89,46 @@ export class DocumentUploadComponent implements OnInit {
   }
   isGroupVisible(group: any): boolean {
     // Return false if any document is approved
-    if (group.uploadedDocuments.some((doc: { isApproved: boolean }) => doc.isApproved)) {
+    if (
+      group.uploadedDocuments.some(
+        (doc: { isApproved: boolean }) => doc.isApproved
+      )
+    ) {
       return false;
     }
-  
+
     // Return true if any document is rejected or group has no documents and is expanded
     return (
-      group.uploadedDocuments.some((doc: { isRejected: boolean }) => doc.isRejected) ||
-      (group.uploadedDocuments.length === 0 && this.isGroupExpanded(group.documentType.id))
+      group.uploadedDocuments.some(
+        (doc: { isRejected: boolean }) => doc.isRejected
+      ) ||
+      (group.uploadedDocuments.length === 0 &&
+        this.isGroupExpanded(group.documentType.id))
     );
   }
   fetchDocumentTypes(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<DocumentType[]>(`${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}`, { headers: this.getHeaders() })
+    this.http
+      .get<DocumentType[]>(
+        `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}`,
+        { headers: this.getHeaders() }
+      )
       .pipe(
         catchError(this.handleError.bind(this)),
-        finalize(() => this.isLoading = false)
+        finalize(() => (this.isLoading = false))
       )
       .subscribe({
         next: (documentTypes) => {
           console.log('Fetched document types:', documentTypes);
           this.documentTypes = documentTypes;
           // Initialize expanded state for each document type
-          this.documentTypes.forEach(docType => {
+          this.documentTypes.forEach((docType) => {
             this.expandedGroups[docType.id] = false;
           });
           this.fetchUploadedDocuments();
-        }
+        },
       });
   }
 
@@ -123,22 +136,23 @@ export class DocumentUploadComponent implements OnInit {
     this.isLoading = true;
     const payload = {};
 
-    this.http.post<UploadedDocument[]>(
-      `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
-      payload,
-      { headers: this.getHeaders() }
-    )
-    .pipe(
-      catchError(this.handleError.bind(this)),
-      finalize(() => this.isLoading = false)
-    )
-    .subscribe({
-      next: (uploadedDocs) => {
-        console.log('Fetched uploaded documents:', uploadedDocs);
-        this.uploadedDocuments = uploadedDocs;
-        this.groupDocuments();
-      }
-    });
+    this.http
+      .post<UploadedDocument[]>(
+        `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
+        payload,
+        { headers: this.getHeaders() }
+      )
+      // .pipe(
+      //   catchError(this.handleError.bind(this)),
+      //   finalize(() => (this.isLoading = false))
+      // )
+      .subscribe({
+        next: (uploadedDocs) => {
+          console.log('Fetched uploaded documents:', uploadedDocs);
+          this.uploadedDocuments = uploadedDocs;
+          this.groupDocuments();
+        },
+      });
   }
 
   private groupDocuments(): void {
@@ -146,15 +160,15 @@ export class DocumentUploadComponent implements OnInit {
     this.groupedDocuments = [];
 
     // Create a group for each document type
-    this.documentTypes.forEach(docType => {
+    this.documentTypes.forEach((docType) => {
       // Filter uploaded documents that match this document type's id
-      const matchingDocs = this.uploadedDocuments.filter(doc => 
-        doc.documentTypeId === docType.id
+      const matchingDocs = this.uploadedDocuments.filter(
+        (doc) => doc.documentTypeId === docType.id
       );
 
       this.groupedDocuments.push({
         documentType: docType,
-        uploadedDocuments: matchingDocs
+        uploadedDocuments: matchingDocs,
       });
     });
 
@@ -181,18 +195,23 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   getDocumentCount(documentId: number): number {
-    const group = this.groupedDocuments.find(g => g.documentType.id === documentId);
+    const group = this.groupedDocuments.find(
+      (g) => g.documentType.id === documentId
+    );
     return group ? group.uploadedDocuments.length : 0;
   }
 
-  async reviewDocument(document: UploadedDocument, isApproved: boolean): Promise<void> {
+  async reviewDocument(
+    document: UploadedDocument,
+    isApproved: boolean
+  ): Promise<void> {
     try {
       this.isLoading = true;
       this.errorMessage = '';
 
       const currentUser = localStorage.getItem('userId') || '1'; // Get actual user ID from your auth service
       const currentUserName = localStorage.getItem('userName') || '1'; // Get actual username
-      const currentUserType=localStorage.getItem('userType') || null
+      const currentUserType = localStorage.getItem('userType') || null;
       const payload: DocumentReviewPayload = {
         id: document.id,
         isApproved: isApproved,
@@ -201,20 +220,25 @@ export class DocumentUploadComponent implements OnInit {
         docReviewedBy: currentUserType!,
         status: isApproved ? 'Approved' : 'Rejected',
         reviewRemark: isApproved ? 'Document approved' : 'Document rejected',
-        docReviewDate: new Date().toISOString()
+        docReviewDate: new Date().toISOString(),
       };
 
-      await this.http.patch(
-        `${environment.apiUrl}/v1/UploadedDocument/${document.id}`,
-        payload,
-        { headers: this.getHeaders() }
-      ).pipe(
-        catchError(this.handleError.bind(this)),
-        finalize(() => this.isLoading = false)
-      ).toPromise();
+      await this.http
+        .patch(
+          `${environment.apiUrl}/v1/UploadedDocument/${document.id}`,
+          payload,
+          { headers: this.getHeaders() }
+        )
+        .pipe(
+          catchError(this.handleError.bind(this)),
+          finalize(() => (this.isLoading = false))
+        )
+        .toPromise();
 
       // Update local state
-      const updatedDoc = this.uploadedDocuments.find(doc => doc.id === document.id);
+      const updatedDoc = this.uploadedDocuments.find(
+        (doc) => doc.id === document.id
+      );
       if (updatedDoc) {
         Object.assign(updatedDoc, {
           isApproved: payload.isApproved,
@@ -223,13 +247,12 @@ export class DocumentUploadComponent implements OnInit {
           reviewedBy: payload.reviewedBy,
           docReviewedBy: payload.docReviewedBy,
           reviewRemark: payload.reviewRemark,
-          docReviewDate: payload.docReviewDate
+          docReviewDate: payload.docReviewDate,
         });
       }
 
       // Refresh the document list
       this.groupDocuments();
-
     } catch (error) {
       console.error('Error reviewing document:', error);
       this.errorMessage = 'Failed to review document. Please try again.';
@@ -252,32 +275,35 @@ export class DocumentUploadComponent implements OnInit {
       // Prepare form data for upload
       const formData = new FormData();
       formData.append('file', file);
-      
+
       // Populate other required fields from local storage or default values
       const currentUser = localStorage.getItem('userId') || '1';
       const currentDate = new Date().toISOString();
 
       const siteUrl = window.location.href;
       const regex = /\/stages\/(\d+)\/(\d+)/;
-      const match = siteUrl.match(regex); 
-      let value1='';
-      let value2='';
+      const match = siteUrl.match(regex);
+      let value1 = '';
+      let value2 = '';
       if (match) {
-         value1 = match[1]; // '1'
-         value2 = match[2]; // '5'
-      
+        value1 = match[1]; // '1'
+        value2 = match[2]; // '5'
+
         console.log(value1, value2);
       }
 
       formData.append('isApproved', 'false');
       formData.append('isDocSubmited', 'true');
       formData.append('isRejected', 'false');
-     // formData.append('docReviewedBy', '');
+      // formData.append('docReviewedBy', '');
       formData.append('uploadedDocumentName', file.name);
-     // formData.append('uploadedDocLocation', '');
-     // formData.append('reviewedBy', '');
+      // formData.append('uploadedDocLocation', '');
+      // formData.append('reviewedBy', '');
       formData.append('uploadedDate', currentDate);
-      formData.append('docUploadedBy', localStorage.getItem('userType')?.toString()!);
+      formData.append(
+        'docUploadedBy',
+        localStorage.getItem('userType')?.toString()!
+      );
       formData.append('documentTypeId', documentTypeId.toString());
       formData.append('status', 'Pending');
       formData.append('uploadedBy', currentUser);
@@ -288,25 +314,29 @@ export class DocumentUploadComponent implements OnInit {
       //formData.append('docReviewDate', '');
 
       // Get headers (note: for file upload, do not set Content-Type manually)
-      const headers = new HttpHeaders()
-        .set('Authorization', `Bearer ${localStorage.getItem('authToken')}`);
+      const headers = new HttpHeaders().set(
+        'Authorization',
+        `Bearer ${localStorage.getItem('authToken')}`
+      );
 
       // Upload document
-      await this.http.post(
-        `${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`,
-        formData,
-        { headers }
-      ).pipe(
-        catchError(this.handleError.bind(this)),
-        finalize(() => this.isLoading = false)
-      ).toPromise();
+      await this.http
+        .post(
+          `${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`,
+          formData,
+          { headers }
+        )
+        .pipe(
+          catchError(this.handleError.bind(this)),
+          finalize(() => (this.isLoading = false))
+        )
+        .toPromise();
 
       // Refresh document list after successful upload
       this.fetchUploadedDocuments();
 
       // Optional: show success message
       alert('Document uploaded successfully');
-
     } catch (error) {
       console.error('Document upload failed:', error);
       this.errorMessage = 'Failed to upload document. Please try again.';
@@ -327,22 +357,25 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   viewDocument(documentName: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
+    const documentUrl = `${
+      environment.apiUrl
+    }/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
     window.open(documentUrl, '_blank');
   }
 
   downloadDocument(documentName: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/download/${encodeURIComponent(documentName)}`;
-    
+    const documentUrl = `${
+      environment.apiUrl
+    }/v1/UploadedDocument/download/${encodeURIComponent(documentName)}`;
+
     // Create an invisible anchor element to trigger the download
     const link = document.createElement('a');
-  link.href = documentUrl;
-  link.setAttribute('download', `document_${document}`); // Set a generic filename
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);  // Clean up
+    link.href = documentUrl;
+    link.setAttribute('download', `document_${document}`); // Set a generic filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link); // Clean up
   }
-  
 
   confirmUpload(event: Event, documentTypeId: number): void {
     Swal.fire({
@@ -357,5 +390,5 @@ export class DocumentUploadComponent implements OnInit {
         this.uploadDocument(event, documentTypeId);
       }
     });
-  }  
+  }
 }
