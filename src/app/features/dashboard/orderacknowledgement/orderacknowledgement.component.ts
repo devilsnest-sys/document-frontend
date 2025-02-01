@@ -26,11 +26,11 @@ export class OrderacknowledgementComponent {
     { field: 'poDescription', headerName: 'PO Description' },
     { field: 'poType', headerName: 'PO Type' },
     { field: 'incoterms', headerName: 'Incoterms' },
-    { field: 'shipmentDate', headerName: 'Shipment Date' },
-    { field: 'proofOfDelivery', headerName: 'Proof of Delivery' },
+    { field: 'actualDeliveryDate', headerName: 'Shipment Date' },
+    // { field: 'proofOfDelivery', headerName: 'Proof of Delivery' },
     { field: 'contactPersonName', headerName: 'Contact Person Name' },
-    { field: 'contactPersonEmail', headerName: 'Contact Person Email' },
-    { field: 'alternateEmailId', headerName: 'Alternate Email ID' },
+    { field: 'contactPersonEmailId', headerName: 'Contact Person Email' },
+    // { field: 'alternateEmailId', headerName: 'Alternate Email ID' },
   ];
 
   defaultColDef: ColDef = {

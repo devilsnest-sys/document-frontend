@@ -27,4 +27,80 @@
     font-size: 16px;
     color: #f44336; /* Red for delete */
   }
-  
+    .po-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    .po-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .po-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .po-table tr {
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .po-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .po-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .po-table tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+
+    .field-cell {
+      padding: 8px 12px;
+      color: #1e293b;
+      font-weight: 500;
+      width: 33%;
+      border-right: 1px solid #e2e8f0;
+      background-color: #f1f5f9;
+    }
+
+    .value-cell {
+      padding: 8px 12px;
+      color: #334155;
+    }
+
+    .email-link {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .email-link:hover {
+      text-decoration: underline;
+      color: #2563eb;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 12px;
+      color: #64748b;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 12px;
+      color: #ef4444;
+    }
+
+    /* Hover effect on rows */
+    .po-table tr:hover {
+      background-color: #f1f5f9;
+    }

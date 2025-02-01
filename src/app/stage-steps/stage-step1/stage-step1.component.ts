@@ -34,6 +34,8 @@ export class StageStep1Component implements OnInit {
   selectedPoId: any;
   selectedDocumentId: any;
   selectedStageId: any;
+  loading = false;
+  error: string | null = null;
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private toastservice: ToastserviceService) { }
 
