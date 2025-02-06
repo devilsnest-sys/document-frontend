@@ -49,6 +49,9 @@ import { VendorPoCardComponent } from './shared/components/vendor-po-card/vendor
 import { StageStep1Component } from './stage-steps/stage-step1/stage-step1.component';
 import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.component';
 import { DocumentUploadComponent } from './shared/components/document-upload/document-upload.component';
+import { CreateincotermsComponent } from './features/dashboard/createincoterms/createincoterms.component';
+import { CreatePoTypeComponent } from './features/dashboard/create-po-type/create-po-type.component';
+import { PasswordResetComponent } from './features/password-reset/password-reset.component';
 
 
 @NgModule({
@@ -72,6 +75,9 @@ import { DocumentUploadComponent } from './shared/components/document-upload/doc
     StageStep1Component,
     StageStep2Component,
     DocumentUploadComponent,
+    CreateincotermsComponent,
+    CreatePoTypeComponent,
+    PasswordResetComponent,
   ],
   imports: [
     BrowserModule,

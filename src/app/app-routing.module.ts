@@ -14,6 +14,8 @@ import { VendorRegistrationComponent } from './features/vendor-registration/vend
 import { StageStep1Component } from './stage-steps/stage-step1/stage-step1.component';
 import { StageStep2Component } from './stage-steps/stage-step2/stage-step2.component';
 import { DocumentUploadComponent } from './shared/components/document-upload/document-upload.component';
+import { CreateincotermsComponent } from './features/dashboard/createincoterms/createincoterms.component';
+import { PasswordResetComponent } from './features/password-reset/password-reset.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
@@ -30,7 +32,9 @@ const routes: Routes = [
   { path: 'vendorRegistration', component: VendorRegistrationComponent},
   { path: 'stages/1/:poNumber', component: StageStep1Component },
   { path: 'stages/2/:poNumber', component: StageStep2Component },
-  { path: 'DocumentUploadComponent', component: DocumentUploadComponent },
+  // { path: 'DocumentUploadComponent', component: DocumentUploadComponent },
+  { path: 'incoterms', component: CreateincotermsComponent },
+  { path: 'resetpassword', component: PasswordResetComponent },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

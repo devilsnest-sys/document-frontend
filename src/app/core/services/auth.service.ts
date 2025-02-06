@@ -57,4 +57,17 @@ export class AuthService {
   getUserNameState(): Observable<string | null> {
     return this.userNameSubject.asObservable();
   }
+
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/request-reset`, { email });
+  }
+
+  resetPassword(email: string, otp: string, newPassword: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/reset-password`, {
+      email,
+      otp,
+      newPassword
+    });
+  }
+
 }
