@@ -17,6 +17,23 @@
   </div>
 </div>
 <div class="container mt-5 mb-5 pb-5">
+  <div class="bulk-upload-container">
+    <input type="file" id="bulkPoFileInput" hidden (change)="onBulkFileSelected($event)" accept=".xlsx, .xls" />
+  
+    <button mat-raised-button color="accent" (click)="triggerBulkFileInput()">
+      <mat-icon>upload_file</mat-icon> Upload Bulk PO (Excel)
+    </button>
+  
+    <span *ngIf="bulkPoFileName" class="file-name">
+      <mat-icon>description</mat-icon> {{ bulkPoFileName }}
+    </span>
+  
+    <button mat-raised-button color="primary" [disabled]="!bulkPoFile" (click)="onBulkPoUpload()">
+      <mat-icon>cloud_upload</mat-icon> Submit Bulk PO
+    </button>
+  </div>
+</div>
+<div class="container mt-5 mb-5 pb-5">
   <div class="card">
     <div class="card-header bg-dark text-white">
       <h2 class="form-title text-center">Purchase Order Form</h2>

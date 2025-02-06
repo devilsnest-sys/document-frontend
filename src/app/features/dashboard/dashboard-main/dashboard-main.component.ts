@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
-import { ColDef, Module } from '@ag-grid-community/core';
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
-import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 
 @Component({
@@ -18,152 +15,132 @@ import { Router } from '@angular/router';
   styleUrl: './dashboard-main.component.css'
 })
 export class DashboardMainComponent {
-  steps = Array(15).fill(0);
+  steps: number[] = Array.from({ length: 15 }, (_, i) => i + 1);
   currentStep = 3;
 
   vendorPoForm!: FormGroup;
   vendors: any[] = [];
   purchaseOrders: any[] = [];
   vendorControl = new FormControl('');
-  filteredVendors: Observable<any[]> | undefined;
+  filteredVendors$ = new BehaviorSubject<any[]>([]);
   isSubmitting = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private toastService: ToastserviceService, private router: Router) { }
-
-  navigateToStep(step: number): void {
-    const poNumber = this.vendorPoForm.get('po')?.value;
-    if (poNumber) {
-      this.router.navigate(['/stages', 'step' + step, poNumber]);
-    }
-  }
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private toastService: ToastserviceService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.initializeForm();
+    this.loadVendors();
+    this.setupVendorFilter();
+  }
+
+  private initializeForm(): void {
     this.vendorPoForm = this.fb.group({
       vendor: [''],
       po: ['']
     });
+  }
 
-    this.loadVendors();
-
-    // Set up the autocomplete filtering
-    this.filteredVendors = this.vendorControl.valueChanges.pipe(
+  private setupVendorFilter(): void {
+    this.vendorControl.valueChanges.pipe(
       startWith(''),
-      map(value => {
-        console.log('Filter value:', value); // Debug log
-        return this._filterVendors(value || '');
-      })
-    );
-
-    // Listen to vendor form control changes
-    this.vendorPoForm.get('vendor')?.valueChanges.subscribe(vendorId => {
-      console.log('Selected vendor ID:', vendorId); // Debug log
-      if (vendorId) {
-        this.vendorPoForm.patchValue({ po: '' }, { emitEvent: false });
-        this.onVendorChange(vendorId);
-      }
-    });
+      map(value => this.filterVendors(value))
+    ).subscribe(filtered => this.filteredVendors$.next(filtered));
   }
 
-  loadVendors(): void {
+  private loadVendors(): void {
     const token = localStorage.getItem('authToken');
-    const url = `${environment.apiUrl}/v1/vendors`;
-    const headers = { Authorization: `Bearer ${token}` };
-
-    this.http.get<any[]>(url, { headers }).subscribe({
-      next: (response) => {
-        this.vendors = response;
-        console.log('Loaded vendors:', this.vendors); // Debug log
+    if (!token) return;
+  
+    this.http.get<any[]>(`${environment.apiUrl}/v1/vendors`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: vendors => {
+        this.vendors = vendors;
+        this.filteredVendors$.next(this.vendors);
+  
+        // Restore selected vendor in case of page reload
+        const selectedVendor = this.vendorPoForm.get('vendor')?.value;
+        if (selectedVendor) {
+          const foundVendor = this.vendors.find(v => v.id === selectedVendor.id);
+          if (foundVendor) {
+            this.vendorControl.setValue(foundVendor, { emitEvent: false });
+          }
+        }
       },
-      error: (err) => {
+      error: err => {
         console.error('Error fetching vendors:', err);
-        this.toastService.showToast('error','Error loading vendors');
+        this.toastService.showToast('error', 'Error loading vendors');
       }
     });
   }
 
-  private _filterVendors(value: string): any[] {
-    console.log('Filtering vendors with value:', value); // Debug log
+  private filterVendors(value: string | null): any[] {
+    if (!value) return this.vendors;
     const filterValue = value.toLowerCase();
-    
-    if (!filterValue) {
-      return this.vendors;
-    }
-
-    return this.vendors.filter(vendor => {
-      const vendorCode = vendor.vendorCode?.toLowerCase() || '';
-      const companyName = vendor.companyName?.toLowerCase() || '';
-      
-      return vendorCode.includes(filterValue) || 
-             companyName.includes(filterValue);
-    });
+    return this.vendors.filter(vendor =>
+      vendor.vendorCode?.toLowerCase().includes(filterValue) ||
+      vendor.companyName?.toLowerCase().includes(filterValue)
+    );
   }
-  
-
 
   onVendorSelect(event: any): void {
-    console.log('Vendor select event:', event); // Debug log
-    const selectedValue = event.option.value;
-    console.log('Selected value:', selectedValue); // Debug log
-    
-    const selectedVendor = this.vendors.find(v => 
-      v.vendorCode === selectedValue || 
-      v.id === selectedValue
-    );
-    
-    console.log('Found vendor:', selectedVendor); // Debug log
-
+    const selectedVendorId = event.option.value;
+    const selectedVendor = this.vendors.find(v => v.id === selectedVendorId);
+  
     if (selectedVendor) {
-      this.vendorPoForm.patchValue({
-        vendor: selectedVendor.id
-      }, { emitEvent: true });
-
-      this.vendorControl.setValue(
-        `${selectedVendor.vendorCode} - ${selectedVendor.companyName}`,
-        { emitEvent: false }
-      );
+      this.vendorPoForm.patchValue({ vendor: selectedVendor });
+      this.vendorControl.setValue(selectedVendor, { emitEvent: false });
+      this.onVendorChange(selectedVendor.id);
+      console.log(selectedVendor.companyName);
     }
-  }
+  }   
 
   displayVendor(vendor: any): string {
-    if (vendor) {
-      if (typeof vendor === 'object') {
-        return `${vendor.vendorCode} - ${vendor.companyName}`;
-      }
-      return vendor;
-    }
-    return '';
+    return vendor && vendor.vendorCode && vendor.companyName
+      ? `${vendor.vendorCode} - ${vendor.companyName}`
+      : '';
   }
   
 
+  showAllVendors(): void {
+    this.filteredVendors$.next(this.vendors);
+  }
 
-  onVendorChange(vendorId: number): void {
-    const token = localStorage.getItem('authToken');
+  onVendorChange(vendorId: number | null): void {
     if (!vendorId) return;
-    
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+  
     const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorId}`;
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-    
-    // Clear existing POs before loading new ones
+    const headers = { Authorization: `Bearer ${token}` };
+  
     this.purchaseOrders = [];
-    
+  
     this.http.get<any[]>(url, { headers }).subscribe({
-      next: (response) => {
+      next: response => {
         this.purchaseOrders = response;
       },
-      error: (err) => {
+      error: err => {
         console.error('Error fetching purchase orders:', err);
-        this.toastService.showToast('error','Error loading purchase orders');
+        this.toastService.showToast('error', 'Error loading purchase orders');
       }
     });
-  }
-  
+  }  
 
   isStepBarVisible(): boolean {
-    const vendorSelected = this.vendorPoForm.get('vendor')?.value;
-    const poSelected = this.vendorPoForm.get('po')?.value;
-    return !!(vendorSelected && poSelected);
+    return !!(this.vendorPoForm.get('vendor')?.value && this.vendorPoForm.get('po')?.value);
+  }
+
+  navigateToStep(step: number): void {
+    const poNumber = this.vendorPoForm.get('po')?.value;
+    if (poNumber) {
+      this.router.navigate(['/stages', `step${step}`, poNumber]);
+    }
   }
 
   onCancel(): void {

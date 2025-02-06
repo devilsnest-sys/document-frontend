@@ -20,6 +20,9 @@ export class OrderacknowledgementComponent {
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
   public modules: Module[] = [ClientSideRowModelModule];
+
+  bulkPoFile: File | null = null;
+  bulkPoFileName: string = '';
   
   
   columnDefs: ColDef[] = [
@@ -154,5 +157,44 @@ export class OrderacknowledgementComponent {
       this.filteredRowData = [...this.rowData]; 
     }
   }
+
+  triggerBulkFileInput() {
+    const fileInput = document.getElementById('bulkPoFileInput') as HTMLInputElement;
+    fileInput.click();
+  }
+  
+  onBulkFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.bulkPoFile = input.files[0];
+      this.bulkPoFileName = this.bulkPoFile.name;
+    }
+  }
+  
+  onBulkPoUpload(): void {
+    if (this.bulkPoFile) {
+      const token = localStorage.getItem('authToken');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  
+      const formData = new FormData();
+      formData.append('ExcelFile', this.bulkPoFile, this.bulkPoFile.name); // Change 'file' to 'ExcelFile'
+      formData.append('VendorId', this.vendorId ?? '');
+  
+      this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder/upload`, formData, { headers }).subscribe({
+        next: (response) => {
+          console.log('Bulk PO uploaded successfully:', response);
+          this.bulkPoFile = null;
+          this.bulkPoFileName = '';
+          this.fetchPo(); // Refresh the PO list
+        },
+        error: (error) => {
+          console.error('Error uploading bulk PO:', error);
+        },
+      });
+    } else {
+      console.log('No bulk PO file selected');
+    }
+  }
+  
   
 }

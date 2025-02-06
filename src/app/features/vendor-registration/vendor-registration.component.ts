@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl  } from '@angular/forms';
 import { VendorService } from './vendor-registration.service';
 import { ToastserviceService } from '../../core/services/toastservice.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-vendor-registration',
@@ -74,15 +75,26 @@ export class VendorRegistrationComponent {
       return;
     }
   
-    this.vendorService.bulkRegisterVendors(this.selectedFile).subscribe(
-      (response) => {
-        console.log('Bulk upload successful:', response);
-        this.toastservice.showToast('success', 'Bulk Upload Successful');
-      },
-      (error) => {
-        console.error('Error in bulk upload:', error);
-        this.toastservice.showToast('error', 'Bulk Upload Failed');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to upload this file? This action cannot be undone!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Upload',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.vendorService.bulkRegisterVendors(this.selectedFile as File).subscribe(
+          (response) => {
+            console.log('Bulk upload successful:', response);
+            this.toastservice.showToast('success', 'Bulk Upload Successful');
+          },
+          (error) => {
+            console.error('Error in bulk upload:', error);
+            this.toastservice.showToast('error', 'Bulk Upload Failed');
+          }
+        );
       }
-    );
+    });
   }
 }

@@ -10,21 +10,23 @@
           <div class="col-md-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Select Vendor</mat-label>
-              <input type="text" 
-                     placeholder="Pick a vendor" 
-                     aria-label="Vendor" 
-                     matInput 
+              <input type="text"
+                     placeholder="Pick a vendor"
+                     aria-label="Vendor"
+                     matInput
                      [formControl]="vendorControl"
-                     [matAutocomplete]="vendorAuto">
-              <mat-autocomplete #vendorAuto="matAutocomplete" 
+                     [matAutocomplete]="vendorAuto"
+                     (focus)="showAllVendors()">
+              <mat-autocomplete #vendorAuto="matAutocomplete"
                                (optionSelected)="onVendorSelect($event)"
                                [displayWith]="displayVendor">
-                <mat-option *ngFor="let vendor of filteredVendors | async" 
+                <mat-option *ngFor="let vendor of filteredVendors$ | async" 
                             [value]="vendor.id">
                   {{ vendor.vendorCode }} - {{ vendor.companyName }}
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
+            
           </div>
 
           <!-- PO Dropdown -->
@@ -39,14 +41,6 @@
             </mat-form-field>
           </div>
         </div>
-        <!-- <div class="text-center mt-4">
-          <button mat-raised-button color="primary" type="submit" [disabled]="vendorPoForm.invalid">
-            Submit
-          </button>
-          <button mat-raised-button color="warn" type="button" (click)="onCancel()">
-            Cancel
-          </button>
-        </div> -->
       </form>
     </div>
   </div>

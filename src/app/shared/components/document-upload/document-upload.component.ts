@@ -357,11 +357,17 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   viewDocument(documentName: number): void {
-    const documentUrl = `${
-      environment.apiUrl
-    }/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
-    window.open(documentUrl, '_blank');
+    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
+  
+    fetch(documentUrl)
+      .then(response => response.blob()) // Convert response to Blob
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob); // Create a URL for the blob
+        window.open(blobUrl, '_blank'); // Open the file in a new tab
+      })
+      .catch(error => console.error('Error fetching document:', error));
   }
+  
 
   downloadDocument(documentName: number): void {
     const documentUrl = `${
