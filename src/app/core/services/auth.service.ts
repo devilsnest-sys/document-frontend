@@ -10,6 +10,7 @@ export class AuthService {
   private loginUrl = `${environment.apiUrl}/v1/users/login`;
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.isLoggedIn());
   private userNameSubject = new BehaviorSubject<string | null>(this.getUserName());
+  private userTypeSubject = new BehaviorSubject<string | null>(this.getUserType());
 
   constructor(private http: HttpClient) {}
 
@@ -18,12 +19,14 @@ export class AuthService {
     return this.http.post(this.loginUrl, payload);
   }
 
-  setToken(token: string, userName: string, id: number): void {
+  setToken(token: string, userName: string, id: number, userType: any): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', userName);
     localStorage.setItem('userId', id.toString());
+    localStorage.setItem('userType', userType);
     this.isLoggedInSubject.next(true);
     this.userNameSubject.next(userName);
+    this.userTypeSubject.next(userType);
   }
 
   getToken(): string | null {
@@ -38,6 +41,10 @@ export class AuthService {
     return localStorage.getItem('userId');
   }
 
+  getUserType(): string | null {
+    return localStorage.getItem('userType');
+  }
+
   isLoggedIn(): boolean {
     return !!localStorage.getItem('authToken');
   }
@@ -48,6 +55,7 @@ export class AuthService {
     localStorage.removeItem('userId');
     this.isLoggedInSubject.next(false);
     this.userNameSubject.next(null);
+    this.userTypeSubject.next(null);
   }
 
   getLoginState(): Observable<boolean> {
@@ -56,6 +64,10 @@ export class AuthService {
 
   getUserNameState(): Observable<string | null> {
     return this.userNameSubject.asObservable();
+  }
+
+  getUserTypeState(): Observable<string | null> {
+    return this.userTypeSubject.asObservable();
   }
 
   requestPasswordReset(email: string): Observable<any> {

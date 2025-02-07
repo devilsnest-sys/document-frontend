@@ -52,6 +52,10 @@ import { DocumentUploadComponent } from './shared/components/document-upload/doc
 import { CreateincotermsComponent } from './features/dashboard/createincoterms/createincoterms.component';
 import { CreatePoTypeComponent } from './features/dashboard/create-po-type/create-po-type.component';
 import { PasswordResetComponent } from './features/password-reset/password-reset.component';
+import { UserRoleDirective } from './shared/directives/user-role.directive';
+import { StageStep3Component } from './stage-steps/stage-step3/stage-step3.component';
+import { StageStep4Component } from './stage-steps/stage-step4/stage-step4.component';
+import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.component';
 
 
 @NgModule({
@@ -78,6 +82,10 @@ import { PasswordResetComponent } from './features/password-reset/password-reset
     CreateincotermsComponent,
     CreatePoTypeComponent,
     PasswordResetComponent,
+    UserRoleDirective,
+    StageStep3Component,
+    StageStep4Component,
+    StageStep5Component,
   ],
   imports: [
     BrowserModule,

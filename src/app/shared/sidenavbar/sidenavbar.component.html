@@ -1,7 +1,8 @@
 <button class="toggle-btn" *ngIf="isLoggedIn" (click)="toggleSidebar()">
     <i class="fa-solid fa-arrow-right"></i>
 </button>
-<div  *ngIf="isLoggedIn">
+<!-- [appUserRole]="['user']" -->
+<div  *ngIf="isLoggedIn" >
 <div class="sidebar" [class.active]="isSidebarOpen">
     <nav>
         <ul>

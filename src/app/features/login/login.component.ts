@@ -36,12 +36,11 @@ export class LoginComponent {
       this.authService.login(username, password, userType).subscribe({
         next: (response) => {
           if (response.token) {
-            this.authService.setToken(response.token, response.userName, response.id);
-            if(response.userType!){
-              localStorage.setItem('userType', response.userType);
-              }
+            // Pass userType directly to setToken()
+            this.authService.setToken(response.token, response.userName, response.id, userType);
             this.ToastserviceService.showToast('success', 'Login Successful');
             this.router.navigate(['/dashboard']);
+            console.log("user type is :",userType);
           } else {
             this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
           }
@@ -53,5 +52,6 @@ export class LoginComponent {
     } else {
       this.ToastserviceService.showToast('warning', 'Invalid Input', 'Please fill out the form correctly before submitting.');
     }
-  }  
+  }
+   
 }
