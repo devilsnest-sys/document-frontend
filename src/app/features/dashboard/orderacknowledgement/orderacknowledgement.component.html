@@ -71,14 +71,15 @@
           </div>
       
           <!-- Incoterms -->
+          <!-- Incoterms Dropdown -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Incoterms</mat-label>
               <mat-icon matPrefix>sync</mat-icon>
               <mat-select id="incoterms" formControlName="incoterms" required>
-                <mat-option value="0">CIF</mat-option>
-                <mat-option value="1">DFG</mat-option>
-                <mat-option value="2">SED</mat-option>
+                <mat-option *ngFor="let incoterm of incotermsList" [value]="incoterm.id">
+                  {{ incoterm.incoTermsName }}
+                </mat-option>
               </mat-select>
               <mat-error *ngIf="poForm.get('incoterms')?.touched && poForm.get('incoterms')?.invalid">
                 <span *ngIf="poForm.get('incoterms')?.hasError('required')">Incoterms are required.</span>

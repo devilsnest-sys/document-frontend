@@ -19,6 +19,7 @@ export class OrderacknowledgementComponent {
   selectedFile: File | null = null;
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
+  incotermsList: any[] = []; 
   public modules: Module[] = [ClientSideRowModelModule];
 
   bulkPoFile: File | null = null;
@@ -61,6 +62,7 @@ export class OrderacknowledgementComponent {
 
   ngOnInit(): void {
     this.fetchPo();
+    this.fetchIncoterms();
     this.vendorId = this.authService.getUserId();
   }
 
@@ -93,7 +95,21 @@ export class OrderacknowledgementComponent {
     });
   }
 
-
+  fetchIncoterms(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  
+    this.http.get<any[]>(`${environment.apiUrl}/v1/incoterms`, { headers }).subscribe({
+      next: (data) => {
+        this.incotermsList = data;
+        console.log('Incoterms fetched successfully:', data);
+      },
+      error: (error) => {
+        console.error('Error fetching incoterms:', error);
+      },
+    });
+  }
+  
   onSubmit(): void {
     if (this.poForm.valid && this.selectedFile) {
       const token = localStorage.getItem('authToken');
