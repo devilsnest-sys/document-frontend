@@ -132,20 +132,21 @@ export class DocumentUploadComponent implements OnInit {
       });
   }
 
-  fetchUploadedDocuments(): void {
+  fetchUploadedDocuments(): void { 
     this.isLoading = true;
-    const payload = {};
-
+    
+    // Constructing the payload with stageId and documentId
+    const payload = {
+      stageId: this.stageNumber,  // Using the @Input() stageNumber
+      // documentId: this.selectedDocumentId // Ensure this is set somewhere
+    };
+  
     this.http
       .post<UploadedDocument[]>(
         `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
         payload,
         { headers: this.getHeaders() }
       )
-      // .pipe(
-      //   catchError(this.handleError.bind(this)),
-      //   finalize(() => (this.isLoading = false))
-      // )
       .subscribe({
         next: (uploadedDocs) => {
           console.log('Fetched uploaded documents:', uploadedDocs);
@@ -154,6 +155,7 @@ export class DocumentUploadComponent implements OnInit {
         },
       });
   }
+  
 
   private groupDocuments(): void {
     // Reset grouped documents
