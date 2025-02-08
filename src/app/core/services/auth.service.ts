@@ -71,15 +71,15 @@ export class AuthService {
   }
 
   requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/request-reset`, { email });
+    return this.http.post(`${environment.apiUrl}/v1/users/request-reset`, { email },{ responseType: 'text' });
   }
 
   resetPassword(email: string, otp: string, newPassword: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/reset-password`, {
+    return this.http.post(`${environment.apiUrl}/v1/users/reset-password`, {
       email,
       otp,
       newPassword
-    });
+    },{ responseType: 'text' });
   }
 
 }

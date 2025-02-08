@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-password-reset',
   standalone: false,
@@ -16,7 +16,8 @@ export class PasswordResetComponent {
   message: string = '';
   errorMessage: string = '';
 
-  constructor(private authService: AuthService) {}
+
+  constructor(private authService: AuthService,  private router: Router) {}
 
   onSubmit() {
     if (!this.isOtpSent) {
@@ -42,6 +43,7 @@ export class PasswordResetComponent {
           this.otp = '';
           this.newPassword = '';
           this.errorMessage = '';
+          this.router.navigate(['/dashboard'])
         },
         error => {
           this.errorMessage = 'Failed to reset password.';

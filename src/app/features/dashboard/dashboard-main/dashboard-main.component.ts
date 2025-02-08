@@ -36,6 +36,9 @@ export class DashboardMainComponent {
     this.initializeForm();
     this.loadVendors();
     this.setupVendorFilter();
+
+    // Auto-set vendor for vendors
+    setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
   }
 
   private initializeForm(): void {
@@ -146,5 +149,35 @@ export class DashboardMainComponent {
   onCancel(): void {
     this.vendorPoForm.reset();
     this.purchaseOrders = [];
+  }
+  private loadVendorById(vendorId: number): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+  
+    const url = `${environment.apiUrl}/v1/vendors/${vendorId}`;
+    const headers = { Authorization: `Bearer ${token}` };
+  
+    this.http.get<any>(url, { headers }).subscribe({
+      next: vendor => {
+        if (vendor) {
+          this.vendorPoForm.patchValue({ vendor: vendor });
+          this.vendorControl.setValue(vendor, { emitEvent: false });
+          this.onVendorChange(vendor.id); // Load POs for this vendor
+        }
+      },
+      error: err => {
+        console.error('Error fetching vendor:', err);
+        this.toastService.showToast('error', 'Error loading vendor');
+      }
+    });
+  }
+  
+  private checkUserTypeAndSetVendor(): void {
+    const userType = localStorage.getItem('userType');
+    const vendorId = localStorage.getItem('userId');
+
+    if (userType === 'vendor' && vendorId) {
+      this.loadVendorById(parseInt(vendorId, 10)); // Fetch vendor details directly
+    }
   }
 }

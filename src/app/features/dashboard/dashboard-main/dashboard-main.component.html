@@ -6,8 +6,8 @@
     <div class="card-body">
       <form [formGroup]="vendorPoForm">
         <div class="row">
-          <!-- Vendor Autocomplete -->
-          <div class="col-md-6">
+          <!-- Vendor Selection (Only for Admins/Users) -->
+          <div class="col-md-6" *appUserRole="['admin', 'user']">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Select Vendor</mat-label>
               <input type="text"
@@ -26,10 +26,9 @@
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
-            
           </div>
 
-          <!-- PO Dropdown -->
+          <!-- Purchase Order Selection (Always Visible) -->
           <div class="col-md-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Select Purchase Order</mat-label>
@@ -45,6 +44,8 @@
     </div>
   </div>
 </div>
+
+<!-- Step Bar Visibility -->
 <div class="container mt-5" *ngIf="isStepBarVisible()">
   <ul>
     <li *ngFor="let step of steps; let i = index" [ngClass]="{
