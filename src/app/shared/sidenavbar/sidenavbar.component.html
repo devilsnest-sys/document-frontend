@@ -1,12 +1,13 @@
 <button class="toggle-btn" *ngIf="isLoggedIn" (click)="toggleSidebar()">
     <i class="fa-solid fa-arrow-right"></i>
 </button>
-<!-- -->
-<div  *ngIf="isLoggedIn" >
-<div class="sidebar" [class.active]="isSidebarOpen">
-    <nav *appUserRole="['user']" >
+<!-- [appUserRole]="['user']" -->
+<div  *ngIf="isLoggedIn"  >
+       <div class="sidebar" [class.active]="isSidebarOpen">
+    <nav>
         <ul>
             <li><a routerLink="/dashboard"><mat-icon>apps</mat-icon>Dashboard</a></li>
+            <div *appUserRole="['user']">
             <li>
                 <a href="javascript:void(0)" (click)="toggleDropdown()"><mat-icon>folder</mat-icon>Master
                     <i class="fa-solid" [class.fa-chevron-down]="isDropdownOpen" [class.fa-chevron-up]="!isDropdownOpen"></i>
@@ -22,7 +23,8 @@
             <li><a routerLink="/orderAcknowledgement"><mat-icon>check_circle_outline</mat-icon>PO Number</a></li>
             <li><a routerLink="/registration"><mat-icon>person_add</mat-icon>Registration</a></li>
             <li><a routerLink="/vendorRegistration"><mat-icon>business</mat-icon>Register Vendor</a></li>
+        </div>
         </ul>
     </nav>
-</div>
+      </div>
 </div>
