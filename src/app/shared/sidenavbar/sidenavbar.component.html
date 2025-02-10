@@ -1,10 +1,10 @@
 <button class="toggle-btn" *ngIf="isLoggedIn" (click)="toggleSidebar()">
     <i class="fa-solid fa-arrow-right"></i>
 </button>
-<!-- [appUserRole]="['user']" -->
+<!-- -->
 <div  *ngIf="isLoggedIn" >
 <div class="sidebar" [class.active]="isSidebarOpen">
-    <nav>
+    <nav *appUserRole="['user']" >
         <ul>
             <li><a routerLink="/dashboard"><mat-icon>apps</mat-icon>Dashboard</a></li>
             <li>
