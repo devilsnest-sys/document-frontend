@@ -59,10 +59,7 @@
               <mat-label>PO Type</mat-label>
               <mat-icon matPrefix>list</mat-icon>
               <mat-select id="poType" formControlName="poType" required>
-                <mat-option value="" disabled>Select PO Type</mat-option>
-                <mat-option value="0">DD</mat-option>
-                <mat-option value="1">CD</mat-option>
-                <mat-option value="2">AS</mat-option>
+                <mat-option *ngFor="let potype of poTypeList" [value]="potype.id">{{potype.poTypeName}}</mat-option>
               </mat-select>
               <mat-error *ngIf="poForm.get('poType')?.touched && poForm.get('poType')?.invalid">
                 <span *ngIf="poForm.get('poType')?.hasError('required')">PO Type is required.</span>

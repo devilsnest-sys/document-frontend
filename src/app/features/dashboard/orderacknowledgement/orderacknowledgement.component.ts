@@ -20,6 +20,7 @@ export class OrderacknowledgementComponent {
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
   incotermsList: any[] = []; 
+  poTypeList: any[] = [];
   public modules: Module[] = [ClientSideRowModelModule];
 
   bulkPoFile: File | null = null;
@@ -63,6 +64,7 @@ export class OrderacknowledgementComponent {
   ngOnInit(): void {
     this.fetchPo();
     this.fetchIncoterms();
+    this.fetchpotypes();
     this.vendorId = this.authService.getUserId();
   }
 
@@ -93,6 +95,23 @@ export class OrderacknowledgementComponent {
         console.error('Error fetching stages:', error);
       },
     });
+  }
+
+  fetchpotypes(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http
+      .get<any[]>(`${environment.apiUrl}/v1/potype`, { headers })
+      .subscribe({
+        next: (data) => {
+          this.poTypeList = data;
+          console.log('potypes fetched successfully:', data);
+        },
+        error: (error) => {
+          console.error('Error fetching potypes:', error);
+        },
+      });
   }
 
   fetchIncoterms(): void {
