@@ -7,6 +7,7 @@ import {
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 
 interface DocumentType {
@@ -73,7 +74,7 @@ export class DocumentUploadComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   userType: string | null = '';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private toasService : ToastserviceService) {}
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
@@ -264,87 +265,95 @@ export class DocumentUploadComponent implements OnInit {
   async uploadDocument(event: Event, documentTypeId: number): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-
+  
     if (!file) {
       console.error('No file selected');
       return;
     }
-
+  
     try {
       this.isLoading = true;
       this.errorMessage = '';
-
-      // Prepare form data for upload
+  
       const formData = new FormData();
       formData.append('file', file);
-
-      // Populate other required fields from local storage or default values
+  
       const currentUser = localStorage.getItem('userId') || '1';
       const currentDate = new Date().toISOString();
-
+  
       const siteUrl = window.location.href;
       const regex = /\/stages\/(\d+)\/(\d+)/;
       const match = siteUrl.match(regex);
       let value1 = '';
       let value2 = '';
       if (match) {
-        value1 = match[1]; // '1'
-        value2 = match[2]; // '5'
-
-        console.log(value1, value2);
+        value1 = match[1];
+        value2 = match[2];
       }
-
+  
       formData.append('isApproved', 'false');
       formData.append('isDocSubmited', 'true');
       formData.append('isRejected', 'false');
-      // formData.append('docReviewedBy', '');
       formData.append('uploadedDocumentName', file.name);
-      // formData.append('uploadedDocLocation', '');
-      // formData.append('reviewedBy', '');
       formData.append('uploadedDate', currentDate);
-      formData.append(
-        'docUploadedBy',
-        localStorage.getItem('userType')?.toString()!
-      );
+      formData.append('docUploadedBy', localStorage.getItem('userType')?.toString() || '');
       formData.append('documentTypeId', documentTypeId.toString());
       formData.append('status', 'Pending');
       formData.append('uploadedBy', currentUser);
-      //formData.append('reviewRemark', '');
-      formData.append('stageId', value1); // Default stage, adjust as needed
-      formData.append('poId', value2); // Default PO ID, adjust as needed
+      formData.append('stageId', value1);
+      formData.append('poId', value2);
       formData.append('id', '0');
-      //formData.append('docReviewDate', '');
-
-      // Get headers (note: for file upload, do not set Content-Type manually)
+  
       const headers = new HttpHeaders().set(
         'Authorization',
         `Bearer ${localStorage.getItem('authToken')}`
       );
-
-      // Upload document
-      await this.http
+  
+      // Fixed subscription handling
+      this.http
         .post(
           `${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`,
           formData,
           { headers }
         )
         .pipe(
-          catchError(this.handleError.bind(this)),
-          finalize(() => (this.isLoading = false))
+          catchError((error) => {
+            console.error('Upload error:', error);
+            this.errorMessage = 'Failed to upload document. Please try again.';
+            return throwError(() => error);
+          }),
+          finalize(() => {
+            this.isLoading = false;
+          })
         )
-        .toPromise();
-
-      // Refresh document list after successful upload
-      this.fetchUploadedDocuments();
-
-      // Optional: show success message
-      alert('Document uploaded successfully');
+        .subscribe({
+          next: (response) => {
+            console.log('Upload successful:', response);
+            input.value = '';
+            // Swal.fire({
+            //   title: 'Success',
+            //   text: 'Document uploaded successfully',
+            //   icon: 'success'
+            // });
+            this.toasService.showToast("success","Document Uploaded")
+            this.fetchUploadedDocuments();
+          },
+          error: (error) => {
+            console.error('Upload error:', error);
+            Swal.fire({
+              title: 'Error',
+              text: 'Failed to upload document. Please try again.',
+              icon: 'error'
+            });
+          }
+        });
+  
     } catch (error) {
       console.error('Document upload failed:', error);
       this.errorMessage = 'Failed to upload document. Please try again.';
+      this.isLoading = false;
     }
   }
-
   async approveDocument(document: UploadedDocument): Promise<void> {
     await this.reviewDocument(document, true);
   }

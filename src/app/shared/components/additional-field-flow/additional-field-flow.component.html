@@ -1,0 +1,13 @@
+<div class="ag-theme-alpine" style="height: 400px; width: 100%;">
+    <ag-grid-angular 
+      [rowData]="rowData"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="{ flex: 1, sortable: true, filter: true, resizable: true }"
+      [editType]="'fullRow'"
+      class="ag-theme-alpine"
+      rowSelection="single">
+    </ag-grid-angular>
+  </div>
+  
+  <button class="submit-btn" (click)="onSubmit()">Submit</button>
+  

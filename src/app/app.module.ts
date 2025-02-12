@@ -56,6 +56,7 @@ import { UserRoleDirective } from './shared/directives/user-role.directive';
 import { StageStep3Component } from './stage-steps/stage-step3/stage-step3.component';
 import { StageStep4Component } from './stage-steps/stage-step4/stage-step4.component';
 import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.component';
+import { AdditionalFieldFlowComponent } from './shared/components/additional-field-flow/additional-field-flow.component';
 
 
 @NgModule({
@@ -86,6 +87,7 @@ import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.compo
     StageStep3Component,
     StageStep4Component,
     StageStep5Component,
+    AdditionalFieldFlowComponent,
   ],
   imports: [
     BrowserModule,
