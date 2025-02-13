@@ -80,7 +80,7 @@ export class CreatePoTypeComponent {
 
   ngOnInit(): void {
     this.poType = this.fb.group({
-      potypesName: ['', [Validators.required, Validators.minLength(2)]],
+      potypeName: ['', [Validators.required, Validators.minLength(2)]],
     });
     this.userId = this.authService.getUserId();
     this.fetchpotypes();
@@ -112,7 +112,7 @@ export class CreatePoTypeComponent {
 
       const payload = {
         id: 0,
-        potypesName: this.poType.value.potypesName?.trim(),
+        potypeName: this.poType.value.potypeName?.trim(),
       };
 
       this.http
@@ -146,17 +146,17 @@ export class CreatePoTypeComponent {
       title: 'Edit potype',
       html: `
         <input id="potypeId" class="swal2-input" type="text" value="${potype.id}" disabled placeholder="potype ID">
-        <input id="potypesName" class="swal2-input" type="text" value="${potype.poTypeName}" placeholder="potype Name">`,
+        <input id="potypeName" class="swal2-input" type="text" value="${potype.poTypeName}" placeholder="potype Name">`,
       focusConfirm: false,
       preConfirm: () => {
-        const potypesNameInput = Swal.getPopup()?.querySelector('#potypesName') as HTMLInputElement;
+        const potypeNameInput = Swal.getPopup()?.querySelector('#potypeName') as HTMLInputElement;
   
-        if (!potypesNameInput?.value) {
+        if (!potypeNameInput?.value) {
           Swal.showValidationMessage('potype Name is required');
           return null;
         }
   
-        return { potypesName: potypesNameInput.value };
+        return { potypeName: potypeNameInput.value };
       },
       showCancelButton: true,
       confirmButtonText: 'Submit',
@@ -170,7 +170,7 @@ export class CreatePoTypeComponent {
 
   updatepotype(
     potypeId: number,
-    updatedData: { potypesName: string }
+    updatedData: { potypeName: string }
   ): void {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders()
@@ -179,7 +179,7 @@ export class CreatePoTypeComponent {
 
     const payload = {
       id: potypeId,
-      potypesName: updatedData.potypesName,
+      potypeName: updatedData.potypeName,
     };
 
     this.http
