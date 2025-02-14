@@ -10,10 +10,10 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>potype Name</mat-label>
                 <mat-icon matPrefix>local_shipping</mat-icon>
-                <input matInput formControlName="potypesName" placeholder="Enter potype name" required />
+                <input matInput formControlName="potypeName" placeholder="Enter potype name" required />
                 <mat-error *ngIf="
-                    poType.controls['potypesName'].invalid &&
-                    poType.controls['potypesName'].touched
+                    poType.controls['potypeName'].invalid &&
+                    poType.controls['potypeName'].touched
                   ">
                   potype name is required.
                 </mat-error>
