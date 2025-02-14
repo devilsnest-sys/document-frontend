@@ -22,21 +22,20 @@
           </div>
           <div class="col-md-4">
             <!-- Data Type -->
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Data Type</mat-label>
-              <mat-icon matPrefix>code</mat-icon>
-              <input matInput formControlName="additionalFieldRequiredDataType" placeholder="Enter data type"
-                required />
+            <div class="form-field-container">
+              <mat-checkbox 
+                formControlName="additionalFieldRequiredDataType" 
+                color="primary"
+                class="full-width">
+                Required Data Type
+              </mat-checkbox>
               <mat-error *ngIf="
-                  additionalFieldForm.controls['additionalFieldRequiredDataType']
-                    .invalid &&
-                  additionalFieldForm.controls[
-                    'additionalFieldRequiredDataType'
-                  ].touched
-                ">
-                Data type is required.
+                additionalFieldForm.controls['additionalFieldRequiredDataType'].invalid &&
+                additionalFieldForm.controls['additionalFieldRequiredDataType'].touched
+              ">
+                Data type selection is required.
               </mat-error>
-            </mat-form-field>
+            </div>
           </div>
         </div>
         <div class="text-center mt-3">

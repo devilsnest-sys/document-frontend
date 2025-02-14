@@ -253,7 +253,7 @@ export class DocumentUploadComponent implements OnInit {
           docReviewDate: payload.docReviewDate,
         });
       }
-
+      this.fetchDocumentTypes();
       // Refresh the document list
       this.groupDocuments();
     } catch (error) {

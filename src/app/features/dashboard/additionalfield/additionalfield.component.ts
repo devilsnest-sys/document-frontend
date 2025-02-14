@@ -82,10 +82,7 @@ export class AdditionalfieldComponent {
   ngOnInit(): void {
     this.additionalFieldForm = this.fb.group({
       additionalFieldName: ['', [Validators.required, Validators.minLength(3)]],
-      additionalFieldRequiredDataType: [
-        '',
-        [Validators.required, Validators.minLength(3)],
-      ],
+      additionalFieldRequiredDataType: [false, Validators.required],
     });
     this.fetchAdditionalFields();
   }
@@ -115,8 +112,7 @@ export class AdditionalfieldComponent {
       this.isSubmitting = true;
       const payload = {
         id: 0,
-        additionalFieldRequiredDataType:
-          this.additionalFieldForm.value.additionalFieldRequiredDataType,
+        additionalFieldRequiredDataType: this.additionalFieldForm.value.additionalFieldRequiredDataType,
         additionalFieldName: this.additionalFieldForm.value.additionalFieldName,
         createdAt: new Date().toISOString(),
         createdBy: 0, // Replace with actual user ID
@@ -218,7 +214,11 @@ export class AdditionalfieldComponent {
       title: 'Edit Additional Field',
       html: `
         <input id="additionalFieldName" class="swal2-input" value="${additionalField.additionalFieldName}" placeholder="Field Name">
-        <input id="additionalFieldRequiredDataType" class="swal2-input" value="${additionalField.additionalFieldRequiredDataType}" placeholder="Data Type">
+        <div class="swal2-checkbox-container">
+          <input type="checkbox" id="additionalFieldRequiredDataType" class="swal2-checkbox" 
+            ${additionalField.additionalFieldRequiredDataType ? 'checked' : ''}>
+          <label for="additionalFieldRequiredDataType">Required Data Type</label>
+        </div>
       `,
       focusConfirm: false,
       preConfirm: () => {
@@ -229,10 +229,10 @@ export class AdditionalfieldComponent {
           document.getElementById(
             'additionalFieldRequiredDataType'
           ) as HTMLInputElement
-        ).value;
+        ).checked;
 
-        if (!additionalFieldName || !additionalFieldRequiredDataType) {
-          Swal.showValidationMessage('All fields are required');
+        if (!additionalFieldName) {
+          Swal.showValidationMessage('Field name is required');
           return null;
         }
 

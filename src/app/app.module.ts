@@ -25,6 +25,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 
 import { AgGridModule } from '@ag-grid-community/angular';
@@ -88,6 +89,7 @@ import { AdditionalFieldFlowComponent } from './shared/components/additional-fie
     StageStep4Component,
     StageStep5Component,
     AdditionalFieldFlowComponent,
+    
   ],
   imports: [
     BrowserModule,
@@ -111,7 +113,8 @@ import { AdditionalFieldFlowComponent } from './shared/components/additional-fie
     MatListModule,
     MatExpansionModule,
     MatMenuModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatCheckboxModule
   ],
   providers: [
     provideAnimationsAsync(),
