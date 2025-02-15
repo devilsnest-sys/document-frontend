@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { ToastserviceService } from '../../core/services/toastservice.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   userTypes = [
     { value: 'vendor', label: 'Vendor' },
@@ -30,17 +30,22 @@ export class LoginComponent {
     });
   }
 
+  ngOnInit() {
+    // Redirect to dashboard if already logged in
+    if (localStorage.getItem('authToken')) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
   onSubmit() {
     if (this.loginForm.valid) {
       const { username, password, userType } = this.loginForm.value;
       this.authService.login(username, password, userType).subscribe({
         next: (response) => {
           if (response.token) {
-            // Pass userType directly to setToken()
             this.authService.setToken(response.token, response.userName, response.id, userType);
             this.ToastserviceService.showToast('success', 'Login Successful');
             this.router.navigate(['/dashboard']);
-            console.log("user type is :",userType);
           } else {
             this.ToastserviceService.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
           }
@@ -53,5 +58,4 @@ export class LoginComponent {
       this.ToastserviceService.showToast('warning', 'Invalid Input', 'Please fill out the form correctly before submitting.');
     }
   }
-   
 }
