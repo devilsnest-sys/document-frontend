@@ -29,8 +29,8 @@ export class OrderacknowledgementComponent {
   
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
-    { field: 'poType', headerName: 'PO Type' },
-    { field: 'incoterms', headerName: 'Incoterms' },
+    { field: 'poTypeName', headerName: 'PO Type' },
+    { field: 'incotermName', headerName: 'Incoterms' },
     { field: 'actualDeliveryDate', headerName: 'Shipment Date' },
     { field: 'contactPersonName', headerName: 'Contact Person Name' },
     { field: 'contactPersonEmailId', headerName: 'Contact Person Email' },
@@ -117,6 +117,7 @@ export class OrderacknowledgementComponent {
           shipmentDate: new Date(item.shipmentDate).toLocaleDateString(), 
           createdAt: new Date(item.createdAt).toLocaleDateString(),
           updatedAt: new Date(item.updatedAt).toLocaleDateString()
+          
         }));
   
         this.filteredRowData = this.rowData;
