@@ -18,14 +18,57 @@
 }
 
 .data-grid {
-  overflow-x: auto;
+  overflow-x: auto; /* Enable horizontal scroll if needed */
+  max-width: 100%; /* Ensure it adapts to the container */
 }
 
+/* Table Styles */
 .table {
   width: 100%;
   margin-bottom: 1rem;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
+  table-layout: fixed;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal; /* Allow text to wrap instead of hiding */
+  word-wrap: break-word;
+  overflow: visible;
+  min-width: 150px; /* Increase width */
+}
+
+/* Increase Specific Column Widths (Customize as needed) */
+.table th:nth-child(1) { min-width: 80px; } /* Sr No. */
+.table th:nth-child(2) { min-width: 220px; } /* Document Name */
+.table th:nth-child(3) { min-width: 180px; } /* Upload Document */
+.table th:nth-child(4) { min-width: 200px; } /* Uploaded Document Name */
+.table th:nth-child(5) { min-width: 140px; } /* Status */
+.table th:nth-child(6) { min-width: 200px; } /* Doc Uploaded By */
+.table th:nth-child(7) { min-width: 200px; } /* Uploaded User Type */
+.table th:nth-child(8) { min-width: 180px; } /* Uploaded Date */
+.table th:nth-child(9) { min-width: 200px; } /* Reviewed By */
+.table th:nth-child(10) { min-width: 200px; } /* Reviewed User Type */
+.table th:nth-child(11) { min-width: 200px; } /* Doc Review Date */
+.table th:nth-child(12) { min-width: 220px; } /* Review Remark */
+.table th:nth-child(13) { min-width: 180px; } /* Actions */
+.table th:nth-child(14) { min-width: 200px; } /* Approve/Reject */
+
+.table td {
+  padding: 10px;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+.table tbody tr:hover {
+  background-color: #f1f1f1;
 }
 
 .group-header {
@@ -34,10 +77,7 @@
   transition: background-color 0.2s;
 }
 
-.group-header:hover {
-  background-color: #e9ecef;
-}
-
+.group-header:hover,
 .group-header.expanded {
   background-color: #e9ecef;
 }
@@ -61,6 +101,7 @@
   background-color: #f8f9fa;
 }
 
+/* Status Badges */
 .status-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -101,19 +142,15 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
+
+/* Button Styles */
 ::ng-deep .btn-action {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 5px;
-  margin: 0 5px;
-  display: inline-block;
-  /* height: 100%; */
-  /* background: #d4d4d4; */
-  line-height: 0;
   padding: 10px;
+  margin: 0 5px;
   border-radius: 100px;
-  /* box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, .2), 0px 6px 10px 0px rgba(0, 0, 0, .14), 0px 1px 18px 0px rgba(0, 0, 0, .12); */
 }
 
 ::ng-deep .btn-action:hover {
@@ -128,35 +165,37 @@
 
 ::ng-deep .delete-btn .material-icons {
   font-size: 16px;
-  color: #f44336; /* Red for delete */
+  color: #f44336;
 }
 
-/* Approve button color */
+/* Approve Button */
 ::ng-deep .approve-btn .material-icons {
-  color: #4caf50; /* Soft green */
+  color: #4caf50;
 }
 
 ::ng-deep .approve-btn:hover .material-icons {
-  color: #388e3c; /* Darker green for hover */
+  color: #388e3c;
 }
 
-/* Reject button color */
+/* Reject Button */
 ::ng-deep .reject-btn .material-icons {
-  color: #f44336; /* Soft red */
+  color: #f44336;
 }
 
 ::ng-deep .reject-btn:hover .material-icons {
-  color: #d32f2f; /* Darker red for hover */
+  color: #d32f2f;
 }
-table th, table td{
+
+/* Table Text Size */
+table th, table td {
   font-size: 14px;
 }
 
+/* Responsive Styles */
 @media (max-width: 768px) {
   .table {
     font-size: 0.875rem;
   }
-  
   .btn-sm {
     padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
