@@ -52,7 +52,17 @@
               </mat-error>
             </mat-form-field>
           </div>
-      
+      <!-- vendor code -->
+          <div class="col-lg-6">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Vendor Code</mat-label>
+              <mat-icon matPrefix>vendorCode</mat-icon>
+              <input matInput id="vendorCode" formControlName="vendorCode" required />
+              <mat-error *ngIf="poForm.get('vendorCode')?.touched && poForm.get('vendorCode')?.invalid">
+                <span *ngIf="poForm.get('vendorCode')?.hasError('required')">Vendor Code is required.</span>
+              </mat-error>
+            </mat-form-field>
+          </div>
           <!-- PO Type -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">

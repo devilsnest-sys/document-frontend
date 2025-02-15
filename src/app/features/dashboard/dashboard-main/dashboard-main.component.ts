@@ -98,7 +98,7 @@ export class DashboardMainComponent {
     if (selectedVendor) {
       this.vendorPoForm.patchValue({ vendor: selectedVendor });
       this.vendorControl.setValue(selectedVendor, { emitEvent: false });
-      this.onVendorChange(selectedVendor.id);
+      this.onVendorChange(selectedVendor.vendorCode);
       console.log(selectedVendor.companyName);
     }
   }   
@@ -114,12 +114,12 @@ export class DashboardMainComponent {
     this.filteredVendors$.next(this.vendors);
   }
 
-  onVendorChange(vendorId: number | null): void {
-    if (!vendorId) return;
+  onVendorChange(vendorCode: string | null): void {
+    if (!vendorCode) return;
     const token = localStorage.getItem('authToken');
     if (!token) return;
   
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorId}`;
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
     const headers = { Authorization: `Bearer ${token}` };
   
     this.purchaseOrders = [];
@@ -162,7 +162,7 @@ export class DashboardMainComponent {
         if (vendor) {
           this.vendorPoForm.patchValue({ vendor: vendor });
           this.vendorControl.setValue(vendor, { emitEvent: false });
-          this.onVendorChange(vendor.id); // Load POs for this vendor
+          this.onVendorChange(vendor.vendorCode); // Load POs for this vendor
         }
       },
       error: err => {

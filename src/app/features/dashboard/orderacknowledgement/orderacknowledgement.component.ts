@@ -86,7 +86,8 @@ export class OrderacknowledgementComponent {
       contactPersonEmailId: ['', [Validators.required]],
       contactNumber: ['', Validators.required],
       poFilePath: [null, Validators.required],
-      poNo: ['', [Validators.required]]
+      poNo: ['', [Validators.required]],
+      vendorCode: ['', Validators.required],
     });
   }
 
@@ -179,6 +180,7 @@ export class OrderacknowledgementComponent {
       formData.append('PoType', this.poForm.value.poType.toString());
       formData.append('CreatedAt', new Date().toISOString());
       formData.append('PoDescription', this.poForm.value.poDescription);
+      formData.append('vendorCode', this.poForm.value.vendorCode);
       formData.append(
         'StageStatuses',
         JSON.stringify([])
