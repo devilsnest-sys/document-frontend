@@ -187,13 +187,21 @@ export class AdditionalFieldFlowComponent implements OnInit {
 
     this.submitting = true;
     const lastRowData = this.rowData[this.rowData.length - 1];
-    
+    // const lastRowData = {
+    //   additionalFieldId: parseInt(this.rowData[this.rowData.length - 1].additionalFieldId, 10),
+    //   poId: parseInt(this.rowData[this.rowData.length - 1].poId, 10),
+    //   stageId: parseInt(this.rowData[this.rowData.length - 1].stageId, 10),
+    //   initAddFieldValue: this.rowData[this.rowData.length - 1].initAddFieldValue,
+    //   isMandatory: this.rowData[this.rowData.length - 1].isMandatory,
+    //   initAddFieldCreatedBy: 1, // Ensure you send this value
+    //   createdAt: new Date().toISOString() // Convert DateTime correctly
+    // };
     try {
       const headers = this.getHeaders();
 
       this.http.post<void>(
         `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/Create`,
-        { dto: lastRowData },
+         lastRowData ,
         { headers }
       ).subscribe({
         next: () => {
