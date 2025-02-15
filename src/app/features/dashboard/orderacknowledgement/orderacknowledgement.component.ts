@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
-import { ColDef, Module } from '@ag-grid-community/core';
+import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -32,11 +32,40 @@ export class OrderacknowledgementComponent {
     { field: 'poType', headerName: 'PO Type' },
     { field: 'incoterms', headerName: 'Incoterms' },
     { field: 'actualDeliveryDate', headerName: 'Shipment Date' },
-    // { field: 'proofOfDelivery', headerName: 'Proof of Delivery' },
     { field: 'contactPersonName', headerName: 'Contact Person Name' },
     { field: 'contactPersonEmailId', headerName: 'Contact Person Email' },
-    // { field: 'alternateEmailId', headerName: 'Alternate Email ID' },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      cellRenderer: (params: ICellRendererParams) => {
+        const eDiv = document.createElement('div');
+        
+        // Create view button
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'btn-action upload-btn';
+        viewBtn.innerHTML = '<span class="material-icons">visibility</span>';
+        viewBtn.addEventListener('click', () => this.viewDocument(params.data.id));
+        
+        // Create download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'btn-action upload-btn';
+        downloadBtn.innerHTML = '<span class="material-icons">download</span>';
+        downloadBtn.addEventListener('click', () => this.downloadDocument(params.data.id));
+        
+        eDiv.appendChild(viewBtn);
+        eDiv.appendChild(downloadBtn);
+        return eDiv;
+      },
+      width: 150,
+    },
   ];
+
+  gridOptions = {
+    context: {
+      viewDocument: this.viewDocument.bind(this),
+      downloadDocument: this.downloadDocument.bind(this)
+    }
+  };
 
   defaultColDef: ColDef = {
     sortable: true,
@@ -135,7 +164,7 @@ export class OrderacknowledgementComponent {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       
       const formData = new FormData();
-      formData.append('PoFilePath', this.selectedFile, this.selectedFile.name);
+      formData.append('file', this.selectedFile, this.selectedFile.name);
       formData.append('ContactPersonName', this.poForm.value.contactPersonName);
       formData.append('PO_NO', this.poForm.value.poNo);
       formData.append('ContactNumber', this.poForm.value.contactNumber);
@@ -229,6 +258,60 @@ export class OrderacknowledgementComponent {
     } else {
       console.log('No bulk PO file selected');
     }
+  }
+
+  viewDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+  
+    fetch(documentUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const newWindow = window.open(blobUrl, '_blank');
+        if (newWindow) {
+          newWindow.addEventListener('unload', () => {
+            URL.revokeObjectURL(blobUrl);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error viewing document:', error);
+        // You might want to add a user-friendly error message here
+        alert('Error viewing document. Please ensure you are logged in and try again.');
+      });
+  }
+  
+
+  downloadDocument(documentName: number): void {
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentName)}`;
+  
+    fetch(documentUrl)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `document_${documentName}.pdf`; // Add appropriate extension
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl); // Clean up the blob URL
+      })
+      .catch(error => {
+        console.error('Error downloading document:', error);
+        // Add appropriate error handling/user notification here
+      });
   }
   
   
