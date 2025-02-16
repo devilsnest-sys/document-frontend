@@ -29,5 +29,16 @@ export class VendorService {
   
     return this.http.post(`${environment.apiUrl}/v1/vendors/upload`, formData, { headers, responseType: 'text' });
   }
+  checkEmailExists(email: string, type: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(
+      `${environment.apiUrl}/v1/users/check-email?email=${encodeURIComponent(email)}&type=${type}`
+    );
+  }
+
+  checkUsernameExists(username: string, type: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(
+        `${environment.apiUrl}/v1/users/check-username?username=${username}&type=${type}`
+    );
+}
   
 }

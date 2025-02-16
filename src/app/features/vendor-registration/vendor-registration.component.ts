@@ -68,7 +68,41 @@ export class VendorRegistrationComponent {
       this.selectedFile = file;
     }
   }
+  
+  checkEmailExists(email: string, type: string = 'vendor'): void {
+    if (!email) return;
+   
+    this.vendorService.checkEmailExists(email, type).subscribe(
+      response => {
+        if (response.exists) {
+          this.registrationForm.controls['email'].setErrors({ emailTaken: true });
+        }
+      },
+      error => {
+        console.error('Error checking email:', error);
+      }
+    );
+  }
+  
 
+  get emailControl() {
+    return this.registrationForm.get('email');
+  }
+
+  checkUsernameExists(username: string, type: string = 'vendor'): void {
+    if (!username) return;
+  
+    this.vendorService.checkUsernameExists(username,type).subscribe(
+      response => {
+        if (response.exists) {
+          this.registrationForm.controls['username'].setErrors({ usernameTaken: true });
+        }
+      },
+      error => {
+        console.error('Error checking username:', error);
+      }
+    );
+  }
   uploadFile(): void {
     if (!this.selectedFile) {
       this.toastservice.showToast('error', 'Upload Failed', 'Please select a file first.');

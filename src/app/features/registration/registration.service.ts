@@ -23,4 +23,17 @@ export class RegistrationService {
     );
     return this.http.get<Array<{ id: number; stageName: string }>>(this.stagesUrl, { headers });
   }
+
+  checkEmailExists(email: string, type: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(
+      `${this.registrationUrl}/check-email?email=${encodeURIComponent(email)}&type=${type}`
+    );
+  }
+
+  checkUsernameExists(username: string, type: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(
+        `${this.registrationUrl}/check-username?username=${username}&type=${type}`
+    );
+}
+  
 }

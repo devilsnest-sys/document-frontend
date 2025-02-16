@@ -11,36 +11,49 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Username</mat-label>
                 <mat-icon matPrefix>person</mat-icon>
-                <input matInput id="username" formControlName="username" required />
-                <mat-error
-                  *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid"
-                >
+                <input 
+                  matInput 
+                  id="username" 
+                  formControlName="username" 
+                  required 
+                  (blur)="checkUsernameExists(registrationForm.get('username')?.value)" 
+                />
+                <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
                   <small *ngIf="registrationForm.get('username')?.hasError('required')">
                     Username is required.
                   </small>
+                  <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken')">
+                    This username is already taken.
+                  </small>
                 </mat-error>
               </mat-form-field>
             </div>
+            
   
             <div class="col-md-6">
-              <!-- Email -->
+              <!-- Email -->             
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Email</mat-label>
                 <mat-icon matPrefix>email</mat-icon>
-                <input matInput id="email" type="email" formControlName="email" required />
-                <mat-error
-                  *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid"
-                >
-                  <small *ngIf="registrationForm.get('email')?.hasError('required')">
-                    Email is required.
-                  </small>
-                  <small *ngIf="registrationForm.get('email')?.hasError('email')">
-                    Enter a valid email.
-                  </small>
+                <input 
+                  matInput 
+                  id="email" 
+                  type="email" 
+                  formControlName="email" 
+                  (blur)="checkEmailExists(registrationForm.get('email')?.value, 'user')"
+                  required 
+                />
+                <mat-error *ngIf="emailControl?.touched && emailControl?.invalid">
+                  <small *ngIf="emailControl?.hasError('required')">Email is required.</small>
+                  <small *ngIf="emailControl?.hasError('email')">Enter a valid email.</small>
+                  <small *ngIf="emailControl?.hasError('emailTaken')">This email is already taken.</small>
                 </mat-error>
               </mat-form-field>
             </div>
   
+
+            
+
             <div class="col-md-6">
               <!-- Password -->
               <mat-form-field appearance="fill" class="full-width">

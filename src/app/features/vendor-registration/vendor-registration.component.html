@@ -80,14 +80,22 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>email</mat-icon>
               <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" required />
+              <input 
+                matInput 
+                id="email" 
+                type="email" 
+                formControlName="email" 
+                (blur)="checkEmailExists(registrationForm.get('email')?.value, 'vendor')"
+                required 
+              />
               <mat-error *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid">
                 <small *ngIf="registrationForm.get('email')?.hasError('required')">Email is required.</small>
                 <small *ngIf="registrationForm.get('email')?.hasError('email')">Enter a valid email.</small>
-              </mat-error>
+                <small *ngIf="registrationForm.get('email')?.hasError('emailTaken')">This email is already taken.</small>
+              </mat-error>  
             </mat-form-field>
           </div>
-    
+          
           <!-- Website -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
@@ -148,12 +156,22 @@
           <!-- Username -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
-              <mat-icon matPrefix>account_circle</mat-icon>
               <mat-label>Username</mat-label>
-              <input matInput formControlName="username" required />
-              <mat-error
-                *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
-                <small>Username is required.</small>
+              <mat-icon matPrefix>person</mat-icon>
+              <input 
+                matInput 
+                id="username" 
+                formControlName="username" 
+                required 
+                (blur)="checkUsernameExists(registrationForm.get('username')?.value)" 
+              />
+              <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
+                <small *ngIf="registrationForm.get('username')?.hasError('required')">
+                  Username is required.
+                </small>
+                <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken')">
+                  This username is already taken.
+                </small>
               </mat-error>
             </mat-form-field>
           </div>
