@@ -31,16 +31,6 @@ export class CreateincotermsComponent {
       filter: 'agTextColumnFilter',
     },
     {
-      field: 'createdAt',
-      headerName: 'Created At',
-      filter: 'agDateColumnFilter',
-    },
-    {
-      field: 'createdBy',
-      headerName: 'Created By',
-      filter: 'agNumberColumnFilter',
-    },
-    {
       field: 'action',
       headerName: 'Action',
       cellRenderer: (params: any) => {

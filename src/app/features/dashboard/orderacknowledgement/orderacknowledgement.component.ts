@@ -6,6 +6,11 @@ import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 import { AuthService } from '../../../core/services/auth.service';
 
+interface Vendor {
+  id: number;
+  vendorCode: string;
+}
+
 @Component({
   selector: 'app-orderacknowledgement',
   standalone: false,  
@@ -15,7 +20,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class OrderacknowledgementComponent {
   poForm: FormGroup;
   rowData: any[] = [];
-  vendorId: string | null = null;
+  
+  userId: string | null = null;
   selectedFile: File | null = null;
   filteredRowData: any[] = [];
   poSearchText: string = ''; 
@@ -25,6 +31,10 @@ export class OrderacknowledgementComponent {
 
   bulkPoFile: File | null = null;
   bulkPoFileName: string = '';
+
+  vendors: Vendor[] = [];
+  vendorId: string | null = null;
+  selectedVendorId: number | null = null;
   
   
   columnDefs: ColDef[] = [
@@ -95,7 +105,27 @@ export class OrderacknowledgementComponent {
     this.fetchPo();
     this.fetchIncoterms();
     this.fetchpotypes();
-    this.vendorId = this.authService.getUserId();
+    this.fetchVendors();
+    this.userId = this.authService.getUserId();
+  }
+
+  fetchVendors(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get<Vendor[]>(`${environment.apiUrl}/v1/vendors`, { headers }).subscribe({
+      next: (response) => {
+        this.vendors = response;
+      },
+      error: (error) => {
+        console.error('Error fetching vendors:', error);
+      }
+    });
+  }
+
+  onVendorSelect(selectedCode: string): void {
+    const selectedVendor = this.vendors.find(vendor => vendor.vendorCode === selectedCode);
+    this.selectedVendorId = selectedVendor ? selectedVendor.id : null;
   }
 
   onFileSelected(event: Event) {
@@ -171,12 +201,12 @@ export class OrderacknowledgementComponent {
       formData.append('PO_NO', this.poForm.value.poNo);
       formData.append('ContactNumber', this.poForm.value.contactNumber);
       formData.append('ContactPersonEmailId', this.poForm.value.contactPersonEmailId);
-      formData.append('VendorId', this.vendorId ?? '');
+      formData.append('VendorId', this.selectedVendorId ? this.selectedVendorId.toString() : '');
       formData.append('UpdatedAt', new Date().toISOString());
       formData.append('IsDeleted', 'false');
       formData.append('ContractualDeliveryDate', this.poForm.value.contractualDeliveryDate.toISOString());
       formData.append('ActualDeliveryDate', this.poForm.value.actualDeliveryDate.toISOString());
-      formData.append('UpdatedBy', this.vendorId ?? ''); 
+      formData.append('UpdatedBy', this.userId ?? ''); 
       formData.append('Incoterms', this.poForm.value.incoterms.toString());
       formData.append('PoType', this.poForm.value.poType.toString());
       formData.append('CreatedAt', new Date().toISOString());
@@ -186,7 +216,7 @@ export class OrderacknowledgementComponent {
         'StageStatuses',
         JSON.stringify([])
       );
-      formData.append('CreatedBy', '1'); // Hardcoded
+      formData.append('CreatedBy', this.userId ?? '');
   
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers }).subscribe({
         next: (response) => {
@@ -199,6 +229,7 @@ export class OrderacknowledgementComponent {
         },
       });
     } else {
+      console.log(this.poForm);
       console.log('Form is invalid or file not selected');
     }
   }

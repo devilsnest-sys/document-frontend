@@ -22,7 +22,7 @@ export class MasterstagingComponent {
 
   columnDefs: ColDef[] = [
     { field: 'sno', headerName: 'S No', valueGetter: "node.rowIndex + 1" },
-    { field: 'sequence', headerName: 'Sequence', filter: 'agNumberColumnFilter' },
+    // { field: 'sequence', headerName: 'Sequence', filter: 'agNumberColumnFilter' },
     { field: 'stageName', headerName: 'Stage Name', filter: 'agTextColumnFilter' },
     {
       field: 'action',
@@ -60,7 +60,7 @@ export class MasterstagingComponent {
   ngOnInit(): void {
     this.stageForm = this.fb.group({
       sequence: [1, [Validators.required, Validators.min(1)]],
-      stageName: ['', [Validators.required, Validators.minLength(3)]],
+      stageName: ['', [Validators.required, Validators.minLength(1)]],
     });
     this.fetchStages();
   }

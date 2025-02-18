@@ -27,11 +27,11 @@ export class AdditionalfieldComponent {
       headerName: 'Field Name',
       filter: 'agTextColumnFilter',
     },
-    {
-      field: 'additionalFieldRequiredDataType',
-      headerName: 'Data Type',
-      filter: 'agTextColumnFilter',
-    },
+    // {
+    //   field: 'additionalFieldRequiredDataType',
+    //   headerName: 'Data Type',
+    //   filter: 'agTextColumnFilter',
+    // },
     {
       field: 'createdAt',
       headerName: 'Created At',

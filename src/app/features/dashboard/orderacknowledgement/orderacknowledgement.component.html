@@ -71,13 +71,16 @@
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Vendor Code</mat-label>
-              <mat-icon matPrefix>vendorCode</mat-icon>
-              <input matInput id="vendorCode" formControlName="vendorCode" required />
+              <mat-select formControlName="vendorCode" (selectionChange)="onVendorSelect($event.value)">
+                <mat-option *ngFor="let vendor of vendors" [value]="vendor.vendorCode">
+                  {{ vendor.vendorCode }}
+                </mat-option>
+              </mat-select>
               <mat-error *ngIf="poForm.get('vendorCode')?.touched && poForm.get('vendorCode')?.invalid">
                 <span *ngIf="poForm.get('vendorCode')?.hasError('required')">Vendor Code is required.</span>
               </mat-error>
             </mat-form-field>
-          </div>
+          </div>      
           <!-- PO Type -->
           <div class="col-lg-6">
             <mat-form-field appearance="fill" class="full-width">
