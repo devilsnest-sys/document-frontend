@@ -79,7 +79,7 @@ export class DocumentUploadComponent implements OnInit {
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
     this.fetchDocumentTypes();
-    console.log(this.stageNumber);
+    console.log('this is stage number',this.stageNumber);
   }
 
   private getHeaders(): HttpHeaders {

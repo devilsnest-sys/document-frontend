@@ -16,7 +16,7 @@ export class UserRoleDirective {
     // Subscribe to userType changes
     this.authService.getUserTypeState().subscribe((userType) => {
       this.currentUserType = userType;
-      console.log('Updated userType in directive:', userType);
+      // console.log('Updated userType in directive:', userType);
       this.updateView();
     });
   }
@@ -29,14 +29,14 @@ export class UserRoleDirective {
   }
 
   private updateView() {
-    console.log('UserRoleDirective: Checking userType:', this.currentUserType);
-    console.log('Allowed roles:', this.roles);
+    // console.log('UserRoleDirective: Checking userType:', this.currentUserType);
+    // console.log('Allowed roles:', this.roles);
   
     if (this.roles.includes(this.currentUserType || '')) {
-      console.log('UserRoleDirective: Showing element');
+      // console.log('UserRoleDirective: Showing element');
       this.viewContainer.createEmbeddedView(this.templateRef); // Show element
     } else {
-      console.log('UserRoleDirective: Hiding element');
+      // console.log('UserRoleDirective: Hiding element');
       this.viewContainer.clear(); // Hide element
     }
   }

@@ -38,7 +38,7 @@ export class DashboardMainComponent {
     this.setupVendorFilter();
 
     // Auto-set vendor for vendors
-    // setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
+    setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
   }
 
   private initializeForm(): void {

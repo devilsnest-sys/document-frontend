@@ -41,6 +41,7 @@ export class StageStep1Component implements OnInit {
 
   ngOnInit(): void {
     const poNumber = this.route.snapshot.paramMap.get('poNumber');
+    console.log(poNumber);
     this.fetchPurchaseOrderData(poNumber);
   }
 
