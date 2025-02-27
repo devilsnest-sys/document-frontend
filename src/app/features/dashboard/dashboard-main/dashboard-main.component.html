@@ -47,16 +47,40 @@
 
 <!-- Step Bar Visibility -->
 <div class="container mt-5" *ngIf="isStepBarVisible()">
-  <ul>
+  <ul class="step-bar">
     <li *ngFor="let step of steps; let i = index" [ngClass]="{
+          'completed': i < currentStep,
           'current': i === currentStep,
-          'completed': i < currentStep
+          'pending': i > currentStep
         }">
       <a [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
-        <div class="content">
-          Step {{ i + 1 }}
-        </div>
+        <div class="step-circle">{{ i + 1 }}</div>
+        <div class="step-label">Step {{ i + 1 }}</div>
       </a>
     </li>
   </ul>
 </div>
+
+<!-- Step Bar Visibility -->
+<div class="container mt-5" *ngIf="isStepBarVisible()">
+  <div class="step-container">
+    <ul class="step-bar">
+      <li *ngFor="let step of steps; let i = index" 
+          [ngClass]="{
+            'completed': i < currentStep,
+            'current': i === currentStep,
+            'pending': i > currentStep
+          }">
+        
+        <!-- Progress Line -->
+        <div *ngIf="i !== 0" class="progress-line"></div>
+
+        <a [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
+          <div class="step-circle">{{ i + 1 }}</div>
+        </a>
+        <div class="step-label">Step {{ i + 1 }}</div>
+      </li>
+    </ul>
+  </div>
+</div>
+
