@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ActivatedRoute } from '@angular/router';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
+import { catchError, finalize } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import Swal from 'sweetalert2';
 
 interface AdditionalField {
@@ -27,10 +29,14 @@ interface AdditionalField {
   styleUrl: './additional-field-flow.component.css'
 })
 export class AdditionalFieldFlowComponent implements OnInit {
+  @Input() stageNumber!: number;
+  
   rowData: AdditionalField[] = [];
   fieldForm!: FormGroup;
   loading = false;
   submitting = false;
+  poNumber: string | null = null;
+  editingIndex: number | null = null;
 
   constructor(
     private http: HttpClient,
@@ -41,28 +47,44 @@ export class AdditionalFieldFlowComponent implements OnInit {
     this.initializeForm();
   }
 
-  private initializeForm(): void {
+  private initializeForm(data?: Partial<AdditionalField>): void {
     this.fieldForm = this.fb.group({
-      poId: ['', Validators.required],
-      stageId: ['', Validators.required],
-      additionalFieldId: ['', Validators.required],
-      initAddFieldValue: [''],
-      finalAddFieldValue: [''],
-      isMandatory: [false],
-      isApproved: [false],
-      isRejected: [false],
-      isDocSubmited: [false],
-      reviewRemark: ['']
+      id: [data?.id || 0],
+      poId: [data?.poId || '', [Validators.required, Validators.pattern(/^\d+$/)]],
+      stageId: [data?.stageId || this.stageNumber, [Validators.required, Validators.pattern(/^\d+$/)]],
+      additionalFieldId: [data?.additionalFieldId || '', [Validators.required, Validators.pattern(/^\d+$/)]],
+      initAddFieldValue: [data?.initAddFieldValue || ''],
+      finalAddFieldValue: [data?.finalAddFieldValue || ''],
+      isMandatory: [data?.isMandatory || false],
+      isApproved: [data?.isApproved || false],
+      isRejected: [data?.isRejected || false],
+      isDocSubmited: [data?.isDocSubmited || false],
+      reviewRemark: [data?.reviewRemark || '']
+    });
+
+    // Add validation to prevent both approval and rejection
+    this.fieldForm.get('isApproved')?.valueChanges.subscribe(value => {
+      if (value && this.fieldForm.get('isRejected')?.value) {
+        this.fieldForm.get('isRejected')?.setValue(false);
+      }
+    });
+
+    this.fieldForm.get('isRejected')?.valueChanges.subscribe(value => {
+      if (value && this.fieldForm.get('isApproved')?.value) {
+        this.fieldForm.get('isApproved')?.setValue(false);
+      }
     });
   }
 
   ngOnInit(): void {
-    const poNumber = this.route.snapshot.paramMap.get('poNumber');
-    if (poNumber) {
-      this.fetchAdditionalFieldsFlow(poNumber);
+    this.poNumber = this.route.snapshot.paramMap.get('poNumber');
+    if (this.poNumber) {
+      this.fetchAdditionalFieldsFlow(this.poNumber);
     } else {
       this.toastService.showToast('error', 'No PO Number provided');
     }
+
+    console.log('this is stage id',  this.stageNumber);
   }
 
   private getHeaders(): HttpHeaders {
@@ -82,14 +104,16 @@ export class AdditionalFieldFlowComponent implements OnInit {
       this.http.get<AdditionalField[]>(
         `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${poNumber}`,
         { headers }
-      ).subscribe({
-        next: (data) => {
-          this.rowData = data || [];
-          this.loading = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.handleError('Failed to fetch additional fields', error);
-          this.loading = false;
+      ).pipe(
+        catchError(error => this.handleHttpError('Failed to fetch additional fields', error)),
+        finalize(() => this.loading = false)
+      ).subscribe(data => {
+        this.rowData = data || [];
+        if (this.rowData.length > 0) {
+          // Pre-fill the form with the PO ID from existing data
+          this.fieldForm.patchValue({
+            poId: this.rowData[0].poId
+          });
         }
       });
     } catch (error) {
@@ -100,18 +124,57 @@ export class AdditionalFieldFlowComponent implements OnInit {
 
   addRow(): void {
     if (this.fieldForm.invalid) {
-      this.toastService.showToast('warning', 'Please fill in all required fields');
+      this.markFormGroupTouched(this.fieldForm);
+      this.toastService.showToast('warning', 'Please fill in all required fields correctly');
       return;
     }
 
     const newField: AdditionalField = this.fieldForm.value;
-    this.rowData.push(newField);
-    this.fieldForm.reset();
-    this.initializeForm(); // Reset with default values
-    this.toastService.showToast('success', 'Row added successfully');
+    
+    // If we're editing an existing row
+    if (this.editingIndex !== null) {
+      this.updateRow(this.editingIndex, newField);
+      return;
+    }
+
+    // Otherwise, add new row
+    this.loading = true;
+    
+    try {
+      const headers = this.getHeaders();
+
+      this.http.post<AdditionalField>(
+        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/Create`,
+        newField,
+        { headers }
+      ).pipe(
+        catchError(error => this.handleHttpError('Failed to add row', error)),
+        finalize(() => this.loading = false)
+      ).subscribe(response => {
+        // Add the returned ID to our new field
+        newField.id = response.id || newField.id;
+        this.rowData.push(newField);
+        this.resetForm();
+        this.toastService.showToast('success', 'Row added successfully');
+      });
+    } catch (error) {
+      this.handleError('Authentication error', error);
+      this.loading = false;
+    }
   }
 
-  editRow(index: number, data: AdditionalField): void {
+  startEdit(index: number): void {
+    this.editingIndex = index;
+    const rowToEdit = { ...this.rowData[index] };
+    this.initializeForm(rowToEdit);
+  }
+
+  cancelEdit(): void {
+    this.editingIndex = null;
+    this.resetForm();
+  }
+
+  updateRow(index: number, data: AdditionalField): void {
     this.loading = true;
     
     try {
@@ -121,16 +184,16 @@ export class AdditionalFieldFlowComponent implements OnInit {
         `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${data.id}`,
         data,
         { headers }
-      ).subscribe({
-        next: () => {
-          this.rowData[index] = { ...data };
-          this.toastService.showToast('success', 'Field updated successfully');
+      ).pipe(
+        catchError(error => this.handleHttpError('Failed to update field', error)),
+        finalize(() => {
           this.loading = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.handleError('Failed to update field', error);
-          this.loading = false;
-        }
+          this.editingIndex = null;
+        })
+      ).subscribe(() => {
+        this.rowData[index] = { ...data };
+        this.resetForm();
+        this.toastService.showToast('success', 'Field updated successfully');
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -162,16 +225,12 @@ export class AdditionalFieldFlowComponent implements OnInit {
       this.http.delete<void>(
         `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${id}`,
         { headers }
-      ).subscribe({
-        next: () => {
-          this.rowData.splice(index, 1);
-          this.toastService.showToast('success', 'Field deleted successfully');
-          this.loading = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.handleError('Failed to delete field', error);
-          this.loading = false;
-        }
+      ).pipe(
+        catchError(error => this.handleHttpError('Failed to delete field', error)),
+        finalize(() => this.loading = false)
+      ).subscribe(() => {
+        this.rowData.splice(index, 1);
+        this.toastService.showToast('success', 'Field deleted successfully');
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -179,49 +238,70 @@ export class AdditionalFieldFlowComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.rowData.length === 0) {
-      this.toastService.showToast('error', 'No data available to submit');
-      return;
-    }
-
-    this.submitting = true;
-    const lastRowData = this.rowData[this.rowData.length - 1];
-    // const lastRowData = {
-    //   additionalFieldId: parseInt(this.rowData[this.rowData.length - 1].additionalFieldId, 10),
-    //   poId: parseInt(this.rowData[this.rowData.length - 1].poId, 10),
-    //   stageId: parseInt(this.rowData[this.rowData.length - 1].stageId, 10),
-    //   initAddFieldValue: this.rowData[this.rowData.length - 1].initAddFieldValue,
-    //   isMandatory: this.rowData[this.rowData.length - 1].isMandatory,
-    //   initAddFieldCreatedBy: 1, // Ensure you send this value
-    //   createdAt: new Date().toISOString() // Convert DateTime correctly
-    // };
-    try {
-      const headers = this.getHeaders();
-
-      this.http.post<void>(
-        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/Create`,
-         lastRowData ,
-        { headers }
-      ).subscribe({
-        next: () => {
-          this.toastService.showToast('success', 'Last row submitted successfully');
-          this.submitting = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.handleError('Submission failed', error);
-          this.submitting = false;
-        }
+  resetForm(): void {
+    this.fieldForm.reset();
+    // If we have existing data, pre-fill the PO ID
+    if (this.rowData.length > 0) {
+      this.fieldForm.patchValue({
+        poId: this.rowData[0].poId
       });
-    } catch (error) {
-      this.handleError('Authentication error', error);
-      this.submitting = false;
     }
+    this.editingIndex = null;
+  }
+
+  // Helper to mark all form controls as touched to trigger validation
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
+  }
+
+  private handleHttpError(message: string, error: HttpErrorResponse) {
+    console.error('HTTP Error:', error);
+    
+    let errorMessage = message;
+    
+    if (error.status === 401) {
+      errorMessage = 'Your session has expired. Please log in again.';
+    } else if (error.status === 403) {
+      errorMessage = 'You do not have permission to perform this action.';
+    } else if (error.status === 404) {
+      errorMessage = 'The requested resource was not found.';
+    } else if (error.status === 400 && error.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
+    }
+    
+    this.toastService.showToast('error', errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 
   private handleError(message: string, error: any): void {
     console.error('Error:', error);
-    const errorMessage = error?.error?.message || error?.message || message;
+    const errorMessage = error?.message || message;
     this.toastService.showToast('error', errorMessage);
+  }
+
+  // Validation helpers
+  getFieldError(fieldName: string): string {
+    const control = this.fieldForm.get(fieldName);
+    if (control?.invalid && (control.dirty || control.touched)) {
+      if (control.errors?.['required']) {
+        return 'This field is required';
+      }
+      if (control.errors?.['pattern']) {
+        return 'Please enter a valid number';
+      }
+    }
+    return '';
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const control = this.fieldForm.get(fieldName);
+    return !!control && control.invalid && (control.dirty || control.touched);
   }
 }

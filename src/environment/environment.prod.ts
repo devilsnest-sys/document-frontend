@@ -1,5 +1,5 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://your-production-url.com/api'
+    apiUrl: 'http://pranjals-001-site1.ntempurl.com/api'
   };
   
