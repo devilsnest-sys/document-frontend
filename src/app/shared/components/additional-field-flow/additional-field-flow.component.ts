@@ -34,6 +34,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
   poNumber: string | null = null;
   editingIndex: number | null = null;
   additionalFieldIdCounter = 1; // Counter for generating unique additionalFieldId
+  addField: any[] | undefined;
 
   constructor(
     private http: HttpClient,
@@ -70,6 +71,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
     }
 
     console.log('this is stage id', this.stageNumber);
+    this.fetchAdditionalFields()
   }
 
   private getHeaders(): HttpHeaders {
@@ -78,6 +80,32 @@ export class AdditionalFieldFlowComponent implements OnInit {
       throw new Error('No auth token found');
     }
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  fetchAdditionalFields(): void{
+    this.loading = true;
+
+    try{
+      const headers = this.getHeaders();
+
+      this.http.get<AdditionalField[]>(
+        `${environment.apiUrl}/v1/additional-field-selection/additionalfield/${this.stageNumber}`,
+        { headers }
+      ).pipe(
+        catchError(error => this.handleHttpError('Failed to fetch additional fields', error)),
+        finalize(() => this.loading = false)
+      ).subscribe(data => {
+        this.addField = data || [];
+        console.log("this is additional field", this.addField);
+        if (this.addField.length > 0) {
+          const maxId = Math.max(...this.addField.map(row => parseInt(row.additionalFieldId) || 0));
+          this.additionalFieldIdCounter = maxId + 1;
+        }
+      });
+    } catch (error) {
+      this.handleError('Authentication error', error);
+      this.loading = false;
+    }
   }
 
   fetchAdditionalFieldsFlow(poNumber: string): void {
