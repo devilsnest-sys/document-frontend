@@ -14,12 +14,9 @@ interface AdditionalField {
   stageId: string;
   additionalFieldId: string;
   initAddFieldValue: string;
-  finalAddFieldValue: string;
   isMandatory: boolean;
-  isApproved: boolean;
-  isRejected: boolean;
-  isDocSubmited: boolean;
-  reviewRemark: string;
+  initAddFieldCreatedBy: number;
+  createdAt: string;
 }
 
 @Component({
@@ -34,9 +31,9 @@ export class AdditionalFieldFlowComponent implements OnInit {
   rowData: AdditionalField[] = [];
   fieldForm!: FormGroup;
   loading = false;
-  submitting = false;
   poNumber: string | null = null;
   editingIndex: number | null = null;
+  additionalFieldIdCounter = 1; // Counter for generating unique additionalFieldId
 
   constructor(
     private http: HttpClient,
@@ -48,31 +45,19 @@ export class AdditionalFieldFlowComponent implements OnInit {
   }
 
   private initializeForm(data?: Partial<AdditionalField>): void {
+    // Generate dynamic values
+    const now = new Date();
+    const defaultPoId = data?.poId || '';
+    
     this.fieldForm = this.fb.group({
       id: [data?.id || 0],
-      poId: [data?.poId || '', [Validators.required, Validators.pattern(/^\d+$/)]],
-      stageId: [data?.stageId || this.stageNumber, [Validators.required, Validators.pattern(/^\d+$/)]],
-      additionalFieldId: [data?.additionalFieldId || '', [Validators.required, Validators.pattern(/^\d+$/)]],
-      initAddFieldValue: [data?.initAddFieldValue || ''],
-      finalAddFieldValue: [data?.finalAddFieldValue || ''],
+      poId: [defaultPoId],
+      stageId: [data?.stageId || this.stageNumber?.toString()],
+      additionalFieldId: [data?.additionalFieldId || this.additionalFieldIdCounter.toString()],
+      initAddFieldValue: [data?.initAddFieldValue || '', [Validators.required]],
       isMandatory: [data?.isMandatory || false],
-      isApproved: [data?.isApproved || false],
-      isRejected: [data?.isRejected || false],
-      isDocSubmited: [data?.isDocSubmited || false],
-      reviewRemark: [data?.reviewRemark || '']
-    });
-
-    // Add validation to prevent both approval and rejection
-    this.fieldForm.get('isApproved')?.valueChanges.subscribe(value => {
-      if (value && this.fieldForm.get('isRejected')?.value) {
-        this.fieldForm.get('isRejected')?.setValue(false);
-      }
-    });
-
-    this.fieldForm.get('isRejected')?.valueChanges.subscribe(value => {
-      if (value && this.fieldForm.get('isApproved')?.value) {
-        this.fieldForm.get('isApproved')?.setValue(false);
-      }
+      initAddFieldCreatedBy: [1], // You may want to get this from a user service
+      createdAt: [now.toISOString()]
     });
   }
 
@@ -84,7 +69,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
       this.toastService.showToast('error', 'No PO Number provided');
     }
 
-    console.log('this is stage id',  this.stageNumber);
+    console.log('this is stage id', this.stageNumber);
   }
 
   private getHeaders(): HttpHeaders {
@@ -114,6 +99,10 @@ export class AdditionalFieldFlowComponent implements OnInit {
           this.fieldForm.patchValue({
             poId: this.rowData[0].poId
           });
+          
+          // Update additionalFieldIdCounter to be higher than any existing ID
+          const maxId = Math.max(...this.rowData.map(row => parseInt(row.additionalFieldId) || 0));
+          this.additionalFieldIdCounter = maxId + 1;
         }
       });
     } catch (error) {
@@ -127,6 +116,19 @@ export class AdditionalFieldFlowComponent implements OnInit {
       this.markFormGroupTouched(this.fieldForm);
       this.toastService.showToast('warning', 'Please fill in all required fields correctly');
       return;
+    }
+
+    // Ensure poId is set from either existing data or from the route parameter
+    if (!this.fieldForm.get('poId')?.value) {
+      this.fieldForm.patchValue({
+        poId: this.poNumber
+      });
+    }
+
+    if (!this.fieldForm.get('stageId')?.value && this.stageNumber) {
+      this.fieldForm.patchValue({
+        stageId: this.stageNumber.toString()
+      });
     }
 
     const newField: AdditionalField = this.fieldForm.value;
@@ -154,6 +156,10 @@ export class AdditionalFieldFlowComponent implements OnInit {
         // Add the returned ID to our new field
         newField.id = response.id || newField.id;
         this.rowData.push(newField);
+        
+        // Increment the additionalFieldId counter for the next new item
+        this.additionalFieldIdCounter++;
+        
         this.resetForm();
         this.toastService.showToast('success', 'Row added successfully');
       });
@@ -240,12 +246,24 @@ export class AdditionalFieldFlowComponent implements OnInit {
 
   resetForm(): void {
     this.fieldForm.reset();
+    
     // If we have existing data, pre-fill the PO ID
     if (this.rowData.length > 0) {
       this.fieldForm.patchValue({
         poId: this.rowData[0].poId
       });
+    } else if (this.poNumber) {
+      this.fieldForm.patchValue({
+        poId: this.poNumber
+      });
     }
+    
+    // Set the stage ID and additional field ID
+    this.fieldForm.patchValue({
+      stageId: this.stageNumber?.toString(),
+      additionalFieldId: this.additionalFieldIdCounter.toString()
+    });
+    
     this.editingIndex = null;
   }
 
