@@ -19,6 +19,7 @@ import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.compo
 import { DocumentUploadComponent } from './shared/components/document-upload/document-upload.component';
 import { CreateincotermsComponent } from './features/dashboard/createincoterms/createincoterms.component';
 import { CreatePoTypeComponent } from './features/dashboard/create-po-type/create-po-type.component';
+import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 import { PasswordResetComponent } from './features/password-reset/password-reset.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
@@ -42,6 +43,7 @@ const routes: Routes = [
   // { path: 'DocumentUploadComponent', component: DocumentUploadComponent },
   { path: 'incoterms', component: CreateincotermsComponent },
   { path: 'potype', component: CreatePoTypeComponent },
+  { path: 'tnc', component: TermsandconditionComponent },
   { path: 'resetpassword', component: PasswordResetComponent },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 

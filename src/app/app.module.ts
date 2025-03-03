@@ -58,6 +58,7 @@ import { StageStep3Component } from './stage-steps/stage-step3/stage-step3.compo
 import { StageStep4Component } from './stage-steps/stage-step4/stage-step4.component';
 import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.component';
 import { AdditionalFieldFlowComponent } from './shared/components/additional-field-flow/additional-field-flow.component';
+import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 
 
 @NgModule({
@@ -89,6 +90,7 @@ import { AdditionalFieldFlowComponent } from './shared/components/additional-fie
     StageStep4Component,
     StageStep5Component,
     AdditionalFieldFlowComponent,
+    TermsandconditionComponent,
     
   ],
   imports: [
