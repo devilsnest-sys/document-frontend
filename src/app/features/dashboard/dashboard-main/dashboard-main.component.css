@@ -184,7 +184,7 @@
   .step-circle {
     width: 45px;
     height: 45px;
-    border-radius: 50%;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
