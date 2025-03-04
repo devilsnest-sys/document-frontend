@@ -187,9 +187,11 @@ export class AdditionalFieldFlowComponent implements OnInit {
         
         // Increment the additionalFieldId counter for the next new item
         this.additionalFieldIdCounter++;
+
         
         this.resetForm();
         this.toastService.showToast('success', 'Row added successfully');
+        location.reload();
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -294,6 +296,21 @@ export class AdditionalFieldFlowComponent implements OnInit {
     
     this.editingIndex = null;
   }
+
+  filteredFields() {
+    if (!this.addField) {
+      return []; // Return an empty array if addField is undefined
+    }
+  
+    const usedFieldIds = new Set(
+      (this.rowData || []) // Ensure rowData is also defined
+        .filter(row => row.initAddFieldValue)
+        .map(row => row.additionalFieldId)
+    );
+  
+    return this.addField.filter(field => !usedFieldIds.has(field.id));
+  }
+  
 
   // Helper to mark all form controls as touched to trigger validation
   private markFormGroupTouched(formGroup: FormGroup): void {
