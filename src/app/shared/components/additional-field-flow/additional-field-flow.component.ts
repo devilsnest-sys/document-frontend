@@ -17,6 +17,7 @@ interface AdditionalField {
   isMandatory: boolean;
   initAddFieldCreatedBy: number;
   createdAt: string;
+  additionalFieldName: string;
 }
 
 @Component({
