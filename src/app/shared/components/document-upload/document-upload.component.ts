@@ -74,6 +74,8 @@ export class DocumentUploadComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   userType: string | null = '';
+  selectedFile: File | null = null;
+  
   constructor(private http: HttpClient, private toasService : ToastserviceService) {}
 
   ngOnInit(): void {
@@ -206,7 +208,8 @@ export class DocumentUploadComponent implements OnInit {
 
   async reviewDocument(
     document: UploadedDocument,
-    isApproved: boolean
+    isApproved: boolean,
+    reviewRemark: string = ''
   ): Promise<void> {
     try {
       this.isLoading = true;
@@ -215,6 +218,10 @@ export class DocumentUploadComponent implements OnInit {
       const currentUser = localStorage.getItem('userId') || '1'; // Get actual user ID from your auth service
       const currentUserName = localStorage.getItem('userName') || '1'; // Get actual username
       const currentUserType = localStorage.getItem('userType') || null;
+      
+      // Use provided review remark or default based on approval status
+      const finalReviewRemark = reviewRemark || (isApproved ? 'Document approved' : 'Document rejected');
+      
       const payload: DocumentReviewPayload = {
         id: document.id,
         isApproved: isApproved,
@@ -222,7 +229,7 @@ export class DocumentUploadComponent implements OnInit {
         reviewedBy: parseInt(currentUser),
         docReviewedBy: currentUserType!,
         status: isApproved ? 'Approved' : 'Rejected',
-        reviewRemark: isApproved ? 'Document approved' : 'Document rejected',
+        reviewRemark: finalReviewRemark,
         docReviewDate: new Date().toISOString(),
       };
 
@@ -262,11 +269,17 @@ export class DocumentUploadComponent implements OnInit {
     }
   }
 
-  async uploadDocument(event: Event, documentTypeId: number): Promise<void> {
+  handleFileSelect(event: Event, documentTypeId: number): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-  
-    if (!file) {
+    this.selectedFile = input.files?.[0] || null;
+    
+    if (this.selectedFile) {
+      this.confirmUpload(documentTypeId);
+    }
+  }
+
+  async uploadDocument(documentTypeId: number, reviewRemark: string = ''): Promise<void> {
+    if (!this.selectedFile) {
       console.error('No file selected');
       return;
     }
@@ -276,7 +289,7 @@ export class DocumentUploadComponent implements OnInit {
       this.errorMessage = '';
   
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', this.selectedFile);
   
       const currentUser = localStorage.getItem('userId') || '1';
       const currentDate = new Date().toISOString();
@@ -294,7 +307,7 @@ export class DocumentUploadComponent implements OnInit {
       formData.append('isApproved', 'false');
       formData.append('isDocSubmited', 'true');
       formData.append('isRejected', 'false');
-      formData.append('uploadedDocumentName', file.name);
+      formData.append('uploadedDocumentName', this.selectedFile.name);
       formData.append('uploadedDate', currentDate);
       formData.append('docUploadedBy', localStorage.getItem('userType')?.toString() || '');
       formData.append('documentTypeId', documentTypeId.toString());
@@ -303,6 +316,7 @@ export class DocumentUploadComponent implements OnInit {
       formData.append('stageId', value1);
       formData.append('poId', value2);
       formData.append('id', '0');
+      formData.append('reviewRemark', reviewRemark); // Add the review remark
   
       const headers = new HttpHeaders().set(
         'Authorization',
@@ -324,17 +338,18 @@ export class DocumentUploadComponent implements OnInit {
           }),
           finalize(() => {
             this.isLoading = false;
+            // Reset the selected file
+            this.selectedFile = null;
+            // Reset any file input elements
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach((input: Element) => {
+              (input as HTMLInputElement).value = '';
+            });
           })
         )
         .subscribe({
           next: (response) => {
             console.log('Upload successful:', response);
-            input.value = '';
-            // Swal.fire({
-            //   title: 'Success',
-            //   text: 'Document uploaded successfully',
-            //   icon: 'success'
-            // });
             this.toasService.showToast("success","Document Uploaded")
             this.fetchUploadedDocuments();
           },
@@ -354,12 +369,47 @@ export class DocumentUploadComponent implements OnInit {
       this.isLoading = false;
     }
   }
+  
   async approveDocument(document: UploadedDocument): Promise<void> {
-    await this.reviewDocument(document, true);
+    Swal.fire({
+      title: 'Approve Document',
+      text: `Are you sure you want to approve ${document.uploadedDocumentName}?`,
+      icon: 'question',
+      input: 'text',
+      inputLabel: 'Review Remark',
+      inputPlaceholder: 'Enter your review remark (optional)',
+      showCancelButton: true,
+      confirmButtonText: 'Approve',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await this.reviewDocument(document, true, result.value || 'Document approved');
+      }
+    });
   }
 
   async rejectDocument(document: UploadedDocument): Promise<void> {
-    await this.reviewDocument(document, false);
+    Swal.fire({
+      title: 'Reject Document',
+      text: `Are you sure you want to reject ${document.uploadedDocumentName}?`,
+      icon: 'warning',
+      input: 'text',
+      inputLabel: 'Review Remark',
+      inputPlaceholder: 'Enter your reason for rejection',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to provide a reason for rejection!';
+        }
+        return null;
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Reject',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await this.reviewDocument(document, false, result.value);
+      }
+    });
   }
 
   submit(document: UploadedDocument): void {
@@ -379,7 +429,6 @@ export class DocumentUploadComponent implements OnInit {
       .catch(error => console.error('Error fetching document:', error));
   }
   
-
   downloadDocument(documentName: number): void {
     const documentUrl = `${
       environment.apiUrl
@@ -394,17 +443,36 @@ export class DocumentUploadComponent implements OnInit {
     document.body.removeChild(link); // Clean up
   }
 
-  confirmUpload(event: Event, documentTypeId: number): void {
+  confirmUpload(documentTypeId: number): void {
+    if (!this.selectedFile) {
+      console.error('No file selected');
+      return;
+    }
+    
+    console.log('confirmUpload called', documentTypeId);
+    
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action cannot be undone!',
-      icon: 'warning',
+      title: 'Upload Confirmation',
+      text: `Are you sure you want to upload ${this.selectedFile.name}?`,
+      icon: 'question',
+      input: 'text',
+      inputLabel: 'Review Remark',
+      inputPlaceholder: 'Enter a review remark (optional)',
       showCancelButton: true,
-      confirmButtonText: 'Yes!',
+      confirmButtonText: 'Upload',
       cancelButtonText: 'Cancel',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.uploadDocument(event, documentTypeId);
+        console.log('Confirmation accepted with remark:', result.value);
+        this.uploadDocument(documentTypeId, result.value);
+      } else {
+        console.log('Confirmation rejected');
+        this.selectedFile = null;
+        // Reset any file input elements
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach((input: Element) => {
+          (input as HTMLInputElement).value = '';
+        });
       }
     });
   }

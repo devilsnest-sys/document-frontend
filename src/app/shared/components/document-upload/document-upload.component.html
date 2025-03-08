@@ -35,7 +35,7 @@
           <tr (click)="toggleGroup(group.documentType.id)" 
               class="group-header" 
               [class.expanded]="isGroupExpanded(group.documentType.id)">
-            <td colspan="12">
+            <td colspan="14">
               <div class="group-title">
                 <i class="fas" 
                    [class.fa-chevron-down]="isGroupExpanded(group.documentType.id)" 
@@ -59,7 +59,7 @@
                 type="file" 
                 [id]="'fileInput-' + group.documentType.id" 
                 style="display: none;"
-                (change)="confirmUpload($event, group.documentType.id)"
+                (change)="handleFileSelect($event, group.documentType.id)"
               />              
                 <button 
                   class="btn-action upload-btn" 
@@ -152,7 +152,7 @@
                   type="file"
                   [id]="'fileInput-' + group.documentType.id"
                   style="display: none;"
-                  (change)="uploadDocument($event, group.documentType.id)"
+                  (change)="handleFileSelect($event, group.documentType.id)"
                 />
                 <button class="btn-action upload-btn" (click)="fileInput.click()">
                   <span class="material-icons">upload</span>
