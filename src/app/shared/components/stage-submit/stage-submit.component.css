@@ -1,0 +1,38 @@
+.submit-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .terms-section {
+    margin-bottom: 1.5rem;
+  }
+  
+  .checkbox-error {
+    color: #f44336;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: center;
+  }
+  
+  button[type="submit"] {
+    min-width: 120px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  mat-spinner {
+    margin: 0 auto;
+  }
+  
+  mat-error {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }

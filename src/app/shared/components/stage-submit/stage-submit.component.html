@@ -1,0 +1,29 @@
+<div class="submit-container">
+    <form [formGroup]="submitForm" (ngSubmit)="onSubmit()">
+      <div class="terms-section">
+        <mat-checkbox 
+          formControlName="termsAccepted" 
+          color="primary"
+          [class.checkbox-error]="termsControl?.invalid && termsControl?.touched">
+          I agree to the Terms and Conditions
+        </mat-checkbox>
+        
+        <mat-error *ngIf="termsControl?.invalid && termsControl?.touched">
+          You must accept the terms and conditions to continue
+        </mat-error>
+      </div>
+      
+      <div class="button-container">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit" 
+          [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Submit</span>
+          <span *ngIf="isSubmitting">
+            <!-- <mat-spinner diameter="20"></mat-spinner> Submitting... -->
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>

@@ -17,6 +17,7 @@ import { Router } from '@angular/router';
 export class DashboardMainComponent {
   steps: number[] = Array.from({ length: 15 }, (_, i) => i + 1);
   currentStep = 3;
+  stepStatuses: { [key: number]: string } = {};
 
   vendorPoForm!: FormGroup;
   vendors: any[] = [];
@@ -39,6 +40,7 @@ export class DashboardMainComponent {
 
     // Auto-set vendor for vendors
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
+    this.fetchStepStatuses();
   }
 
   private initializeForm(): void {
@@ -179,5 +181,30 @@ export class DashboardMainComponent {
     if (userType === 'vendor' && vendorId) {
       this.loadVendorById(parseInt(vendorId, 10)); // Fetch vendor details directly
     }
+  }
+
+  private fetchStepStatuses(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    
+    const url = `${environment.apiUrl}/v1/StageStatus`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (response) => {
+        this.stepStatuses = response.reduce((acc: { [x: string]: any; }, stage: { stageId: string | number; status: any; }) => {
+          acc[stage.stageId] = stage.status; // Store status by step ID
+          return acc;
+        }, {} as { [key: number]: string });
+      },
+      error: (err) => {
+        console.error('Error fetching step statuses:', err);
+      }
+    });
+  }
+
+  getStepClass(i: number): string {
+    const status = this.stepStatuses[i + 1]; // Get status for step
+    return status === 'Complete' ? 'completed' : 'pending';
   }
 }
