@@ -60,6 +60,16 @@ import { StageStep5Component } from './stage-steps/stage-step5/stage-step5.compo
 import { AdditionalFieldFlowComponent } from './shared/components/additional-field-flow/additional-field-flow.component';
 import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 import { StageSubmitComponent } from './shared/components/stage-submit/stage-submit.component';
+import { StageStep6Component } from './stage-steps/stage-step6/stage-step6.component';
+import { StageStep7Component } from './stage-steps/stage-step7/stage-step7.component';
+import { StageStep8Component } from './stage-steps/stage-step8/stage-step8.component';
+import { StageStep9Component } from './stage-steps/stage-step9/stage-step9.component';
+import { StageStep10Component } from './stage-steps/stage-step10/stage-step10.component';
+import { StageStep11Component } from './stage-steps/stage-step11/stage-step11.component';
+import { StageStep12Component } from './stage-steps/stage-step12/stage-step12.component';
+import { StageStep13Component } from './stage-steps/stage-step13/stage-step13.component';
+import { StageStep14Component } from './stage-steps/stage-step14/stage-step14.component';
+import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.component';
 
 
 @NgModule({
@@ -93,6 +103,16 @@ import { StageSubmitComponent } from './shared/components/stage-submit/stage-sub
     AdditionalFieldFlowComponent,
     TermsandconditionComponent,
     StageSubmitComponent,
+    StageStep6Component,
+    StageStep7Component,
+    StageStep8Component,
+    StageStep9Component,
+    StageStep10Component,
+    StageStep11Component,
+    StageStep12Component,
+    StageStep13Component,
+    StageStep14Component,
+    StageStep15Component,
     
   ],
   imports: [

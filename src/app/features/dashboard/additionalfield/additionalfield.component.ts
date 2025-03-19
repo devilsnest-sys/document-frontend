@@ -82,7 +82,8 @@ export class AdditionalfieldComponent {
   ngOnInit(): void {
     this.additionalFieldForm = this.fb.group({
       additionalFieldName: ['', [Validators.required, Validators.minLength(3)]],
-      additionalFieldRequiredDataType: [false, Validators.required],
+      additionalFieldRequiredDataType: [false],
+      isMandatory: [false],
     });
     this.fetchAdditionalFields();
   }
@@ -105,6 +106,7 @@ export class AdditionalfieldComponent {
   }
 
   onSubmit(): void {
+    console.log(this.additionalFieldForm.value);
     if (this.additionalFieldForm.valid) {
       const token = localStorage.getItem('authToken');
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
@@ -114,6 +116,7 @@ export class AdditionalfieldComponent {
         id: 0,
         additionalFieldRequiredDataType: this.additionalFieldForm.value.additionalFieldRequiredDataType,
         additionalFieldName: this.additionalFieldForm.value.additionalFieldName,
+        isMandatory: this.additionalFieldForm.value.isMandatory, // Added isMandatory
         createdAt: new Date().toISOString(),
         createdBy: 0, // Replace with actual user ID
         updatedAt: new Date().toISOString(),
@@ -145,6 +148,7 @@ export class AdditionalfieldComponent {
         });
     }
   }
+
 
   updateAdditionalField(payload: any): void {
     const token = localStorage.getItem('authToken');
@@ -215,9 +219,9 @@ export class AdditionalfieldComponent {
       html: `
         <input id="additionalFieldName" class="swal2-input" value="${additionalField.additionalFieldName}" placeholder="Field Name">
         <div class="swal2-checkbox-container">
-          <input type="checkbox" id="additionalFieldRequiredDataType" class="swal2-checkbox" 
-            ${additionalField.additionalFieldRequiredDataType ? 'checked' : ''}>
-          <label for="additionalFieldRequiredDataType">Required Data Type</label>
+          <input type="checkbox" id="isMandatory" class="swal2-checkbox" 
+            ${additionalField.isMandatory ? 'checked' : ''}>
+          <label for="isMandatory">Mandatory</label>
         </div>
       `,
       focusConfirm: false,
@@ -225,21 +229,19 @@ export class AdditionalfieldComponent {
         const additionalFieldName = (
           document.getElementById('additionalFieldName') as HTMLInputElement
         ).value;
-        const additionalFieldRequiredDataType = (
-          document.getElementById(
-            'additionalFieldRequiredDataType'
-          ) as HTMLInputElement
+        const isMandatory = (
+          document.getElementById('isMandatory') as HTMLInputElement
         ).checked;
-
+  
         if (!additionalFieldName) {
           Swal.showValidationMessage('Field name is required');
           return null;
         }
-
+  
         return {
           id: additionalField.id,
           additionalFieldName,
-          additionalFieldRequiredDataType,
+          isMandatory, // Ensure this matches the API
           createdAt: additionalField.createdAt,
           createdBy: additionalField.createdBy,
           updatedAt: new Date().toISOString(),
@@ -256,6 +258,7 @@ export class AdditionalfieldComponent {
       }
     });
   }
+  
 
   onCancel(): void {
     this.additionalFieldForm.reset();
