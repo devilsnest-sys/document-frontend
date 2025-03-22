@@ -35,7 +35,8 @@
             </tr>
             <tr *ngFor="let row of rowData; let i = index">
               <td>{{i + 1}}</td>
-              <td>{{ row.additionalFieldName || 'Field ' + (i+1) }}</td>
+              <td>{{ row.additionalFieldName ? row.additionalFieldName : 'Field ' + (i+1) }}</td>
+              <!-- <td>{{ row.additionalFieldName || 'Field ' + (i+1) }}</td> -->
               <td>
                 <input 
                   type="text" 

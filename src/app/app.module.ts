@@ -70,6 +70,7 @@ import { StageStep12Component } from './stage-steps/stage-step12/stage-step12.co
 import { StageStep13Component } from './stage-steps/stage-step13/stage-step13.component';
 import { StageStep14Component } from './stage-steps/stage-step14/stage-step14.component';
 import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.component';
+import { SessionTimeoutService } from './core/services/session-timeout.service';
 
 
 @NgModule({
@@ -142,7 +143,7 @@ import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.co
   ],
   providers: [
     provideAnimationsAsync(),
-    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },SessionTimeoutService
   ],
   bootstrap: [AppComponent]
 })

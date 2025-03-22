@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
 import { LoaderService } from './core/services/loader-service.service';
+import { SessionTimeoutService } from './core/services/session-timeout.service';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent implements OnInit {
   isSidebarOpen = false;
   isLoggedIn = false;
 
-  constructor(private router: Router, private loaderService: LoaderService) {}
+  constructor(private router: Router, private loaderService: LoaderService , private sessionTimeoutService: SessionTimeoutService) {}
 
   ngOnInit(): void {
     this.checkLoginStatus();
