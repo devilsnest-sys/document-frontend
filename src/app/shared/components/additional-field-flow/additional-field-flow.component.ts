@@ -116,7 +116,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
       const headers = this.getHeaders();
 
       this.http.get<AdditionalField[]>(
-        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${poNumber}`,
+        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${this.stageNumber}/${poNumber}`,
         { headers }
       ).pipe(
         catchError(error => this.handleHttpError('Failed to fetch additional fields', error)),
@@ -164,7 +164,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
   this.fieldForm.patchValue({
     additionalFieldId: fieldId.toString()
   });
-  
+
     const newField: AdditionalField = this.fieldForm.value;
     
     // If we're editing an existing row
