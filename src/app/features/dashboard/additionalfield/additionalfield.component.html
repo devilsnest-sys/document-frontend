@@ -24,14 +24,14 @@
             <!-- Data Type -->
             <div class="form-field-container">
               <mat-checkbox 
-                formControlName="additionalFieldRequiredDataType" 
+                formControlName="isMandatory" 
                 color="primary" 
                 class="full-width">
-                Required Data Type
+                Mandatory
               </mat-checkbox>
               <mat-error *ngIf="
-                additionalFieldForm.controls['additionalFieldRequiredDataType'].invalid &&
-                additionalFieldForm.controls['additionalFieldRequiredDataType'].touched
+                additionalFieldForm.controls['isMandatory'].invalid &&
+                additionalFieldForm.controls['isMandatory'].touched
               ">
                 Data type selection is required.
               </mat-error>

@@ -6,6 +6,7 @@ import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-additionalfield',
@@ -14,6 +15,7 @@ import Swal from 'sweetalert2';
   styleUrls: ['./additionalfield.component.css'],
 })
 export class AdditionalfieldComponent {
+  userId: string | null = null;
   additionalFieldForm!: FormGroup;
   isSubmitting = false;
   public modules: Module[] = [ClientSideRowModelModule];
@@ -76,13 +78,15 @@ export class AdditionalfieldComponent {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private ToastserviceService: ToastserviceService
+    private ToastserviceService: ToastserviceService,
+     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.userId = this.authService.getUserId();
     this.additionalFieldForm = this.fb.group({
       additionalFieldName: ['', [Validators.required, Validators.minLength(3)]],
-      additionalFieldRequiredDataType: [false],
+      // additionalFieldRequiredDataType: [false],
       isMandatory: [false],
     });
     this.fetchAdditionalFields();
@@ -114,13 +118,13 @@ export class AdditionalfieldComponent {
       this.isSubmitting = true;
       const payload = {
         id: 0,
-        additionalFieldRequiredDataType: this.additionalFieldForm.value.additionalFieldRequiredDataType,
+       // additionalFieldRequiredDataType: this.additionalFieldForm.value.additionalFieldRequiredDataType,
         additionalFieldName: this.additionalFieldForm.value.additionalFieldName,
         isMandatory: this.additionalFieldForm.value.isMandatory, // Added isMandatory
         createdAt: new Date().toISOString(),
-        createdBy: 0, // Replace with actual user ID
+        createdBy:  this.userId, // Replace with actual user ID
         updatedAt: new Date().toISOString(),
-        updatedBy: 0, // Replace with actual user ID
+        updatedBy:  this.userId, // Replace with actual user ID
         isDeleted: false,
       };
 
