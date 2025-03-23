@@ -75,6 +75,7 @@
               <td>{{i + 1}}</td>
               <td >
                 {{ field.additionalFieldName }}
+                <input type="hidden" [value]="field.id" />
               </td>
               <td>
                 <input 
@@ -99,7 +100,7 @@
                   <button 
                     type="button" 
                     class="btn btn-primary btn-sm" 
-                    (click)="addRow()"
+                    (click)="addRow(field.id)"
                     [disabled]="loading || fieldForm.invalid">
                     <i class="fas" [ngClass]="editingIndex !== null ? 'fa-save' : 'fa-plus'"></i>
                     {{ editingIndex !== null ? 'Update' : 'Add' }}

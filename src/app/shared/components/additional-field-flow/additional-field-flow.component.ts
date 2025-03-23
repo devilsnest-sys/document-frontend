@@ -126,7 +126,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
         if (this.rowData.length > 0) {
           // Pre-fill the form with the PO ID from existing data
           this.fieldForm.patchValue({
-            poId: this.rowData[0].poId
+            poId: this.rowData[0].poId,
           });
           
           // Update additionalFieldIdCounter to be higher than any existing ID
@@ -140,7 +140,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
     }
   }
 
-  addRow(): void {
+  addRow(fieldId: number): void {
     if (this.fieldForm.invalid) {
       this.markFormGroupTouched(this.fieldForm);
       this.toastService.showToast('warning', 'Please fill in all required fields correctly');
@@ -160,6 +160,11 @@ export class AdditionalFieldFlowComponent implements OnInit {
       });
     }
 
+    // Ensure additionalFieldId is correctly set using the fieldId from the template
+  this.fieldForm.patchValue({
+    additionalFieldId: fieldId.toString()
+  });
+  
     const newField: AdditionalField = this.fieldForm.value;
     
     // If we're editing an existing row
