@@ -17,6 +17,7 @@ import { DocumentUploadComponent } from '../../shared/components/document-upload
 })
 export class StageStep1Component implements OnInit {
   poData: any[] = [];
+  stageStatus: any;
   displayedColumns: string[] = [
     'pO_NO',
     'poDescription',
@@ -43,6 +44,28 @@ export class StageStep1Component implements OnInit {
     const poNumber = this.route.snapshot.paramMap.get('poNumber');
     console.log(poNumber);
     this.fetchPurchaseOrderData(poNumber);
+    this.getStageStatus(poNumber!);
+  }
+  getStageStatus(poNumber: string): void {
+    const token = localStorage.getItem('authToken');
+    const url = `${environment.apiUrl}/v1/StageStatus/get-stage-status/${poNumber}/1`;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    };
+
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (response) => {
+        this.stageStatus = response;
+      },
+      error: (err) => {
+        console.error('Error fetching Stage Status data:', err);
+      },
+    });
+  }
+
+  get shouldShowStageSubmit(): boolean {
+    return this.stageStatus?.status !== 'Complete';
   }
 
   fetchPurchaseOrderData(poNumber: string | null): void {
