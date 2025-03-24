@@ -40,7 +40,11 @@
 
       // Auto-set vendor for vendors
       setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
-      this.fetchStepStatuses();
+      //this.fetchStepStatuses();
+       // Fetch step statuses when PO changes
+  this.vendorPoForm.get('po')?.valueChanges.subscribe(() => {
+    this.fetchStepStatuses();
+  });
     }
 
     private initializeForm(): void {
@@ -187,8 +191,10 @@
     private fetchStepStatuses(): void {
       const token = localStorage.getItem('authToken');
       if (!token) return;
+      const poNumber = this.vendorPoForm.get('po')?.value;
+      //const poNumber=1;
+      const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${poNumber}`;
       
-      const url = `${environment.apiUrl}/v1/StageStatus`;
       const headers = { Authorization: `Bearer ${token}` };
 
       this.http.get<any>(url, { headers }).subscribe({
@@ -206,8 +212,41 @@
 
     
 
+    // getStepClass(i: number): string {
+    //   const status = this.stepStatuses[i + 1]; // Get status for step
+    //   return status === 'Complete' ? 'completed' : 'pending';
+    // }
+
+    // getStepClass(i: number): string {
+    //   const stepNumber = i + 1;
+    //   const status = this.stepStatuses[stepNumber];
+    
+    //   if (status === 'Complete') {
+    //     return 'completed'; // Green
+    //   }
+    
+    //   // Find the first InComplete step
+    //   const firstIncompleteStep = Object.entries(this.stepStatuses)
+    //     .filter(([_, status]) => status === 'InComplete')
+    //     .map(([key]) => parseInt(key))
+    //     .sort((a, b) => a - b)[0];
+    
+    //   if (stepNumber === firstIncompleteStep) {
+    //     return 'current'; // Blue
+    //   }
+    
+    //   return 'pending'; // Grey
+    // }
     getStepClass(i: number): string {
-      const status = this.stepStatuses[i + 1]; // Get status for step
-      return status === 'Complete' ? 'completed' : 'pending';
+      const stepNumber = i + 1;
+      const status = this.stepStatuses[stepNumber];
+    
+      if (status === 'Complete') {
+        return 'completed';
+      } else if (status === 'InProgress') {
+        return 'current';
+      } else {
+        return 'pending';
+      }
     }
   }
