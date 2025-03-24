@@ -5,7 +5,8 @@
           formControlName="termsAccepted" 
           color="primary"
           [class.checkbox-error]="termsControl?.invalid && termsControl?.touched">
-          I agree to the Terms and Conditions
+          I agree to the 
+          <a href="/TERMS_CONDITIONS.xlsx" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
         </mat-checkbox>
         
         <mat-error *ngIf="termsControl?.invalid && termsControl?.touched">
