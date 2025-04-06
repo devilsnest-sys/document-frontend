@@ -451,20 +451,65 @@ export class DocumentUploadComponent implements OnInit {
     
     console.log('confirmUpload called', documentTypeId);
     
+    // We've already checked for null, but let's use safe navigation for TypeScript's sake
+    const fileName = this.selectedFile?.name || 'Unknown file';
+    const fileSize = this.selectedFile ? this.formatFileSize(this.selectedFile.size) : '0 Bytes';
+    
+    // Simple file type detection with null safety
+    const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+    let fileIcon = 'file';
+    
+    // Basic file type detection
+    if (['pdf'].includes(fileExt)) fileIcon = 'file-pdf';
+    else if (['doc', 'docx'].includes(fileExt)) fileIcon = 'file-word';
+    else if (['xls', 'xlsx'].includes(fileExt)) fileIcon = 'file-excel';
+    else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) fileIcon = 'file-image';
+    
     Swal.fire({
-      title: 'Upload Confirmation',
-      text: `Are you sure you want to upload ${this.selectedFile.name}?`,
-      icon: 'question',
+      title: 'Document Upload',
+      html: `
+        <div style="display: flex; align-items: center; margin: 1rem 0; padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dee2e6;">
+          <div style="font-size: 2rem; margin-right: 1rem; color: #3085d6;">
+            <i class="fas fa-${fileIcon}"></i>
+          </div>
+          <div>
+            <div style="font-weight: bold; margin-bottom: 0.25rem;">${fileName}</div>
+            <div style="color: #6c757d; font-size: 0.9rem;">${fileSize}</div>
+          </div>
+        </div>
+        <p>Please confirm you want to upload this document</p>
+      `,
       input: 'text',
-      inputLabel: 'Review Remark',
-      inputPlaceholder: 'Enter a review remark (optional)',
+      inputLabel: 'Review Notes',
+      inputPlaceholder: 'Add any relevant notes about this document...',
       showCancelButton: true,
       confirmButtonText: 'Upload',
       cancelButtonText: 'Cancel',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33'
     }).then((result) => {
       if (result.isConfirmed) {
-        console.log('Confirmation accepted with remark:', result.value);
-        this.uploadDocument(documentTypeId, result.value);
+        console.log('Confirmation accepted with notes:', result.value);
+        // Ensure selectedFile is still not null before proceeding
+        if (this.selectedFile) {
+          this.uploadDocument(documentTypeId, result.value || '');
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Document Uploaded',
+            text: `${fileName} has been successfully uploaded.`,
+            timer: 2000
+          });
+        } else {
+          console.error('File was null when attempting upload');
+          Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: 'No file was selected for upload.',
+            timer: 2000
+          });
+        }
       } else {
         console.log('Confirmation rejected');
         this.selectedFile = null;
@@ -475,5 +520,14 @@ export class DocumentUploadComponent implements OnInit {
         });
       }
     });
+  }
+  
+  // Helper function to format file size
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
