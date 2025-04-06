@@ -4,3 +4,8 @@
 .mat-form-field, .full-width {
     width: 100%;
   }
+  .card-header.bg-dark {
+    background-color: rgb(30 58 138) !important;
+  }
+  
+  

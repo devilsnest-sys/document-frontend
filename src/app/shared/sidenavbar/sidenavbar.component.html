@@ -1,32 +1,79 @@
 <button class="toggle-btn" *ngIf="isLoggedIn" (click)="toggleSidebar()">
     <i class="fa-solid fa-arrow-right"></i>
 </button>
-<!-- [appUserRole]="['user']" -->
-<div  *ngIf="isLoggedIn"  >
-       <div class="sidebar" [class.active]="isSidebarOpen">
-    <nav>
-        <ul>
-            <li><a routerLink="/dashboard"><mat-icon>apps</mat-icon>Dashboard</a></li>
-            <div *appUserRole="['user']">
-            <li>
-                <a href="javascript:void(0)" (click)="toggleDropdown()"><mat-icon>folder</mat-icon>Master
-                    <i class="fa-solid" [class.fa-chevron-down]="isDropdownOpen" [class.fa-chevron-up]="!isDropdownOpen"></i>
-                </a>
-                <ul class="dropdown" [class.open]="isDropdownOpen">
-                    <li><a routerLink="/master"><mat-icon>folder</mat-icon>Stage Master</a></li>
-                    <li><a routerLink="/masterDocument"><mat-icon>folder_open</mat-icon>Document Master</a></li>
-                    <li><a routerLink="/additionalField"><mat-icon>edit</mat-icon>Additional Field</a></li>
-                    <li><a routerLink="/additionalFieldSelection"> <mat-icon>check_circle</mat-icon>Additional Field Selection</a></li>
-                    <li><a routerLink="/documentSelection"><mat-icon>description</mat-icon>Document Selection</a></li>
-                    <li><a routerLink="/incoterms"><mat-icon>description</mat-icon>Incoterms</a></li>
-                    <li><a routerLink="/potype"><mat-icon>description</mat-icon>Po Type</a></li>
-                </ul>
-            </li>
-            <li><a routerLink="/orderAcknowledgement"><mat-icon>check_circle_outline</mat-icon>PO Number</a></li>
-            <li><a routerLink="/registration"><mat-icon>person_add</mat-icon>Registration</a></li>
-            <li><a routerLink="/vendorRegistration"><mat-icon>business</mat-icon>Register Vendor</a></li>
+
+<div *ngIf="isLoggedIn">
+    <div class="sidebar" [class.active]="isSidebarOpen">
+        <div class="sidebar-header">
+            <div class="logo-circle">
+                <mat-icon>circle</mat-icon>
+            </div>
+            <h3 class="sidebar-title">Circle</h3>
         </div>
-        </ul>
-    </nav>
-      </div>
+        
+        <div class="divider"></div>
+        
+        <nav>
+            <ul class="menu-list">
+                <li>
+                    <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
+                        <mat-icon>apps</mat-icon>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- <li *appUserRole="['user']">
+                    <a routerLink="/master" class="menu-item">
+                        <mat-icon>people</mat-icon>
+                        <span>Stage Master</span>
+                    </a>
+                </li> -->
+                
+                <li *appUserRole="['user']">
+                    <a routerLink="/orderAcknowledgement" class="menu-item">
+                        <mat-icon>account_balance</mat-icon>
+                        <span>PO Number</span>
+                    </a>
+                </li>
+                
+                <li *appUserRole="['user']">
+                    <a routerLink="/registration" class="menu-item">
+                        <mat-icon>assessment</mat-icon>
+                        <span>Registration</span>
+                    </a>
+                </li>
+                
+                <li *appUserRole="['user']">
+                    <a routerLink="/vendorRegistration" class="menu-item">
+                        <mat-icon>security</mat-icon>
+                        <span>Register Vendor</span>
+                    </a>
+                </li>
+                
+                <li *appUserRole="['user']">
+                    <a href="javascript:void(0)" (click)="toggleDropdown()" class="menu-item">
+                        <mat-icon>admin_panel_settings</mat-icon>
+                        <span>Master</span>
+                        <i class="fa-solid" [class.fa-chevron-down]="isDropdownOpen" [class.fa-chevron-up]="!isDropdownOpen"></i>
+                    </a>
+                    <ul class="dropdown" [class.open]="isDropdownOpen">
+                        <li><a routerLink="/master" class="dropdown-item"><mat-icon>folder</mat-icon>Stage Master</a></li>
+                        <li><a routerLink="/masterDocument" class="dropdown-item"><mat-icon>folder_open</mat-icon>Document Master</a></li>
+                        <li><a routerLink="/additionalField" class="dropdown-item"><mat-icon>edit</mat-icon>Additional Field</a></li>
+                        <li><a routerLink="/additionalFieldSelection" class="dropdown-item"><mat-icon>check_circle</mat-icon>Additional Field Selection</a></li>
+                        <li><a routerLink="/documentSelection" class="dropdown-item"><mat-icon>description</mat-icon>Document Selection</a></li>
+                        <li><a routerLink="/incoterms" class="dropdown-item"><mat-icon>description</mat-icon>Incoterms</a></li>
+                        <li><a routerLink="/potype" class="dropdown-item"><mat-icon>description</mat-icon>Po Type</a></li>
+                    </ul>
+                </li>
+                
+                <li class="logout-item">
+                    <a href="javascript:void(0)" (click)="logout()" class="menu-item">
+                        <mat-icon>logout</mat-icon>
+                        <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>

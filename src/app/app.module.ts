@@ -26,6 +26,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
 
 
 import { AgGridModule } from '@ag-grid-community/angular';
@@ -71,6 +72,8 @@ import { StageStep13Component } from './stage-steps/stage-step13/stage-step13.co
 import { StageStep14Component } from './stage-steps/stage-step14/stage-step14.component';
 import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.component';
 import { SessionTimeoutService } from './core/services/session-timeout.service';
+
+
 
 
 @NgModule({
@@ -139,7 +142,8 @@ import { SessionTimeoutService } from './core/services/session-timeout.service';
     MatExpansionModule,
     MatMenuModule,
     MatAutocompleteModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatDividerModule
   ],
   providers: [
     provideAnimationsAsync(),

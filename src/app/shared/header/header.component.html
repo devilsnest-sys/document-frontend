@@ -6,8 +6,16 @@
     <h1 class="header-title">{{ headerTitle }}</h1>
   </div>
   <div class="header-right">
-    <span *ngIf="isLoggedIn" class="welcome-text">Welcome, {{ userName }}</span>
+    <div class="user-info-area" *ngIf="isLoggedIn">
+      <div class="user-avatar">
+        <div class="avatar-circle">
+          <span>{{ userName?.charAt(0) || 'U' }}</span>
+        </div>
+      </div>
+      <div class="user-details">
+        <p class="user-name">{{ userName || 'User' }}</p>
+      </div>
     <button *ngIf="!isLoggedIn" (click)="login()" class="btn btn-primary">Login</button>
-    <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-outline-danger">Logout</button>
+    <!-- <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-outline-danger">Logout</button> -->
   </div>
 </div>

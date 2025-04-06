@@ -70,6 +70,41 @@
   color: white;
 }
 
+.user-info-area {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.user-avatar {
+  margin-right: 8px;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
 @media (max-width: 768px) {
   .title-header-bar {
     /* flex-direction: column;

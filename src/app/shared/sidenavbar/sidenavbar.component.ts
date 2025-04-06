@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sidenavbar',
@@ -13,7 +14,9 @@ export class SidenavbarComponent {
   isDropdownOpen: boolean = false;
   isLoggedIn = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,private router: Router
+  ) {}
 
   @Output() sidebarToggle = new EventEmitter<boolean>();
 
@@ -31,5 +34,12 @@ export class SidenavbarComponent {
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
     this.sidebarToggle.emit(this.isSidebarOpen);
+  }
+  
+  logout(): void {
+    this.authService.clearToken();
+    this.router.navigate(['/login']).then(() => {
+      window.location.reload(); // Ensures full refresh
+    });
   }
 }
