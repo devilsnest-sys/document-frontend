@@ -9,7 +9,10 @@
   }
   
   .notification-bell {
-  position: relative;
+     position: absolute;
+    right: 8%;
+    z-index: 99;
+    top: 25px;
 }
 
 .badge {
