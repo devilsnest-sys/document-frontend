@@ -72,6 +72,7 @@ import { StageStep13Component } from './stage-steps/stage-step13/stage-step13.co
 import { StageStep14Component } from './stage-steps/stage-step14/stage-step14.component';
 import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.component';
 import { SessionTimeoutService } from './core/services/session-timeout.service';
+import { ReportsComponent } from './features/reports/reports.component';
 
 
 
@@ -117,6 +118,7 @@ import { SessionTimeoutService } from './core/services/session-timeout.service';
     StageStep13Component,
     StageStep14Component,
     StageStep15Component,
+    ReportsComponent,
     
   ],
   imports: [

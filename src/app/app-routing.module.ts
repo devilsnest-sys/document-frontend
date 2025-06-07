@@ -32,6 +32,7 @@ import { CreatePoTypeComponent } from './features/dashboard/create-po-type/creat
 import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 import { PasswordResetComponent } from './features/password-reset/password-reset.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { ReportsComponent } from './features/reports/reports.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -45,6 +46,7 @@ const routes: Routes = [
   { path: 'additionalFieldSelection', component: AdditionalfieldselectionComponent, canActivate: [AuthGuard] },
   { path: 'documentSelection', component: DocumentselectionComponent, canActivate: [AuthGuard] },
   { path: 'vendorRegistration', component: VendorRegistrationComponent},
+  { path: 'reports', component: ReportsComponent},
   { path: 'stages/1/:poNumber', component: StageStep1Component },
   { path: 'stages/2/:poNumber', component: StageStep2Component },
   { path: 'stages/3/:poNumber', component: StageStep3Component },
