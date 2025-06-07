@@ -16,14 +16,14 @@ export class SessionTimeoutService {
 
   private startTimer(): void {
     this.clearTimer();
-    console.log('Timer started. User will be logged out in 1 minute if inactive.');
+   // console.log('Timer started. User will be logged out in 1 minute if inactive.');
     this.timeoutId = setTimeout(() => this.handleTimeout(), this.timeoutDuration);
   }
 
   private clearTimer(): void {
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
-      console.log('Timer cleared and reset.');
+      //console.log('Timer cleared and reset.');
     }
   }
 
@@ -35,7 +35,7 @@ export class SessionTimeoutService {
 //   }
 
   private handleTimeout(): void {
-    console.log('Session expired. Logging out user.');
+    //console.log('Session expired. Logging out user.');
     this.authService.clearToken();
     alert('Session expired. Please log in again.');
     this.router.navigate(['/login']).then(() => {
@@ -47,7 +47,7 @@ export class SessionTimeoutService {
   private addEventListeners(): void {
     ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach((event) => {
       window.addEventListener(event, () => {
-        console.log(`Activity detected: ${event}`);
+        //console.log(`Activity detected: ${event}`);
         this.startTimer();
       });
     });

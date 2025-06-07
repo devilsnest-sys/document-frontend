@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
 import { LoaderService } from './core/services/loader-service.service';
 import { SessionTimeoutService } from './core/services/session-timeout.service';
+import { NotificationService } from './services/notification.service';
+import { SignalrService } from './services/signalr.service';
 
 @Component({
   selector: 'app-root',
@@ -15,10 +17,21 @@ export class AppComponent implements OnInit {
   isSidebarOpen = false;
   isLoggedIn = false;
 
-  constructor(private router: Router, private loaderService: LoaderService , private sessionTimeoutService: SessionTimeoutService) {}
+  // ✅ Add for notifications
+  notifications: string[] = [];
+  showNotifications = false;
+
+  constructor(private router: Router, private loaderService: LoaderService , private sessionTimeoutService: SessionTimeoutService,private notificationService: NotificationService,private signalRService: SignalrService) {}
 
   ngOnInit(): void {
+    this.signalRService.startConnection();
     this.checkLoginStatus();
+
+
+    // ✅ Subscribe to notification updates
+    this.notificationService.notifications$.subscribe((msgs) => {
+      this.notifications = msgs;
+    });
 
     // Subscribe to loader service for API requests
     this.loaderService.isLoading$.subscribe((loading) => {
@@ -54,5 +67,15 @@ export class AppComponent implements OnInit {
 
   onSidebarToggle(isOpen: boolean) {
     this.isSidebarOpen = isOpen;
+  }
+
+  // ✅ Notification dropdown toggle
+  toggleNotifications() {
+    this.showNotifications = !this.showNotifications;
+  }
+
+  // ✅ Remove a notification
+  removeNotification(index: number) {
+    this.notificationService.removeNotification(index);
   }
 }

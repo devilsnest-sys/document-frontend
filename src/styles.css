@@ -8,4 +8,52 @@
     background-color: rgb(30 58 138) !important;
   }
   
-  
+  .notification-bell {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 50%;
+}
+
+.dropdown-box {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  background: #fff;
+  width: 250px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid #ccc;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 10px;
+  color: #888;
+}

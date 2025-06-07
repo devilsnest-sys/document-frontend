@@ -73,6 +73,7 @@ import { StageStep14Component } from './stage-steps/stage-step14/stage-step14.co
 import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.component';
 import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { HttpRequestInterceptor } from './core/http.interceptor';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 
@@ -144,7 +145,8 @@ import { HttpRequestInterceptor } from './core/http.interceptor';
     MatMenuModule,
     MatAutocompleteModule,
     MatCheckboxModule,
-    MatDividerModule
+    MatDividerModule,
+    MatSnackBarModule
   ],
   providers: [
     provideAnimationsAsync(),
