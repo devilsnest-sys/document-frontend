@@ -78,7 +78,7 @@ button.toggle-btn {
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 9px 16px;
   color: white;
   text-decoration: none;
   border-radius: 8px;
