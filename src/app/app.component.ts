@@ -36,28 +36,33 @@ export class AppComponent implements OnInit {
     // Subscribe to loader service for API requests
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
+      console.log('isLoading status:', loading);
     });
 
     // Subscribe to router events
     this.router.events.subscribe((event: Event) => {
       if (event instanceof NavigationStart) {
-        this.isLoading = true;
+        this.loaderService.showLoader();
 
-        // Redirect already logged-in users away from the login page
         if (event.url === '/login' && this.isLoggedIn) {
           this.router.navigate(['/dashboard']);
         } else {
           this.checkLoginStatus();
         }
-      } 
+      }
 
-      if (event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) {
-        this.isLoading = false;
+      if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this.loaderService.hideLoader();
       }
     });
   }
 
   private checkLoginStatus() {
+    
     const token = localStorage.getItem('authToken');
     this.isLoggedIn = !!token;
     
