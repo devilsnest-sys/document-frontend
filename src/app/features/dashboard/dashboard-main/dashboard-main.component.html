@@ -81,7 +81,8 @@
 </li> -->
 
 <li *ngFor="let step of steps; let i = index" 
-    [ngClass]="getStepClass(i)">
+    [ngClass]="getStepClass(i)"
+    >
   
   <div *ngIf="i !== 0" class="progress-line"></div>
 

@@ -221,6 +221,7 @@ export class OrderacknowledgementComponent {
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers }).subscribe({
         next: (response) => {
           console.log('PO submitted successfully:', response);
+           this.fetchPo();
           this.poForm.reset();
           this.selectedFile = null;
         },
