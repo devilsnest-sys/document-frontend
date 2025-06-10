@@ -15,7 +15,6 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
      this.loaderService.showLoader();
-    // Clone and modify the request to add custom headers
     const modifiedReq = request.clone({
       setHeaders: {
         'bypass-tunnel-reminder': 'true'
