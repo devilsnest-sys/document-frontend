@@ -179,7 +179,58 @@
     flex-direction: column;
     align-items: center;
   }
+  /* Legend Styles */
+  .legend-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+  }
   
+  .legend-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .legend-items {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .legend-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+  }
+  
+  .completed-legend {
+    background-color: #28a745;
+  }
+  
+  .current-legend {
+    background-color: #007bff;
+  }
+  
+  .pending-legend {
+    background-color: #6c757d;
+  }
   /* Step Circle */
   .step-circle {
     width: 45px;
@@ -214,6 +265,7 @@
   .pending .step-circle {
     background-color: #6c757d; /* Gray */
     color: white;
+    cursor: none;
   }
   
   /* Progress Line */
@@ -239,7 +291,7 @@
     font-size: 14px;
     font-weight: 500;
     color: #333;
-    cursor: none;
+    
   }
   
   /* Responsive Adjustments */
