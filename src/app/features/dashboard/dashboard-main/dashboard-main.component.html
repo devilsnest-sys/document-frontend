@@ -88,13 +88,13 @@
       <div *ngIf="i !== 0" class="progress-line"></div>
 
       <!-- Clickable link for completed/current steps -->
-      <a *ngIf="getStepClass(i) !== 'pending'" 
-         [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
+      <a *ngIf="getStepClass(i) !== 'pending' || i === 0"
+        [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
         <div class="step-circle">{{ i + 1 }}</div>
       </a>
-      
-      <!-- Non-clickable div for pending steps -->
-      <div *ngIf="getStepClass(i) === 'pending'" class="step-circle non-clickable">
+
+      <!-- Non-clickable div for other pending steps -->
+      <div *ngIf="getStepClass(i) === 'pending' && i !== 0" class="step-circle non-clickable">
         {{ i + 1 }}
       </div>
       

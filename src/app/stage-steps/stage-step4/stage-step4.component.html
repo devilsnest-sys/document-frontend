@@ -1,3 +1,70 @@
+<div class="container mt-5">
+    <h2 class="text-center">Stage 1-AdvanceOA</h2>
+  
+    <div class="container mx-auto p-4">
+      <div class="po-container">
+        <div class="po-card" *ngIf="poData.length > 0">
+          <table class="po-table">
+            <tbody>
+              <tr>
+                <td class="field-cell">PO Number</td>
+                <td class="value-cell">{{ poData[0]?.pO_NO || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Description</td>
+                <td class="value-cell">{{ poData[0]?.poDescription || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Actual Delivery Date</td>
+                <td class="value-cell">{{ poData[0]?.actualDeliveryDate || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Contractual Delivery Date</td>
+                <td class="value-cell">{{ poData[0]?.contractualDeliveryDate || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Contact Person</td>
+                <td class="value-cell">{{ poData[0]?.contactPersonName || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Email</td>
+                <td class="value-cell">
+                  <a [href]="'mailto:' + poData[0]?.contactPersonEmailId" class="email-link">
+                    {{ poData[0]?.contactPersonEmailId || 'N/A' }}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="field-cell">Contact Number</td>
+                <td class="value-cell">{{ poData[0]?.contactNo || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">Incoterms</td>
+                <td class="value-cell">{{ poData[0]?.incoterms || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="field-cell">PO Type</td>
+                <td class="value-cell">{{ poData[0]?.poType || 'N/A' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <div *ngIf="loading" class="loading-state">Loading...</div>
+        <div *ngIf="error" class="error-state">{{ error }}</div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="text-center p-4">
+        <span class="text-neutral-200">Loading...</span>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="text-center p-4">
+        <span class="text-red-400">{{ error }}</span>
+      </div>
+    </div>
+  </div>
 <app-document-upload [stageNumber]="4"></app-document-upload>
 <app-additional-field-flow [stageNumber]="4"></app-additional-field-flow>
 <app-stage-submit [stageNumber]="4"></app-stage-submit>

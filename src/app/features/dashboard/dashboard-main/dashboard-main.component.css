@@ -265,7 +265,11 @@
   .pending .step-circle {
     background-color: #6c757d; /* Gray */
     color: white;
-    cursor: none;
+    /* cursor: none; */
+  }
+
+  .step-bar li:first-child .step-circle {
+  cursor: pointer;
   }
   
   /* Progress Line */
