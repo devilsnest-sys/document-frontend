@@ -67,4 +67,4 @@
     </div>
   </div><app-document-upload [stageNumber]="12"></app-document-upload>
 <app-additional-field-flow [stageNumber]="12"></app-additional-field-flow>
-<app-stage-submit [stageNumber]="12"></app-stage-submit>
+<app-stage-submit *appUserRole="['user']"  [stageNumber]="12"></app-stage-submit>

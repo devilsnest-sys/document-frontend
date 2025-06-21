@@ -74,6 +74,7 @@ import { StageStep15Component } from './stage-steps/stage-step15/stage-step15.co
 import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { HttpRequestInterceptor } from './core/http.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { UserRoleStageDirective } from './shared/directives/user-role-stage.directive';
 
 
 
@@ -119,6 +120,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     StageStep13Component,
     StageStep14Component,
     StageStep15Component,
+    UserRoleStageDirective
     
   ],
   imports: [

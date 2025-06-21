@@ -94,9 +94,9 @@
       </a>
 
       <!-- Non-clickable div for other pending steps -->
-      <div *ngIf="getStepClass(i) === 'pending' && i !== 0" class="step-circle non-clickable">
+      <a [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]" *ngIf="getStepClass(i) === 'pending' && i !== 0" class="step-circle non-clickable">
         {{ i + 1 }}
-      </div>
+      </a>
       
       <div class="step-label">Step {{ i + 1 }}</div>
     </li>
