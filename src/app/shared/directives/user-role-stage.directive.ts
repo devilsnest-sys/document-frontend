@@ -7,7 +7,7 @@ interface UserRoleStageConfig {
 }
 
 @Directive({
-  selector: '[appUserRoleStage]',
+  selector: '[appHideForVendorStages]',
   standalone: false
 })
 export class UserRoleStageDirective {
