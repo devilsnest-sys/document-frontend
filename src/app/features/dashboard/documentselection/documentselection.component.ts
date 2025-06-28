@@ -10,6 +10,31 @@ interface DocumentTypeRow {
   [key: `stage${number}`]: boolean;
 }
 
+interface PurchaseOrder {
+  id: number;
+  pO_NO: string;
+  poDescription: string;
+  poType: number;
+  incoterms: number;
+  poTypeName: string;
+  incotermName: string;
+  contractualDeliveryDate: string;
+  actualDeliveryDate: string;
+  contactPersonName: string;
+  contactPersonEmailId: string;
+  contactNo: string | null;
+  createdAt: string;
+  createdBy: number;
+  updatedAt: string;
+  updatedBy: number;
+  isDeleted: boolean;
+  vendorId: number;
+  poFilePath: string;
+  vendorCode: string;
+  reminderSent: boolean;
+  stageStatuses: any[];
+}
+
 @Component({
   selector: 'app-documentselection',
   standalone: false,
@@ -19,6 +44,9 @@ interface DocumentTypeRow {
 export class DocumentselectionComponent implements OnInit {
   public modules: Module[] = [ClientSideRowModelModule];
   userId: string | null = null;
+  selectedPoNumber: string = '';
+  purchaseOrders: PurchaseOrder[] = [];
+  
   responseData: Array<{
     id: number;
     createdUserId: number;
@@ -28,6 +56,7 @@ export class DocumentselectionComponent implements OnInit {
     createdAt: string;
     updatedAt: string;
     isDelete: number;
+    pono?: string;
   }> = [];
   
   rowData: DocumentTypeRow[] = [];
@@ -41,29 +70,76 @@ export class DocumentselectionComponent implements OnInit {
     minWidth: 100,
   };
 
- 
-
   constructor(private http: HttpClient) {}
+  
   allStages: any;
   allDocumentTypes: any;
- ngOnInit(): void {
-  this.fetchStages();  // Fetch stages on init
-  this.userId = localStorage.getItem('userId');  // Get the user ID from local storage
 
-  const token = localStorage.getItem('authToken');  // Retrieve the authentication token
-  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);  // Set headers with the token
+  ngOnInit(): void {
+    this.fetchStages();
+    this.fetchPo();
+    this.userId = localStorage.getItem('userId');
+    // Note: Initial document selection data will be fetched when PO is selected
+  }
+
+  fetchPo(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
   
-  // Fetch the document selection data from the backend
-  this.http.get(`${environment.apiUrl}/v1/document-selection`, { headers }).subscribe({
-    next: (response: any) => {
-      this.responseData = response;  // Adjust this based on your API's response structure
-    },
-    error: (error) => {
-      console.error('Error fetching document selection data:', error);
-    },
-  });
-}
+    this.http.get<PurchaseOrder[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+      next: (data) => {
+        this.purchaseOrders = data.map(item => ({
+          ...item,
+          // Format dates properly if needed for display
+          contractualDeliveryDate: item.contractualDeliveryDate ? new Date(item.contractualDeliveryDate).toLocaleDateString() : '',
+          actualDeliveryDate: item.actualDeliveryDate ? new Date(item.actualDeliveryDate).toLocaleDateString() : '',
+          createdAt: new Date(item.createdAt).toLocaleDateString(),
+          updatedAt: new Date(item.updatedAt).toLocaleDateString()
+        }));
+      },
+      error: (error) => {
+        console.error('Error fetching purchase orders:', error);
+      },
+    });
+  }
 
+  onPoSelectionChange(): void {
+    // Refresh document selection data when PO is changed
+    if (this.selectedPoNumber && this.allStages) {
+      // First fetch document selection data, then fetch document types
+      this.fetchDocumentSelectionData();
+    } else {
+      // Clear data if no PO is selected
+      this.rowData = [];
+      this.responseData = [];
+    }
+  }
+
+  fetchDocumentSelectionData(): void {
+    if (!this.selectedPoNumber) {
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    // Add poNumber as query parameter
+    const url = `${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`;
+    
+    this.http.get(url, { headers }).subscribe({
+      next: (response: any) => {
+        this.responseData = response;
+        // After getting document selection data, fetch document types and build the grid
+        if (this.allStages) {
+          this.fetchDocumentTypes(this.allStages);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching document selection data:', error);
+        this.responseData = [];
+      },
+    });
+  }
 
   fetchStages(): void {
     const token = localStorage.getItem('authToken');
@@ -73,7 +149,10 @@ export class DocumentselectionComponent implements OnInit {
       next: (stages) => {
         this.allStages = stages;
         this.setupGridColumns(stages);
-        this.fetchDocumentTypes(stages);
+        if (this.selectedPoNumber) {
+          this.fetchDocumentSelectionData();
+          this.fetchDocumentTypes(stages);
+        }
       },
       error: (error) => {
         console.error('Error fetching stages:', error);
@@ -82,13 +161,11 @@ export class DocumentselectionComponent implements OnInit {
   }
 
   setupGridColumns(stages: { id: number; name: string }[]): void {
-    // Define the default columns
     this.columnDefs = [
       { field: 'id', headerName: 'Sr. No', valueGetter: 'node.rowIndex + 1', sortable: false },
       { field: 'documentName', headerName: 'Document Name', filter: 'agTextColumnFilter' },
     ];
 
-    // Dynamically add columns for stages with checkboxes
     stages.forEach((stage) => {
       this.columnDefs.push({
         headerName: stage.name,
@@ -103,6 +180,11 @@ export class DocumentselectionComponent implements OnInit {
   }
 
   fetchDocumentTypes(stages: { id: number; name: string }[]): void {
+    if (!this.selectedPoNumber) {
+      console.warn('No PO selected');
+      return;
+    }
+
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
@@ -110,20 +192,21 @@ export class DocumentselectionComponent implements OnInit {
       next: (data) => {
         this.allDocumentTypes = data;
 
-        // Fetch selection data and update rowData with checkbox states
-        this.http.get<any[]>(`${environment.apiUrl}/v1/document-selection`, { headers }).subscribe({
+        this.http.get<any[]>(`${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`, { headers }).subscribe({
           next: (selections) => {
-            // Update rowData with selections
+            // Filter selections by selected PO number
+            const filteredSelections = selections.filter(sel => sel.pono === this.selectedPoNumber);
+            
             this.rowData = data.map((item) => {
               const stagesData: { [key: string]: boolean } = {};
               stages.forEach((stage) => {
-                const selection = selections.find(
+                const selection = filteredSelections.find(
                   (sel) =>
                     sel.stageId === stage.id &&
                     sel.documentId === item.id &&
                     sel.isDelete === 0
                 );
-                stagesData[`stage${stage.id}`] = !!selection; // Set checkbox state
+                stagesData[`stage${stage.id}`] = !!selection;
               });
               return { ...item, ...stagesData };
             });
@@ -140,24 +223,33 @@ export class DocumentselectionComponent implements OnInit {
   }
 
   onCheckboxChange(params: any): void {
+    if (!this.selectedPoNumber) {
+      alert('Please select a PO number first');
+      return;
+    }
+
     const { data, colDef, value } = params;
     const stageField = colDef.field as string;
     const stageId = Number(stageField.replace('stage', ''));
     const documentId = data.id;
 
     const targetRecord = this.responseData.find(
-      (item) => item.stageId === stageId && item.documentId === documentId
+      (item) => item.stageId === stageId && 
+                item.documentId === documentId && 
+                item.pono === this.selectedPoNumber
     );
 
     if (!targetRecord) {
+      console.warn('No matching record found for update');
       return;
     }
 
     const recordId = targetRecord.id;
 
     const payload = {
-      updatedUserId: this.userId,
+      updatedUserId: Number(this.userId),
       isDelete: value ? 0 : 1,
+      pono: this.selectedPoNumber
     };
 
     const token = localStorage.getItem('authToken');
@@ -168,9 +260,20 @@ export class DocumentselectionComponent implements OnInit {
     this.http.patch(url, payload, { headers }).subscribe({
       next: (response) => {
         console.log('Checkbox state updated successfully:', response);
+        // Update local responseData to reflect the change
+        if (targetRecord) {
+          targetRecord.isDelete = value ? 0 : 1;
+          targetRecord.updatedUserId = Number(this.userId);
+        }
       },
       error: (error) => {
         console.error('Error updating checkbox state:', error);
+        // Revert checkbox state on error
+        params.value = !value;
+        const checkbox = params.eGridCell.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          checkbox.checked = !value;
+        }
       },
     });
   }
