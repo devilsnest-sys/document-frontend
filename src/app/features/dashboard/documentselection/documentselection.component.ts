@@ -193,6 +193,7 @@ export class DocumentselectionComponent implements OnInit {
         this.allDocumentTypes = data;
 
         this.http.get<any[]>(`${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`, { headers }).subscribe({
+
           next: (selections) => {
             // Filter selections by selected PO number
             const filteredSelections = selections.filter(sel => sel.pono === this.selectedPoNumber);
@@ -235,25 +236,63 @@ export class DocumentselectionComponent implements OnInit {
 
     const targetRecord = this.responseData.find(
       (item) => item.stageId === stageId && 
-                item.documentId === documentId && 
-                item.pono === this.selectedPoNumber
+                item.documentId === documentId
     );
 
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     if (!targetRecord) {
-      console.warn('No matching record found for update');
+      // Create new record if it doesn't exist
+      if (value) { // Only create if checkbox is being checked
+        const payload = {
+          createdUserId: Number(this.userId),
+          updatedUserId: Number(this.userId),
+          stageId: stageId,
+          documentId: documentId,
+          isDelete: 0,
+          pono: this.selectedPoNumber
+        };
+
+        const url = `${environment.apiUrl}/v1/document-selection`;
+
+        this.http.post(url, payload, { headers }).subscribe({
+          next: (response: any) => {
+            console.log('New document selection created successfully:', response);
+            // Add the new record to local responseData
+            this.responseData.push({
+              id: response.id, // Assuming the API returns the created record with ID
+              createdUserId: Number(this.userId),
+              updatedUserId: Number(this.userId),
+              stageId: stageId,
+              documentId: documentId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              isDelete: 0,
+              pono: this.selectedPoNumber
+            });
+          },
+          error: (error) => {
+            console.error('Error creating new document selection:', error);
+            // Revert checkbox state on error
+            params.value = false;
+            const checkbox = params.eGridCell.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+              checkbox.checked = false;
+            }
+          },
+        });
+      }
       return;
     }
 
+    // Update existing record
     const recordId = targetRecord.id;
-
     const payload = {
       updatedUserId: Number(this.userId),
       isDelete: value ? 0 : 1,
       pono: this.selectedPoNumber
     };
-
-    const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
     const url = `${environment.apiUrl}/v1/document-selection/${recordId}`;
 

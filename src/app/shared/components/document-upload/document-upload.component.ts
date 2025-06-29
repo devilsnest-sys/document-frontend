@@ -9,6 +9,7 @@ import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { ActivatedRoute } from '@angular/router';
 
 interface DocumentType {
   id: number;
@@ -75,13 +76,18 @@ export class DocumentUploadComponent implements OnInit {
   errorMessage: string = '';
   userType: string | null = '';
   selectedFile: File | null = null;
+  poID: string | null = null;
+  poNumber: string = '';
   
-  constructor(private http: HttpClient, private toasService : ToastserviceService) {}
+  constructor(private http: HttpClient, private toasService : ToastserviceService, private route: ActivatedRoute,) {}
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
-    this.fetchDocumentTypes();
+   
     console.log('this is stage number',this.stageNumber);
+
+    this.poID = this.route.snapshot.paramMap.get('poNumber');
+    this.fetchDPoNo();
   }
 
   private getHeaders(): HttpHeaders {
@@ -109,13 +115,43 @@ export class DocumentUploadComponent implements OnInit {
         this.isGroupExpanded(group.documentType.id))
     );
   }
+
+  fetchDPoNo(): void {
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  this.http
+    .get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poID}`, {
+      headers: this.getHeaders(),
+    })
+    .pipe(
+      catchError(this.handleError.bind(this)),
+      finalize(() => (this.isLoading = false))
+    )
+    .subscribe({
+      next: (response) => {
+        console.log('Fetched PO details:', response);
+
+        this.poNumber = response.pO_NO; 
+        console.log("this is po number", this.poNumber ) // <- extract the PO number from response
+        this.documentTypes = response.documentTypes || [];
+ this.fetchDocumentTypes();
+        this.documentTypes.forEach((docType) => {
+          this.expandedGroups[docType.id] = false;
+        });
+
+        this.fetchUploadedDocuments(); // now this.poNumber has the correct value
+      },
+    });
+}
+
   fetchDocumentTypes(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
     this.http
       .get<DocumentType[]>(
-        `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}`,
+        `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}?poNo=${this.poNumber}`,
         { headers: this.getHeaders() }
       )
       .pipe(
@@ -135,30 +171,33 @@ export class DocumentUploadComponent implements OnInit {
       });
   }
 
-  fetchUploadedDocuments(): void { 
-    this.isLoading = true;
-    
-    // Constructing the payload with stageId and documentId
-    const payload = {
-      stageId: this.stageNumber,  // Using the @Input() stageNumber
-      // documentId: this.selectedDocumentId // Ensure this is set somewhere
-    };
-  
-    this.http
-      .post<UploadedDocument[]>(
-        `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
-        payload,
-        { headers: this.getHeaders() }
-      )
-      .subscribe({
-        next: (uploadedDocs) => {
-          console.log('Fetched uploaded documents:', uploadedDocs);
-          this.uploadedDocuments = uploadedDocs;
-          this.groupDocuments();
-        },
-      });
-  }
-  
+
+
+
+
+fetchUploadedDocuments(): void {
+  this.isLoading = true;
+
+  const payload = {
+    stageId: this.stageNumber,
+    PoNumber: this.poNumber  // ✅ Now has correct value
+  };
+
+  this.http
+    .post<UploadedDocument[]>(
+      `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
+      payload,
+      { headers: this.getHeaders() }
+    )
+    .subscribe({
+      next: (uploadedDocs) => {
+        console.log('Fetched uploaded documents:', uploadedDocs);
+        this.uploadedDocuments = uploadedDocs;
+        this.groupDocuments();
+      },
+    });
+}
+
 
   private groupDocuments(): void {
     // Reset grouped documents

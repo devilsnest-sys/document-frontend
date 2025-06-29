@@ -2,34 +2,59 @@
     <div class="card">
       <div class="card-header bg-dark text-white">
         <h3 class="text-center">Registration Form</h3>
+        <div class="text-center mt-2">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="toggleEditMode()" 
+            class="me-2">
+            {{ isEditMode ? 'Cancel Edit' : 'Edit User' }}
+          </button>
+        </div>
       </div>
       <div class="card-body">
         <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
           <div class="row">
             <div class="col-md-6">
-              <!-- Username -->
+              <!-- Username - Show dropdown in edit mode, input in create mode -->
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Username</mat-label>
                 <mat-icon matPrefix>person</mat-icon>
+                
+                <!-- Dropdown for edit mode -->
+                <mat-select 
+                  *ngIf="isEditMode" 
+                  id="username" 
+                  formControlName="username" 
+                  required
+                  (selectionChange)="onUsernameSelected($event.value)">
+                  <mat-option value="" disabled>Select Username</mat-option>
+                  <mat-option *ngFor="let user of userList" [value]="user.username">
+                    {{ user.username }}
+                  </mat-option>
+                </mat-select>
+                
+                <!-- Input for create mode -->
                 <input 
+                  *ngIf="!isEditMode"
                   matInput 
                   id="username" 
                   formControlName="username" 
                   required 
                   (blur)="checkUsernameExists(registrationForm.get('username')?.value)" 
                 />
+                
                 <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
                   <small *ngIf="registrationForm.get('username')?.hasError('required')">
                     Username is required.
                   </small>
-                  <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken')">
+                  <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken') && !isEditMode">
                     This username is already taken.
                   </small>
                 </mat-error>
               </mat-form-field>
             </div>
             
-  
             <div class="col-md-6">
               <!-- Email -->             
               <mat-form-field appearance="fill" class="full-width">
@@ -40,19 +65,16 @@
                   id="email" 
                   type="email" 
                   formControlName="email" 
-                  (blur)="checkEmailExists(registrationForm.get('email')?.value, 'user')"
+                  (blur)="!isEditMode && checkEmailExists(registrationForm.get('email')?.value, 'user')"
                   required 
                 />
                 <mat-error *ngIf="emailControl?.touched && emailControl?.invalid">
                   <small *ngIf="emailControl?.hasError('required')">Email is required.</small>
                   <small *ngIf="emailControl?.hasError('email')">Enter a valid email.</small>
-                  <small *ngIf="emailControl?.hasError('emailTaken')">This email is already taken.</small>
+                  <small *ngIf="emailControl?.hasError('emailTaken') && !isEditMode">This email is already taken.</small>
                 </mat-error>
               </mat-form-field>
             </div>
-  
-
-            
 
             <div class="col-md-6">
               <!-- Password -->
@@ -186,16 +208,15 @@
                 </mat-error>
               </mat-form-field>
             </div>
-            
-            
           </div>
   
           <!-- Submit Button -->
           <div class="text-center mt-3">
-            <button mat-raised-button color="accent" type="submit">Submit</button>
+            <button mat-raised-button color="accent" type="submit">
+              {{ isEditMode ? 'Update User' : 'Submit' }}
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  
