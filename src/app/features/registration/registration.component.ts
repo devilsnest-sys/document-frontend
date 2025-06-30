@@ -61,7 +61,6 @@ export class RegistrationComponent implements OnInit {
   }
 
   fetchUsers(): void {
-    // Add this method to your RegistrationService to get all users
     this.registrationService.getAllUsers().subscribe({
       next: (data) => {
         this.userList = data;
@@ -79,9 +78,11 @@ export class RegistrationComponent implements OnInit {
     if (this.isEditMode) {
       this.fetchUsers(); // Load users when entering edit mode
       this.registrationForm.reset(); // Clear form
+      this.initializeForm(); // Reinitialize form
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
+      this.initializeForm(); // Reinitialize form
     }
   }
 
@@ -91,13 +92,14 @@ export class RegistrationComponent implements OnInit {
     // Find the selected user
     const selectedUser = this.userList.find(user => user.username === username);
     
-    if (selectedUser) {
-      this.selectedUserId = selectedUser.id || null;
+    if (selectedUser && selectedUser.id) {
+      this.selectedUserId = selectedUser.id;
       
-      // Get user details and populate form
-      this.registrationService.getUserByUsername(username).subscribe({
+      // Get user details by ID and populate form
+      this.registrationService.getUserById(selectedUser.id).subscribe({
         next: (userData) => {
           this.populateForm(userData);
+          this.setFieldsDisabled(); // Disable non-editable fields
         },
         error: (err) => {
           console.error(err);
@@ -109,7 +111,7 @@ export class RegistrationComponent implements OnInit {
 
   populateForm(userData: any): void {
     // Convert comma-separated stages back to array if needed
-    let stageIds = userData.UserDesignationForstageId;
+    let stageIds = userData.userDesignationForstageId;
     if (typeof stageIds === 'string') {
       stageIds = stageIds.split(', ').map((id: string) => parseInt(id.trim()));
     }
@@ -119,7 +121,7 @@ export class RegistrationComponent implements OnInit {
       email: userData.email,
       HashedPassword: '', // Don't populate password for security
       confirmPassword: '',
-      MobileNo: userData.MobileNo,
+      MobileNo: userData.mobileNo, // Updated field name to match API
       role: userData.role,
       designation: userData.designation,
       companyId: userData.companyId,
@@ -127,6 +129,23 @@ export class RegistrationComponent implements OnInit {
       userType: userData.userType || 'user',
       salt: userData.salt || ''
     });
+  }
+
+  setFieldsDisabled(): void {
+    // Disable all fields except email and phone
+    this.registrationForm.get('username')?.disable();
+    this.registrationForm.get('HashedPassword')?.disable();
+    this.registrationForm.get('confirmPassword')?.disable();
+    this.registrationForm.get('role')?.disable();
+    this.registrationForm.get('designation')?.disable();
+    this.registrationForm.get('companyId')?.disable();
+    this.registrationForm.get('UserDesignationForstageId')?.disable();
+    this.registrationForm.get('userType')?.disable();
+    this.registrationForm.get('salt')?.disable();
+    
+    // Keep email and MobileNo enabled
+    this.registrationForm.get('email')?.enable();
+    this.registrationForm.get('MobileNo')?.enable();
   }
 
   checkEmailExists(email: string, type: string = 'user'): void {
@@ -171,26 +190,53 @@ export class RegistrationComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.registrationForm.valid) {
+    if (this.registrationForm.valid || (this.isEditMode && this.isEditFormValid())) {
       const token = localStorage.getItem('authToken');
       if (!token) {
         this.toastservice.showToast('error', 'Login Failed', 'Invalid credentials. Please try again!');
         return;
       }
 
-      const payload = { ...this.registrationForm.value };
+      const payload = { ...this.registrationForm.getRawValue() }; // Use getRawValue() to get disabled fields too
 
+      // Convert array to comma-separated string for API
       if (Array.isArray(payload.UserDesignationForstageId)) {
-        payload.UserDesignationForstageId = payload.UserDesignationForstageId.join(', ');
+        payload.userDesignationForstageId = payload.UserDesignationForstageId.join(', ');
       }
+
+      // Update field names to match API
+      payload.mobileNo = payload.MobileNo;
+      payload.hashedPassword = payload.HashedPassword;
+
+      // Remove form-specific fields
+      delete payload.MobileNo;
+      delete payload.HashedPassword;
+      delete payload.confirmPassword;
+      delete payload.UserDesignationForstageId;
 
       if (this.isEditMode && this.selectedUserId) {
         // Update existing user
         payload.id = this.selectedUserId;
-        this.registrationService.updateUser(payload, token).subscribe({
+        
+        // For edit mode, create payload matching API structure
+        const editPayload = {
+          id: this.selectedUserId,
+          username: payload.username,
+          hashedPassword: payload.hashedPassword || '', // Keep existing or empty
+          role: payload.role,
+          userType: payload.userType,
+          email: payload.email,
+          mobileNo: payload.mobileNo,
+          createdAt: new Date().toISOString(), // You might want to preserve original createdAt
+          salt: payload.salt || '',
+          userDesignationForstageId: payload.userDesignationForstageId
+        };
+
+        this.registrationService.updateUser(editPayload, token).subscribe({
           next: () => {
             this.toastservice.showToast('success', 'User Updated Successfully');
             this.registrationForm.reset();
+            this.initializeForm();
             this.isEditMode = false;
             this.selectedUserId = null;
           },
@@ -205,6 +251,7 @@ export class RegistrationComponent implements OnInit {
           next: () => {
             this.toastservice.showToast('success', 'Registration Successful');
             this.registrationForm.reset();
+            this.initializeForm();
           },
           error: (err) => {
             console.error(err);
@@ -215,5 +262,13 @@ export class RegistrationComponent implements OnInit {
     } else {
       this.toastservice.showToast('error', 'Form Invalid', 'Please fill all required fields correctly!');
     }
+  }
+
+  // Helper method to check if edit form is valid (only editable fields)
+  isEditFormValid(): boolean {
+    const emailControl = this.registrationForm.get('email');
+    const mobileControl = this.registrationForm.get('MobileNo');
+    
+    return !!(emailControl?.valid && mobileControl?.valid && this.selectedUserId);
   }
 }
