@@ -104,4 +104,33 @@ export class StageStep1Component implements OnInit {
       },
     });
   }
+
+  downloadPoFile(poId: number): void {
+  const token = localStorage.getItem('authToken');
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/octet-stream',
+  });
+
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${poId}`;
+
+  this.http.get(url, { headers, responseType: 'blob' }).subscribe({
+    next: (blob) => {
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+
+      const filename = this.poData[0]?.poFilePath?.split('\\').pop() || `PO_${poId}.pdf`;
+      a.download = filename;
+
+      a.click();
+      URL.revokeObjectURL(objectUrl);
+    },
+    error: (err) => {
+      console.error('Error downloading PO file:', err);
+      this.toastservice.showToast('error','Failed to download PO file');
+    },
+  });
+}
+
 }

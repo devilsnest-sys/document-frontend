@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
+import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface Vendor {
@@ -85,7 +86,7 @@ export class OrderacknowledgementComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private authService: AuthService) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private authService: AuthService, private ToastserviceService : ToastserviceService) {
     this.poForm = this.fb.group({
       poDescription: ['', Validators.required],
       poType: ['', Validators.required],
@@ -221,12 +222,14 @@ export class OrderacknowledgementComponent {
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers }).subscribe({
         next: (response) => {
           console.log('PO submitted successfully:', response);
+          this.ToastserviceService.showToast('success', this.poForm ? 'PO Updated Successfully' : 'PO Created Successfully');
            this.fetchPo();
           this.poForm.reset();
           this.selectedFile = null;
         },
         error: (error) => {
           console.error('Error submitting PO:', error);
+          this.ToastserviceService.showToast('error', this.poForm ? 'PO Updated Error' : 'PO Created Error');
         },
       });
     } else {
