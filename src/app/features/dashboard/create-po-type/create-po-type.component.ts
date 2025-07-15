@@ -36,7 +36,7 @@ export class CreatePoTypeComponent {
       filter: 'agDateColumnFilter',
     },
     {
-      field: 'createdBy',
+      field: 'createdByUsername',
       headerName: 'Created By',
       filter: 'agNumberColumnFilter',
     },

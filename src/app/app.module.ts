@@ -35,6 +35,7 @@ import { SidenavbarComponent } from './shared/sidenavbar/sidenavbar.component';
 import { LoginComponent } from './features/login/login.component';
 import { RegistrationComponent } from './features/registration/registration.component';
 import { DashboardMainComponent } from './features/dashboard/dashboard-main/dashboard-main.component';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { HttpClientModule,HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { LoaderInterceptor } from './core/services/loader.interceptor';
@@ -148,7 +149,8 @@ import { UserRoleStageDirective } from './shared/directives/user-role-stage.dire
     MatAutocompleteModule,
     MatCheckboxModule,
     MatDividerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTabsModule
   ],
   providers: [
     provideAnimationsAsync(),

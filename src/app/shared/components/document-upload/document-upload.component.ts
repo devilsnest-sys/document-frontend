@@ -87,6 +87,7 @@ export class DocumentUploadComponent implements OnInit {
     console.log('this is stage number',this.stageNumber);
 
     this.poID = this.route.snapshot.paramMap.get('poNumber');
+    console.log('this is PO ID',this.poID);
     this.fetchDPoNo();
   }
 
@@ -177,10 +178,10 @@ export class DocumentUploadComponent implements OnInit {
 
 fetchUploadedDocuments(): void {
   this.isLoading = true;
-
+debugger;
   const payload = {
     stageId: this.stageNumber,
-    PoNumber: this.poNumber  // ✅ Now has correct value
+    PoId: this.poID  // ✅ Now has correct value
   };
 
   this.http

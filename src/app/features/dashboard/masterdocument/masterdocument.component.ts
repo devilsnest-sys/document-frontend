@@ -36,7 +36,7 @@ export class MasterdocumentComponent {
       filter: 'agDateColumnFilter',
     },
     {
-      field: 'createdBy',
+      field: 'createdByUsername',
       headerName: 'Created By',
       filter: 'agNumberColumnFilter',
     },
