@@ -18,14 +18,20 @@
           </ag-grid-angular>
         </div>
 
-        <!-- Bulk Upload Section -->
-        <div class="bulk-upload-container mt-4">
+       
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: CREATE PO FORM -->
+    <mat-tab label="Create PO">
+       <!-- Bulk Upload Section -->
+        <div class="bulk-upload-container mt-3">
           <input type="file" id="bulkPoFileInput" hidden (change)="onBulkFileSelected($event)" accept=".xlsx, .xls" />
 
           <button mat-raised-button color="accent" (click)="triggerBulkFileInput()">
             <mat-icon>upload_file</mat-icon> Upload Bulk PO (Excel)
           </button>
-
+ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddds
           <span *ngIf="bulkPoFileName" class="file-name">
             <mat-icon>description</mat-icon> {{ bulkPoFileName }}
           </span>
@@ -34,11 +40,6 @@
             <mat-icon>cloud_upload</mat-icon> Submit Bulk PO
           </button>
         </div>
-      </div>
-    </mat-tab>
-
-    <!-- TAB 2: CREATE PO FORM -->
-    <mat-tab label="Create PO">
       <div class="mt-3">
         <div class="card">
           <!-- <div class="card-header bg-dark text-white">
@@ -185,7 +186,7 @@
                 <!-- File Upload -->
                 <div class="col-lg-6 mb-4">
                   <mat-icon>upload</mat-icon>
-                  <input type="file" (change)="onFileSelected($event)" />
+                  <input type="file" (change)="onFileSelected($event)" #fileInput />
                 </div>
               </div>
 

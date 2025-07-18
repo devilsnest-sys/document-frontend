@@ -140,7 +140,7 @@ export class DashboardMainComponent {
       },
       error: err => {
         console.error('Error fetching purchase orders:', err);
-        this.toastService.showToast('error', 'Error loading purchase orders');
+        this.toastService.showToast('error', 'No PO Found For Selected Vendor');
       }
     });
   }  

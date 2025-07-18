@@ -6,7 +6,7 @@ import {
 } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
@@ -147,30 +147,50 @@ export class DocumentUploadComponent implements OnInit {
 }
 
   fetchDocumentTypes(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
+  this.isLoading = true;
+  this.errorMessage = '';
 
-    this.http
-      .get<DocumentType[]>(
-        `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}?poNo=${this.poNumber}`,
-        { headers: this.getHeaders() }
-      )
-      .pipe(
-        catchError(this.handleError.bind(this)),
-        finalize(() => (this.isLoading = false))
-      )
-      .subscribe({
-        next: (documentTypes) => {
-          console.log('Fetched document types:', documentTypes);
-          this.documentTypes = documentTypes;
-          // Initialize expanded state for each document type
-          this.documentTypes.forEach((docType) => {
-            this.expandedGroups[docType.id] = false;
-          });
-          this.fetchUploadedDocuments();
-        },
-      });
-  }
+  this.http
+    .get<DocumentType[]>(
+      `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}?poNo=${this.poNumber}`,
+      { headers: this.getHeaders() }
+    )
+    .pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Check if it's a 404 error specifically for no document types
+        if (error.status === 404) {
+          // Option 1: Show user-friendly message
+          // this.errorMessage = 'No document type is selected for this stage';
+          // this.documentTypes = []; // Set empty array
+          // this.groupedDocuments = []; // Clear grouped documents
+          // return throwError(() => new Error('No document types found'));
+          
+          // Option 2: Handle silently without error message (uncomment below and comment above)
+          this.documentTypes = [];
+          this.groupedDocuments = [];
+          return of([]); // Return empty array to complete the observable
+        }
+        // For other errors, use the existing error handler
+        return this.handleError(error);
+      }),
+      finalize(() => (this.isLoading = false))
+    )
+    .subscribe({
+      next: (documentTypes) => {
+        console.log('Fetched document types:', documentTypes);
+        this.documentTypes = documentTypes;
+        // Initialize expanded state for each document type
+        this.documentTypes.forEach((docType) => {
+          this.expandedGroups[docType.id] = false;
+        });
+        this.fetchUploadedDocuments();
+      },
+      error: (error) => {
+        // Error is already handled in catchError, but we can log it here if needed
+        console.error('Error fetching document types:', error);
+      }
+    });
+}
 
 
 

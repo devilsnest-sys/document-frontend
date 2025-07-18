@@ -6,6 +6,7 @@ import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'; 
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ViewChild, ElementRef } from '@angular/core';
 
 interface Vendor {
   id: number;
@@ -19,6 +20,7 @@ interface Vendor {
   styleUrl: './orderacknowledgement.component.css'
 })
 export class OrderacknowledgementComponent {
+  @ViewChild('fileInput') fileInput!: ElementRef;
   poForm: FormGroup;
   rowData: any[] = [];
   
@@ -222,10 +224,13 @@ export class OrderacknowledgementComponent {
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers }).subscribe({
         next: (response) => {
           console.log('PO submitted successfully:', response);
-          this.ToastserviceService.showToast('success', this.poForm ? 'PO Updated Successfully' : 'PO Created Successfully');
-           this.fetchPo();
+          this.ToastserviceService.showToast('success', this.poForm ? 'PO Created Successfully' : 'PO Created Successfully');
+          this.fetchPo();
           this.poForm.reset();
           this.selectedFile = null;
+          if (this.fileInput) {
+            this.fileInput.nativeElement.value = '';
+          }
         },
         error: (error) => {
           console.error('Error submitting PO:', error);
