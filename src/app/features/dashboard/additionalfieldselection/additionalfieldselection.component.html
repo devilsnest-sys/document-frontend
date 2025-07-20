@@ -2,19 +2,98 @@
     <h3>Additional Field Selection</h3>
 </div>
 
-<div class="container mt-5">
-<div class="grid-container">
-    <ag-grid-angular
-      class="ag-theme-alpine"
-      style="width: 100%; height: 500px;"
-      [rowData]="rowData"
-      [columnDefs]="columnDefs"
-      [defaultColDef]="defaultColDef"
-      [pagination]="true"
-      [paginationPageSize]="10"
-      [modules]="modules">
-    </ag-grid-angular>
-  </div>
-  </div>
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Vendor and Purchase Order Selection</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <!-- Vendor Selection (Only for Admins/Users) -->
+                <div class="col-md-6" *appUserRole="['admin', 'user']">
+                    <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Select Vendor</mat-label>
+                        <input type="text"
+                               placeholder="Pick a vendor"
+                               aria-label="Vendor"
+                               matInput
+                               [formControl]="vendorControl"
+                               [matAutocomplete]="vendorAuto"
+                               (focus)="showAllVendors()">
+                        <mat-autocomplete #vendorAuto="matAutocomplete"
+                                         (optionSelected)="onVendorSelect($event)"
+                                         [displayWith]="displayVendor">
+                            <mat-option *ngFor="let vendor of filteredVendors$ | async" [value]="vendor.id">
+                                {{displayVendor(vendor)}}
+                            </mat-option>
+                        </mat-autocomplete>
+                    </mat-form-field>
+                </div>
+                
+                <!-- Vendor Display for Vendor Users -->
+                <div class="col-md-6" *appUserRole="['vendor']">
+                    <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Vendor</mat-label>
+                        <input matInput 
+                               [value]="selectedVendor ? (selectedVendor.vendorCode + ' - ' + selectedVendor.companyName) : ''"
+                               readonly>
+                    </mat-form-field>
+                </div>
 
-  
+                <!-- Purchase Order Selection -->
+                <div class="col-md-6">
+                    <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Select Purchase Order</mat-label>
+                        <mat-select [(value)]="selectedPoNumber" 
+                                   (selectionChange)="onPoSelectionChange()"
+                                   [disabled]="!selectedVendor">
+                            <mat-option value="">-- Select PO Number --</mat-option>
+                            <mat-option *ngFor="let po of purchaseOrders" [value]="po.pO_NO">
+                                {{ po.pO_NO }} - {{ po.poDescription }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Field Selection Grid -->
+    <div class="card mt-4" *ngIf="selectedPoNumber && selectedVendor">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                Additional Field Selection - {{ selectedVendor.vendorCode }} - {{ selectedPoNumber }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="grid-container">
+                <ag-grid-angular
+                    class="ag-theme-alpine"
+                    style="width: 100%; height: 500px;"
+                    [rowData]="rowData"
+                    [columnDefs]="columnDefs"
+                    [defaultColDef]="defaultColDef"
+                    [pagination]="true"
+                    [paginationPageSize]="10"
+                    [modules]="modules">
+                </ag-grid-angular>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Messages -->
+    <div class="alert alert-info mt-3" *ngIf="!selectedVendor">
+        <i class="fas fa-info-circle me-2"></i>
+        Please select a Vendor first to proceed.
+    </div>
+    
+    <div class="alert alert-warning mt-3" *ngIf="selectedVendor && !selectedPoNumber">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Please select a Purchase Order to view and manage additional field selections.
+    </div>
+    
+    <div class="alert alert-secondary mt-3" *ngIf="selectedVendor && purchaseOrders.length === 0">
+        <i class="fas fa-info-circle me-2"></i>
+        No Purchase Orders found for the selected vendor.
+    </div>
+</div>

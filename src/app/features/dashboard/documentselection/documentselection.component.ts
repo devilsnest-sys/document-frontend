@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormControl } from '@angular/forms';
 import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import { BehaviorSubject } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
 
 interface DocumentTypeRow {
@@ -35,6 +38,12 @@ interface PurchaseOrder {
   stageStatuses: any[];
 }
 
+interface Vendor {
+  id: number;
+  vendorCode: string;
+  companyName: string;
+}
+
 @Component({
   selector: 'app-documentselection',
   standalone: false,
@@ -44,6 +53,14 @@ interface PurchaseOrder {
 export class DocumentselectionComponent implements OnInit {
   public modules: Module[] = [ClientSideRowModelModule];
   userId: string | null = null;
+  
+  // Vendor related properties
+  vendors: Vendor[] = [];
+  selectedVendor: Vendor | null = null;
+  vendorControl = new FormControl<string>('');
+  filteredVendors$ = new BehaviorSubject<Vendor[]>([]);
+  
+  // PO related properties
   selectedPoNumber: string = '';
   purchaseOrders: PurchaseOrder[] = [];
   
@@ -77,30 +94,134 @@ export class DocumentselectionComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchStages();
-    this.fetchPo();
+    this.loadVendors();
+    this.setupVendorFilter();
     this.userId = localStorage.getItem('userId');
-    // Note: Initial document selection data will be fetched when PO is selected
+    
+    // Auto-set vendor for vendor users
+    setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
   }
 
-  fetchPo(): void {
+private setupVendorFilter(): void {
+  this.vendorControl.valueChanges.pipe(
+    startWith(''),
+    map(value => {
+      // Since we're using string-based FormControl, value should always be a string
+      const filterValue = value || '';
+      return this.filterVendors(filterValue);
+    })
+  ).subscribe(filtered => this.filteredVendors$.next(filtered));
+}
+
+  private loadVendors(): void {
     const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  
-    this.http.get<PurchaseOrder[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
-      next: (data) => {
-        this.purchaseOrders = data.map(item => ({
+    if (!token) return;
+
+    this.http.get<Vendor[]>(`${environment.apiUrl}/v1/vendors`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: vendors => {
+        this.vendors = vendors;
+        this.filteredVendors$.next(this.vendors);
+      },
+      error: err => {
+        console.error('Error fetching vendors:', err);
+      }
+    });
+  }
+
+  private filterVendors(value: string): Vendor[] {
+    if (!value) return this.vendors;
+    const filterValue = value.toLowerCase();
+    return this.vendors.filter(vendor =>
+      vendor.vendorCode?.toLowerCase().includes(filterValue) ||
+      vendor.companyName?.toLowerCase().includes(filterValue)
+    );
+  }
+
+onVendorSelect(event: any): void {
+  const selectedVendorId = event.option.value;
+  const selectedVendor = this.vendors.find(v => v.id === selectedVendorId);
+
+  if (selectedVendor) {
+    this.selectedVendor = selectedVendor;
+    // Set the FormControl to the display string instead of the object
+    const displayString = this.displayVendor(selectedVendor);
+    this.vendorControl.setValue(displayString, { emitEvent: false });
+    this.onVendorChange(selectedVendor.vendorCode);
+    // Reset PO selection when vendor changes
+    this.selectedPoNumber = '';
+    this.rowData = [];
+    this.responseData = [];
+  }
+}
+
+  displayVendor(vendor: Vendor): string {
+    return vendor && vendor.vendorCode && vendor.companyName
+      ? `${vendor.vendorCode} - ${vendor.companyName}`
+      : '';
+  }
+
+  showAllVendors(): void {
+    this.filteredVendors$.next(this.vendors);
+  }
+
+  onVendorChange(vendorCode: string | null): void {
+    if (!vendorCode) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    this.purchaseOrders = [];
+
+    this.http.get<PurchaseOrder[]>(url, { headers }).subscribe({
+      next: response => {
+        this.purchaseOrders = response.map(item => ({
           ...item,
-          // Format dates properly if needed for display
           contractualDeliveryDate: item.contractualDeliveryDate ? new Date(item.contractualDeliveryDate).toLocaleDateString() : '',
           actualDeliveryDate: item.actualDeliveryDate ? new Date(item.actualDeliveryDate).toLocaleDateString() : '',
           createdAt: new Date(item.createdAt).toLocaleDateString(),
           updatedAt: new Date(item.updatedAt).toLocaleDateString()
         }));
       },
-      error: (error) => {
-        console.error('Error fetching purchase orders:', error);
-      },
+      error: err => {
+        console.error('Error fetching purchase orders:', err);
+      }
     });
+  }
+
+  private loadVendorById(vendorId: number): void {
+  const token = localStorage.getItem('authToken');
+  if (!token) return;
+
+  const url = `${environment.apiUrl}/v1/vendors/${vendorId}`;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  this.http.get<Vendor>(url, { headers }).subscribe({
+    next: vendor => {
+      if (vendor) {
+        this.selectedVendor = vendor;
+        // Set the FormControl to the display string instead of the object
+        const displayString = this.displayVendor(vendor);
+        this.vendorControl.setValue(displayString, { emitEvent: false });
+        this.onVendorChange(vendor.vendorCode);
+      }
+    },
+    error: err => {
+      console.error('Error fetching vendor:', err);
+    }
+  });
+}
+
+  private checkUserTypeAndSetVendor(): void {
+    const userType = localStorage.getItem('userType');
+    const vendorId = localStorage.getItem('userId');
+
+    if (userType === 'vendor' && vendorId) {
+      this.loadVendorById(parseInt(vendorId, 10));
+    }
   }
 
   onPoSelectionChange(): void {
@@ -193,7 +314,6 @@ export class DocumentselectionComponent implements OnInit {
         this.allDocumentTypes = data;
 
         this.http.get<any[]>(`${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`, { headers }).subscribe({
-
           next: (selections) => {
             // Filter selections by selected PO number
             const filteredSelections = selections.filter(sel => sel.pono === this.selectedPoNumber);
@@ -261,7 +381,7 @@ export class DocumentselectionComponent implements OnInit {
             console.log('New document selection created successfully:', response);
             // Add the new record to local responseData
             this.responseData.push({
-              id: response.id, // Assuming the API returns the created record with ID
+              id: response.id,
               createdUserId: Number(this.userId),
               updatedUserId: Number(this.userId),
               stageId: stageId,
