@@ -39,13 +39,27 @@
                 <td class="field-cell">Contact Number</td>
                 <td class="value-cell">{{ poData[0]?.contactNo || 'N/A' }}</td>
               </tr>
-              <tr>
+               <tr>
                 <td class="field-cell">Incoterms</td>
-                <td class="value-cell">{{ poData[0]?.incoterms || 'N/A' }}</td>
+                <td class="value-cell">{{ poData[0]?.incotermName || 'N/A' }}</td>
               </tr>
               <tr>
                 <td class="field-cell">PO Type</td>
-                <td class="value-cell">{{ poData[0]?.poType || 'N/A' }}</td>
+                <td class="value-cell">{{ poData[0]?.poTypeName || 'N/A' }}</td>
+              </tr>
+               <tr>
+                <td class="field-cell">PO File Download/View</td>
+                <td class="value-cell">
+                  {{ poData[0]?.poFilePath?.split('\\').pop() || 'N/A' }}
+                  <button
+                    class="btn btn-sm btn-primary ms-2"
+                    (click)="downloadPoFile(poData[0]?.id)"
+                    [disabled]="!poData[0]?.poFilePath"
+                  >
+                    Download
+                  </button>
+                  <button class="btn btn-sm btn-primary ms-2" (click)="viewPoFile(poData[0]?.id)">View PO</button>
+                </td>
               </tr>
             </tbody>
           </table>

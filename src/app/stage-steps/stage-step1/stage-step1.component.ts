@@ -105,6 +105,27 @@ export class StageStep1Component implements OnInit {
     });
   }
 
+  viewPoFile(poId: number): void {
+  const token = localStorage.getItem('authToken');
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/octet-stream',
+  });
+
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/view/${poId}`;
+
+  this.http.get(url, { headers, responseType: 'blob' }).subscribe({
+    next: (blob) => {
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL); // Opens in a new tab
+    },
+    error: (err) => {
+      console.error('Error viewing PO file:', err);
+      this.toastservice.showToast('error','Failed to view PO file');
+    },
+  });
+  }
+
   downloadPoFile(poId: number): void {
   const token = localStorage.getItem('authToken');
   const headers = new HttpHeaders({
@@ -131,6 +152,6 @@ export class StageStep1Component implements OnInit {
       this.toastservice.showToast('error','Failed to download PO file');
     },
   });
-}
+  }
 
 }

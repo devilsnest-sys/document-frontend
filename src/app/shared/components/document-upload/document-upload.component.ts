@@ -198,7 +198,6 @@ export class DocumentUploadComponent implements OnInit {
 
 fetchUploadedDocuments(): void {
   this.isLoading = true;
-debugger;
   const payload = {
     stageId: this.stageNumber,
     PoId: this.poID  // ✅ Now has correct value

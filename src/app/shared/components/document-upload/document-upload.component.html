@@ -109,14 +109,7 @@
       [title]="doc.isApproved ? 'Already approved' : 'Approve'">
       <span class="material-icons">check_circle</span>
     </button>
-    <!-- <button *appHideForVendorStages="stageNumber"
-      class="btn-action upload-btn reject-btn" 
-      aria-label="Reject"
-      (click)="rejectDocument(doc)"
-      [disabled]="doc.isApproved || doc.isRejected || isLoading"
-      [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
-      <span class="material-icons">cancel</span>
-    </button> -->
+   
     <ng-container *appHideForVendorStages="stageNumber">
   <button
     class="btn-action upload-btn reject-btn"

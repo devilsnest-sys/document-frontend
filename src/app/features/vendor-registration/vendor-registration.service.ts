@@ -32,7 +32,7 @@ export class VendorService {
 
   checkEmailExists(email: string, type: string): Observable<{ exists: boolean }> {
     return this.http.get<{ exists: boolean }>(
-      `${environment.apiUrl}/v1/vendors/check-email?email=${encodeURIComponent(email)}&type=${type}`
+      `${environment.apiUrl}/v1/users/check-email?email=${encodeURIComponent(email)}&type=${type}`
     );
   }
 

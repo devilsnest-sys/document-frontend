@@ -58,7 +58,8 @@ export class AdditionalfieldselectionComponent implements OnInit {
   // Vendor related properties
   vendors: Vendor[] = [];
   selectedVendor: Vendor | null = null;
-  vendorControl = new FormControl<string>('');
+  //vendorControl = new FormControl<string>('');
+  vendorControl = new FormControl<Vendor | null>(null);
   filteredVendors$ = new BehaviorSubject<Vendor[]>([]);
   
   // PO related properties
@@ -108,7 +109,7 @@ export class AdditionalfieldselectionComponent implements OnInit {
       startWith(''),
       map(value => {
         const filterValue = value || '';
-        return this.filterVendors(filterValue);
+        return this.filterVendors(filterValue.toString());
       })
     ).subscribe(filtered => this.filteredVendors$.next(filtered));
   }
@@ -145,13 +146,12 @@ export class AdditionalfieldselectionComponent implements OnInit {
 
     if (selectedVendor) {
       this.selectedVendor = selectedVendor;
-      const displayString = this.displayVendor(selectedVendor);
-      this.vendorControl.setValue(displayString, { emitEvent: false });
-      this.onVendorChange(selectedVendor.vendorCode);
-      // Reset PO selection when vendor changes
-      this.selectedPoNumber = '';
-      this.rowData = [];
-      this.responseData = [];
+    this.vendorControl.setValue(selectedVendor); // ✅ vendor object
+    this.onVendorChange(selectedVendor.vendorCode);
+
+    this.selectedPoNumber = '';
+    this.rowData = [];
+    this.responseData = [];
     }
   }
 
@@ -202,8 +202,9 @@ export class AdditionalfieldselectionComponent implements OnInit {
       next: vendor => {
         if (vendor) {
           this.selectedVendor = vendor;
-          const displayString = this.displayVendor(vendor);
-          this.vendorControl.setValue(displayString, { emitEvent: false });
+          // const displayString = this.displayVendor(vendor);
+          // this.vendorControl.setValue(displayString, { emitEvent: false });
+          this.vendorControl.setValue(vendor);
           this.onVendorChange(vendor.vendorCode);
         }
       },

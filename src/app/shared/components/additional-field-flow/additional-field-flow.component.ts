@@ -5,7 +5,7 @@ import { environment } from '../../../../environment/environment';
 import { ActivatedRoute } from '@angular/router';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { catchError, finalize } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import Swal from 'sweetalert2';
 
 interface AdditionalField {
@@ -36,6 +36,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
   editingIndex: number | null = null;
   additionalFieldIdCounter = 1; // Counter for generating unique additionalFieldId
   addField: any[] | undefined;
+   purchaseid: any;
 
   constructor(
     private http: HttpClient,
@@ -63,8 +64,10 @@ export class AdditionalFieldFlowComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void>{
     this.poNumber = this.route.snapshot.paramMap.get('poNumber');
+    this.purchaseid=this.poNumber;
+    await this.fetchDPoNo();
     if (this.poNumber) {
       this.fetchAdditionalFieldsFlow(this.poNumber);
     } else {
@@ -72,7 +75,8 @@ export class AdditionalFieldFlowComponent implements OnInit {
     }
 
     console.log('this is stage id', this.stageNumber);
-    this.fetchAdditionalFields()
+    this.fetchAdditionalFields();
+   
   }
 
   private getHeaders(): HttpHeaders {
@@ -83,17 +87,51 @@ export class AdditionalFieldFlowComponent implements OnInit {
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
+//     fetchDPoNo(): void {
+//       this.http
+//     .get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poNumber}`, {
+//       headers: this.getHeaders(),
+//     })
+//     .pipe(
+   
+//     )
+//     .subscribe({
+//       next: (response) => {
+//         console.log('Fetched PO details:', response);
+
+//         this.poNumber = response.pO_NO; 
+//         console.log("this is po number", this.poNumber ) // <- extract the PO number from response
+        
+//       },
+//     });
+// }
+async fetchDPoNo(): Promise<void> {
+  try {
+    const response = await firstValueFrom(
+      this.http.get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poNumber}`, {
+        headers: this.getHeaders(),
+      })
+    );
+    console.log('Fetched PO details:', response);
+    this.poNumber = response.pO_NO;
+  } catch (error) {
+    console.error('Error fetching PO:', error);
+    this.toastService.showToast('error', 'Failed to fetch PO Number');
+  }
+}
   fetchAdditionalFields(): void{
     this.loading = true;
-
+ debugger;
+ //console.log("this is additional field", this.poNumber);
     try{
       const headers = this.getHeaders();
 
       this.http.get<AdditionalField[]>(
-        `${environment.apiUrl}/v1/additional-field-selection/additionalfield/${this.stageNumber}`,
+       
+        `${environment.apiUrl}/v1/additional-field-selection/additionalfield/${this.stageNumber}?poNo=${this.poNumber}`,
         { headers }
       ).pipe(
-        catchError(error => this.handleHttpError('Failed to fetch additional fields', error)),
+        catchError(error => this.handleHttpError('Failed to fetch additional fields-34', error)),
         finalize(() => this.loading = false)
       ).subscribe(data => {
         this.addField = data || [];
@@ -111,15 +149,15 @@ export class AdditionalFieldFlowComponent implements OnInit {
 
   fetchAdditionalFieldsFlow(poNumber: string): void {
     this.loading = true;
-
+debugger;
     try {
       const headers = this.getHeaders();
 
       this.http.get<AdditionalField[]>(
-        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${this.stageNumber}/${poNumber}`,
+        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${this.stageNumber}/${this.purchaseid}`,
         { headers }
       ).pipe(
-        catchError(error => this.handleHttpError('Failed to fetch additional fields', error)),
+        catchError(error => this.handleHttpError('Failed to fetch additional fields -12', error)),
         finalize(() => this.loading = false)
       ).subscribe(data => {
         this.rowData = data || [];
@@ -150,7 +188,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
     // Ensure poId is set from either existing data or from the route parameter
     if (!this.fieldForm.get('poId')?.value) {
       this.fieldForm.patchValue({
-        poId: this.poNumber
+        poId: this.purchaseid
       });
     }
 

@@ -57,7 +57,8 @@ export class DocumentselectionComponent implements OnInit {
   // Vendor related properties
   vendors: Vendor[] = [];
   selectedVendor: Vendor | null = null;
-  vendorControl = new FormControl<string>('');
+  //vendorControl = new FormControl<string>('');
+   vendorControl = new FormControl<Vendor | null>(null);
   filteredVendors$ = new BehaviorSubject<Vendor[]>([]);
   
   // PO related properties
@@ -102,16 +103,26 @@ export class DocumentselectionComponent implements OnInit {
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
   }
 
+// private setupVendorFilter(): void {
+//   this.vendorControl.valueChanges.pipe(
+//     startWith(''),
+//     map(value => {
+//       // Since we're using string-based FormControl, value should always be a string
+//       const filterValue = value || '';
+//       return this.filterVendors(filterValue);
+//     })
+//   ).subscribe(filtered => this.filteredVendors$.next(filtered));
+// }
+
 private setupVendorFilter(): void {
-  this.vendorControl.valueChanges.pipe(
-    startWith(''),
-    map(value => {
-      // Since we're using string-based FormControl, value should always be a string
-      const filterValue = value || '';
-      return this.filterVendors(filterValue);
-    })
-  ).subscribe(filtered => this.filteredVendors$.next(filtered));
-}
+    this.vendorControl.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        const filterValue = value || '';
+        return this.filterVendors(filterValue.toString());
+      })
+    ).subscribe(filtered => this.filteredVendors$.next(filtered));
+  }
 
   private loadVendors(): void {
     const token = localStorage.getItem('authToken');
@@ -143,20 +154,18 @@ onVendorSelect(event: any): void {
   const selectedVendorId = event.option.value;
   const selectedVendor = this.vendors.find(v => v.id === selectedVendorId);
 
-  if (selectedVendor) {
-    this.selectedVendor = selectedVendor;
-    // Set the FormControl to the display string instead of the object
-    const displayString = this.displayVendor(selectedVendor);
-    this.vendorControl.setValue(displayString, { emitEvent: false });
+   if (selectedVendor) {
+      this.selectedVendor = selectedVendor;
+    this.vendorControl.setValue(selectedVendor); // ✅ vendor object
     this.onVendorChange(selectedVendor.vendorCode);
-    // Reset PO selection when vendor changes
+
     this.selectedPoNumber = '';
     this.rowData = [];
     this.responseData = [];
-  }
+    }
 }
 
-  displayVendor(vendor: Vendor): string {
+    displayVendor(vendor: Vendor): string {
     return vendor && vendor.vendorCode && vendor.companyName
       ? `${vendor.vendorCode} - ${vendor.companyName}`
       : '';
@@ -205,7 +214,7 @@ onVendorSelect(event: any): void {
         this.selectedVendor = vendor;
         // Set the FormControl to the display string instead of the object
         const displayString = this.displayVendor(vendor);
-        this.vendorControl.setValue(displayString, { emitEvent: false });
+        this.vendorControl.setValue(vendor);
         this.onVendorChange(vendor.vendorCode);
       }
     },
