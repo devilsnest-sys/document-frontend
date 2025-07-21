@@ -2,7 +2,7 @@
 
   <div class="file-upload-container">
     <label for="file-input" class="custom-file-label">Choose File</label>
-    <input type="file" id="file-input" (change)="onFileSelected($event)" accept=".xlsx, .xls" hidden />
+    <input appTrimInput type="file" id="file-input" (change)="onFileSelected($event)" accept=".xlsx, .xls" hidden />
     <button class="upload-btn" (click)="uploadFile()" [disabled]="!selectedFile">Upload</button>
   </div>
 
@@ -43,7 +43,7 @@
               </mat-select>
               
               <!-- Input for create mode -->
-              <input 
+              <input appTrimInput 
                 *ngIf="!isEditMode"
                 matInput 
                 id="username" 
@@ -68,7 +68,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>code</mat-icon>
               <mat-label>Vendor Code</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="vendorCode" 
                 [required]="!isEditMode"
@@ -86,7 +86,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>business</mat-icon>
               <mat-label>Company Name</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="companyName" 
                 [required]="!isEditMode"
@@ -123,7 +123,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>call</mat-icon>
               <mat-label>Telephone</mat-label>
-              <input matInput formControlName="telephone" required />
+              <input appTrimInput matInput formControlName="telephone" required />
               <mat-error
                 *ngIf="registrationForm.get('telephone')?.touched && registrationForm.get('telephone')?.invalid">
                 <small>Telephone is required.</small>
@@ -136,7 +136,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>print</mat-icon>
               <mat-label>Fax</mat-label>
-              <input matInput formControlName="fax" />
+              <input appTrimInput matInput formControlName="fax" />
             </mat-form-field>
           </div>
     
@@ -145,7 +145,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>email</mat-icon>
               <mat-label>Email</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 id="email" 
                 type="email" 
@@ -166,7 +166,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>public</mat-icon>
               <mat-label>Website</mat-label>
-              <input matInput formControlName="website" />
+              <input appTrimInput matInput formControlName="website" />
             </mat-form-field>
           </div>
     
@@ -175,7 +175,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>person</mat-icon>
               <mat-label>Point of Contact Name & Title</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="contactNameTitle" 
                 [required]="!isEditMode"
@@ -193,7 +193,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>alternate_email</mat-icon>
               <mat-label>Contact Email</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="contactEmail" 
                 type="email" 
@@ -212,7 +212,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>phone</mat-icon>
               <mat-label>Contact Phone 1</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="contactPhone1" 
                 [required]="!isEditMode"
@@ -230,7 +230,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>smartphone</mat-icon>
               <mat-label>Contact Phone 2</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="contactPhone2" 
                 [placeholder]="isEditMode ? 'Contact Phone 2 cannot be edited' : ''" 
@@ -243,7 +243,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>lock</mat-icon>
               <mat-label>Password</mat-label>
-              <input 
+              <input appTrimInput 
                 matInput 
                 formControlName="HashedPassword" 
                 type="password" 

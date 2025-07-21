@@ -26,7 +26,7 @@
     <mat-tab label="Create PO">
        <!-- Bulk Upload Section -->
         <div class="bulk-upload-container mt-3">
-          <input type="file" id="bulkPoFileInput" hidden (change)="onBulkFileSelected($event)" accept=".xlsx, .xls" />
+          <input appTrimInput type="file" id="bulkPoFileInput" hidden (change)="onBulkFileSelected($event)" accept=".xlsx, .xls" />
 
           <button mat-raised-button color="accent" (click)="triggerBulkFileInput()">
             <mat-icon>upload_file</mat-icon> Upload Bulk PO (Excel)
@@ -52,7 +52,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>PO Description</mat-label>
                     <mat-icon matPrefix>description</mat-icon>
-                    <input matInput formControlName="poDescription" required />
+                    <input appTrimInput matInput formControlName="poDescription" required />
                     <mat-error *ngIf="poForm.get('poDescription')?.touched && poForm.get('poDescription')?.invalid">
                       <span *ngIf="poForm.get('poDescription')?.hasError('required')">PO Description is required.</span>
                     </mat-error>
@@ -111,7 +111,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contractual Delivery Date</mat-label>
                     <mat-icon matPrefix>calendar_today</mat-icon>
-                    <input matInput [matDatepicker]="contractualDatePicker" formControlName="contractualDeliveryDate" required />
+                    <input appTrimInput matInput [matDatepicker]="contractualDatePicker" formControlName="contractualDeliveryDate" required />
                     <mat-datepicker-toggle matSuffix [for]="contractualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #contractualDatePicker></mat-datepicker>
                     <mat-error *ngIf="poForm.get('contractualDeliveryDate')?.touched && poForm.get('contractualDeliveryDate')?.invalid">
@@ -125,7 +125,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Actual Delivery Date</mat-label>
                     <mat-icon matPrefix>receipt</mat-icon>
-                    <input matInput [matDatepicker]="actualDatePicker" formControlName="actualDeliveryDate" required />
+                    <input appTrimInput matInput [matDatepicker]="actualDatePicker" formControlName="actualDeliveryDate" required />
                     <mat-datepicker-toggle matSuffix [for]="actualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #actualDatePicker></mat-datepicker>
                     <mat-error *ngIf="poForm.get('actualDeliveryDate')?.touched && poForm.get('actualDeliveryDate')?.invalid">
@@ -139,7 +139,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contact Person Name</mat-label>
                     <mat-icon matPrefix>person</mat-icon>
-                    <input matInput formControlName="contactPersonName" required />
+                    <input appTrimInput matInput formControlName="contactPersonName" required />
                     <mat-error *ngIf="poForm.get('contactPersonName')?.touched && poForm.get('contactPersonName')?.invalid">
                       <span *ngIf="poForm.get('contactPersonName')?.hasError('required')">Contact Person Name is required.</span>
                     </mat-error>
@@ -151,7 +151,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contact Person Email</mat-label>
                     <mat-icon matPrefix>email</mat-icon>
-                    <input matInput formControlName="contactPersonEmailId" required />
+                    <input appTrimInput matInput formControlName="contactPersonEmailId" required />
                     <mat-error *ngIf="poForm.get('contactPersonEmailId')?.touched && poForm.get('contactPersonEmailId')?.invalid">
                       <span *ngIf="poForm.get('contactPersonEmailId')?.hasError('required')">Valid email is required.</span>
                     </mat-error>
@@ -163,7 +163,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contact Number</mat-label>
                     <mat-icon matPrefix>phone</mat-icon>
-                    <input matInput formControlName="contactNumber" required />
+                    <input appTrimInput matInput formControlName="contactNumber" required />
                     <mat-error *ngIf="poForm.get('contactNumber')?.touched && poForm.get('contactNumber')?.invalid">
                       <span *ngIf="poForm.get('contactNumber')?.hasError('required')">Contact Number is required.</span>
                     </mat-error>
@@ -175,7 +175,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>PO Number</mat-label>
                     <mat-icon matPrefix>format_list_numbered</mat-icon>
-                    <input matInput formControlName="poNo" required />
+                    <input appTrimInput matInput formControlName="poNo" required />
                     <mat-error *ngIf="poForm.get('poNo')?.touched && poForm.get('poNo')?.invalid">
                       <span *ngIf="poForm.get('poNo')?.hasError('required')">PO Number is required.</span>
                     </mat-error>
@@ -185,7 +185,7 @@
                 <!-- File Upload -->
                 <div class="col-lg-6 mb-4">
                   <mat-icon>upload</mat-icon>
-                  <input type="file" (change)="onFileSelected($event)" #fileInput />
+                  <input appTrimInput type="file" (change)="onFileSelected($event)" #fileInput />
                 </div>
               </div>
 

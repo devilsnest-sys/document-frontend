@@ -589,4 +589,13 @@ fetchUploadedDocuments(): void {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
+
+  /**
+ * Check if any document in the group is approved
+ * @param group - The document group to check
+ * @returns true if any document is approved, false otherwise
+ */
+hasApprovedDocument(group: DocumentGroup): boolean {
+  return group.uploadedDocuments.some(doc => doc.isApproved);
+}
 }

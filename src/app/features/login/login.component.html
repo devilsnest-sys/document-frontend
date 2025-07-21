@@ -27,7 +27,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
               <mat-icon matPrefix>person</mat-icon>
-              <input matInput id="username" type="text" formControlName="username" required />
+              <input appTrimInput matInput id="username" type="text" formControlName="username" required />
               <mat-error *ngIf="loginForm.get('username')?.errors?.['required']">
                 <small>Username is required.</small>
               </mat-error>
@@ -39,7 +39,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Password</mat-label>
               <mat-icon matPrefix>lock</mat-icon>
-              <input matInput id="password" type="password" formControlName="password" required />
+              <input appTrimInput matInput id="password" type="password" formControlName="password" required />
               <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">
                 <small>Password is required.</small>
               </mat-error>

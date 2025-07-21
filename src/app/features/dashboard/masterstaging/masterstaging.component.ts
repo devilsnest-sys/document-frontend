@@ -127,8 +127,8 @@ export class MasterstagingComponent {
     Swal.fire({
       title: 'Edit Stage',
       html: `
-        <input id="sequence" class="swal2-input" type="number" min="1" value="${stage.sequence}" placeholder="Sequence">
-        <input id="stageName" class="swal2-input" type="text" value="${stage.stageName}" placeholder="Stage Name">
+        <input appTrimInput id="sequence" class="swal2-input" type="number" min="1" value="${stage.sequence}" placeholder="Sequence">
+        <input appTrimInput id="stageName" class="swal2-input" type="text" value="${stage.stageName}" placeholder="Stage Name">
       `,
       focusConfirm: false,
       preConfirm: () => {

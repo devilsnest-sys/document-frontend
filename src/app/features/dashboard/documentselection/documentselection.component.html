@@ -13,7 +13,7 @@
                 <div class="col-md-6" *appUserRole="['admin', 'user']">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Select Vendor</mat-label>
-                        <input type="text"
+                        <input appTrimInput type="text"
                                placeholder="Pick a vendor"
                                aria-label="Vendor"
                                matInput
@@ -38,7 +38,7 @@
                 <div class="col-md-6" *appUserRole="['vendor']">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Vendor</mat-label>
-                        <input matInput 
+                        <input appTrimInput matInput 
                                [value]="selectedVendor ? (selectedVendor.vendorCode + ' - ' + selectedVendor.companyName) : ''"
                                readonly>
                     </mat-form-field>

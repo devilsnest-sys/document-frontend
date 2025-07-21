@@ -145,8 +145,8 @@ export class CreatePoTypeComponent {
     Swal.fire({
       title: 'Edit potype',
       html: `
-        <input id="potypeId" class="swal2-input" type="text" value="${potype.id}" disabled placeholder="potype ID">
-        <input id="potypeName" class="swal2-input" type="text" value="${potype.poTypeName}" placeholder="potype Name">`,
+        <input appTrimInput id="potypeId" class="swal2-input" type="text" value="${potype.id}" disabled placeholder="potype ID">
+        <input appTrimInput id="potypeName" class="swal2-input" type="text" value="${potype.poTypeName}" placeholder="potype Name">`,
       focusConfirm: false,
       preConfirm: () => {
         const potypeNameInput = Swal.getPopup()?.querySelector('#potypeName') as HTMLInputElement;

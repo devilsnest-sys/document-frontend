@@ -38,7 +38,7 @@
               <td>{{ row.additionalFieldName ? row.additionalFieldName : 'Field ' + (i+1) }}</td>
               <!-- <td>{{ row.additionalFieldName || 'Field ' + (i+1) }}</td> -->
               <td>
-                <input 
+                <input appTrimInput 
                   type="text" 
                   class="form-control"
                   [disabled]="row.initAddFieldValue"
@@ -75,10 +75,10 @@
               <td>{{i + 1}}</td>
               <td >
                 {{ field.additionalFieldName }}
-                <input type="hidden" [value]="field.id" />
+                <input appTrimInput type="hidden" [value]="field.id" />
               </td>
               <td>
-                <input 
+                <input appTrimInput 
                   type="text" 
                   class="form-control" 
                   formControlName="initAddFieldValue"
@@ -91,7 +91,7 @@
               </td>
               <!-- <td>
                 <div class="form-check">
-                  <input type="checkbox" id="isMandatory" class="form-check-input" formControlName="isMandatory">
+                  <input appTrimInput type="checkbox" id="isMandatory" class="form-check-input" formControlName="isMandatory">
                   <label class="form-check-label" for="isMandatory">Mandatory</label>
                 </div>
               </td> -->

@@ -11,7 +11,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Document Name</mat-label>
               <mat-icon matPrefix>description</mat-icon>
-              <input matInput formControlName="documentName" placeholder="Enter document name" required />
+              <input appTrimInput matInput formControlName="documentName" placeholder="Enter document name" required />
               <mat-error *ngIf="
                   documentTypeForm.controls['documentName'].invalid &&
                   documentTypeForm.controls['documentName'].touched

@@ -11,7 +11,7 @@
             <!-- <mat-form-field appearance="fill" class="full-width">
               <mat-label>Sequence</mat-label>
               <mat-icon matPrefix>playlist_add</mat-icon>
-              <input matInput type="number" formControlName="sequence" placeholder="Enter sequence number" required />
+              <input appTrimInput matInput type="number" formControlName="sequence" placeholder="Enter sequence number" required />
               <mat-error *ngIf="
                   stageForm.controls['sequence'].invalid &&
                   stageForm.controls['sequence'].touched
@@ -25,7 +25,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Stage Name</mat-label>
               <mat-icon matPrefix>star</mat-icon>
-              <input matInput formControlName="stageName" placeholder="Enter stage name" required />
+              <input appTrimInput matInput formControlName="stageName" placeholder="Enter stage name" required />
               <mat-error *ngIf="
                   stageForm.controls['stageName'].invalid &&
                   stageForm.controls['stageName'].touched

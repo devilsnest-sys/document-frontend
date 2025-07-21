@@ -76,6 +76,7 @@ import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { HttpRequestInterceptor } from './core/http.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserRoleStageDirective } from './shared/directives/user-role-stage.directive';
+import { TrimInputDirective } from './shared/directives/trim-input.directive';
 
 
 
@@ -121,7 +122,8 @@ import { UserRoleStageDirective } from './shared/directives/user-role-stage.dire
     StageStep13Component,
     StageStep14Component,
     StageStep15Component,
-    UserRoleStageDirective
+    UserRoleStageDirective,
+    TrimInputDirective
     
   ],
   imports: [

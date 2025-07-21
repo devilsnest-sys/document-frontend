@@ -276,6 +276,25 @@ table th, table td {
   margin-top: 1.5rem;
 }
 
+/* Add this to your document-upload.component.css */
+
+.upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.upload-btn:disabled:hover {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  transform: none;
+}
+
+.upload-btn:disabled .material-icons {
+  color: #ffffff !important;
+}
+
 /* Animation dependencies */
 @import 'animate.css';
 

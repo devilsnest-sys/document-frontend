@@ -11,7 +11,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Field Name</mat-label>
               <mat-icon matPrefix>edit</mat-icon>
-              <input matInput formControlName="additionalFieldName" placeholder="Enter field name" required />
+              <input appTrimInput matInput formControlName="additionalFieldName" placeholder="Enter field name" required />
               <mat-error *ngIf="
                   additionalFieldForm.controls['additionalFieldName'].invalid &&
                   additionalFieldForm.controls['additionalFieldName'].touched

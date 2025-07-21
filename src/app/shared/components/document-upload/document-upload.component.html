@@ -57,7 +57,7 @@
             <td>{{ group.documentType.documentName }}</td>
             <td *appHideForVendorStages="stageNumber">
               <div class="upload-container">
-                <input 
+                <input appTrimInput 
                 #fileInput
                 type="file" 
                 [id]="'fileInput-' + group.documentType.id" 
@@ -67,6 +67,8 @@
                 <button 
                   class="btn-action upload-btn" 
                   (click)="fileInput.click()"
+                  [disabled]="doc.isApproved"
+                  [title]="doc.isApproved ? 'Upload disabled - Document already approved' : 'Upload new document'"
                 >
                   <span class="material-icons">upload</span>
                 </button>
@@ -154,14 +156,19 @@
             <td>{{ group.documentType.documentName }}</td>
             <td>
               <div class="upload-container">
-                <input 
+                <input appTrimInput 
                   #fileInput
                   type="file"
                   [id]="'fileInput-' + group.documentType.id"
                   style="display: none;"
                   (change)="handleFileSelect($event, group.documentType.id)"
                 />
-                <button class="btn-action upload-btn" (click)="fileInput.click()">
+                <button 
+                  class="btn-action upload-btn" 
+                  (click)="fileInput.click()"
+                  [disabled]="hasApprovedDocument(group)"
+                  [title]="hasApprovedDocument(group) ? 'Upload disabled - Document already approved' : 'Upload new document'"
+                >
                   <span class="material-icons">upload</span>
                 </button>
               </div>

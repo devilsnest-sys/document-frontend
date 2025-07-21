@@ -151,10 +151,10 @@ export class MasterdocumentComponent {
     Swal.fire({
       title: 'Edit Document',
       html: `
-        <input id="documentId" class="swal2-input" type="text" value="${document.id}" disabled placeholder="Document ID">
-        <input id="documentName" class="swal2-input" type="text" value="${document.documentName}" placeholder="Document Name">
-        <input id="createdAt" class="swal2-input" type="text" value="${document.createdAt}" disabled placeholder="Created At">
-        <input id="createdBy" class="swal2-input" type="text" value="${document.createdBy}" disabled placeholder="Created By">
+        <input appTrimInput id="documentId" class="swal2-input" type="text" value="${document.id}" disabled placeholder="Document ID">
+        <input appTrimInput id="documentName" class="swal2-input" type="text" value="${document.documentName}" placeholder="Document Name">
+        <input appTrimInput id="createdAt" class="swal2-input" type="text" value="${document.createdAt}" disabled placeholder="Created At">
+        <input appTrimInput id="createdBy" class="swal2-input" type="text" value="${document.createdBy}" disabled placeholder="Created By">
       `,
       focusConfirm: false,
       preConfirm: () => {

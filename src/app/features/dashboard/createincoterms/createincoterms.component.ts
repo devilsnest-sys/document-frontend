@@ -135,8 +135,8 @@ export class CreateincotermsComponent {
     Swal.fire({
       title: 'Edit Incoterm',
       html: `
-        <input id="incotermId" class="swal2-input" type="text" value="${incoterm.id}" disabled placeholder="Incoterm ID">
-        <input id="incoTermsName" class="swal2-input" type="text" value="${incoterm.incoTermsName}" placeholder="Incoterm Name">`,
+        <input appTrimInput id="incotermId" class="swal2-input" type="text" value="${incoterm.id}" disabled placeholder="Incoterm ID">
+        <input appTrimInput id="incoTermsName" class="swal2-input" type="text" value="${incoterm.incoTermsName}" placeholder="Incoterm Name">`,
       focusConfirm: false,
       preConfirm: () => {
         const incoTermsNameInput = Swal.getPopup()?.querySelector('#incoTermsName') as HTMLInputElement;

@@ -221,9 +221,9 @@ export class AdditionalfieldComponent {
     Swal.fire({
       title: 'Edit Additional Field',
       html: `
-        <input id="additionalFieldName" class="swal2-input" value="${additionalField.additionalFieldName}" placeholder="Field Name">
+        <input appTrimInput id="additionalFieldName" class="swal2-input" value="${additionalField.additionalFieldName}" placeholder="Field Name">
         <div class="swal2-checkbox-container">
-          <input type="checkbox" id="isMandatory" class="swal2-checkbox" 
+          <input appTrimInput type="checkbox" id="isMandatory" class="swal2-checkbox" 
             ${additionalField.isMandatory ? 'checked' : ''}>
           <label for="isMandatory">Mandatory</label>
         </div>
