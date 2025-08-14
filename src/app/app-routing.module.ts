@@ -31,6 +31,7 @@ import { CreateincotermsComponent } from './features/dashboard/createincoterms/c
 import { CreatePoTypeComponent } from './features/dashboard/create-po-type/create-po-type.component';
 import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 import { PasswordResetComponent } from './features/password-reset/password-reset.component';
+import { ReportsComponent } from './features/reports/reports.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
@@ -65,6 +66,7 @@ const routes: Routes = [
   { path: 'potype', component: CreatePoTypeComponent },
   { path: 'tnc', component: TermsandconditionComponent },
   { path: 'resetpassword', component: PasswordResetComponent },
+  {path: 'reports', component: ReportsComponent},
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

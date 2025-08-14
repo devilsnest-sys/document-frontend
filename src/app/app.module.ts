@@ -77,6 +77,7 @@ import { HttpRequestInterceptor } from './core/http.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserRoleStageDirective } from './shared/directives/user-role-stage.directive';
 import { TrimInputDirective } from './shared/directives/trim-input.directive';
+import { ReportsComponent } from './features/reports/reports.component';
 
 
 
@@ -123,7 +124,8 @@ import { TrimInputDirective } from './shared/directives/trim-input.directive';
     StageStep14Component,
     StageStep15Component,
     UserRoleStageDirective,
-    TrimInputDirective
+    TrimInputDirective,
+    ReportsComponent
     
   ],
   imports: [

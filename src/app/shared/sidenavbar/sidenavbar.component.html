@@ -49,7 +49,12 @@
                         <span>Vendor Registration</span>
                     </a>
                 </li>
-                
+                <li *appUserRole="['user']">
+                    <a routerLink="/reports" class="menu-item">
+                        <mat-icon>reports</mat-icon>
+                        <span>Reports</span>
+                    </a>
+                </li>
                 <li *appUserRole="['user']">
                     <a href="javascript:void(0)" (click)="toggleDropdown()" class="menu-item">
                         <mat-icon>admin_panel_settings</mat-icon>

@@ -15,6 +15,24 @@ import { Router } from '@angular/router';
   styleUrl: './dashboard-main.component.css'
 })
 export class DashboardMainComponent {
+//   stageNames: { [key: number]: string } = {
+//   1: 'O.A',
+//   2: 'CPBG',
+//   3: 'LC Payment',
+//   4: 'Document Upload',
+//   5: 'Bank LC',
+//   6: 'Shipping Details',
+//   7: 'Dispatch Info',
+//   8: 'Original Shipping',
+//   9: 'Bank LC Upload',
+//   10: 'Bank CAD',
+//   11: 'Payment Advice',
+//   12: 'Credit',
+//   13: 'Document Entry',
+//   14: 'Acceptance',
+//   15: 'Final Approval'
+// };
+
   steps: number[] = Array.from({ length: 15 }, (_, i) => i + 1);
   currentStep = 3;
   stepStatuses: { [key: number]: string } = {};

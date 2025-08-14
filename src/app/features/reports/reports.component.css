@@ -1,0 +1,486 @@
+/* Enhanced Reports Component Styles */
+
+.reports-container {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.report-info {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Form Styles */
+.full-width {
+  width: 100%;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  min-width: 140px;
+}
+
+/* Grid Container */
+.ag-grid-container {
+  margin-top: 10px;
+}
+
+.ag-theme-alpine {
+  --ag-header-background-color: #f8f9fa;
+  --ag-header-foreground-color: #495057;
+  --ag-border-color: #dee2e6;
+  --ag-row-hover-color: #f8f9fa;
+}
+
+.ag-header-cell-wrap-text .ag-header-cell-label {
+  white-space: normal !important;
+  text-align: center;
+}
+
+/* Stage Status Grid */
+.stage-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.stage-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 4px solid #6c757d;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.stage-item.completed {
+  border-left-color: #28a745;
+  background: #d4edda;
+}
+
+.stage-item.in-progress {
+  border-left-color: #ffc107;
+  background: #fff3cd;
+}
+
+.stage-item.incomplete {
+  border-left-color: #dc3545;
+  background: #f8d7da;
+}
+
+.stage-number {
+  background: #6c757d;
+  color: white;
+  /* width: 30px;
+  height: 30px; */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+      position: absolute;
+    top: -21px;
+    padding: 6px;
+}
+
+.stage-item.completed .stage-number {
+  background: #28a745;
+}
+
+.stage-item.in-progress .stage-number {
+  background: #ffc107;
+}
+
+.stage-item.incomplete .stage-number {
+  background: #dc3545;
+}
+
+.stage-info {
+  flex: 1;
+}
+
+.stage-status {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.stage-date {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.stage-tnc {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #28a745;
+}
+
+.check-icon {
+  font-size: 16px !important;
+}
+
+/* Summary Cards */
+.summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.summary-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+/* Stage Progress */
+.stage-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.progress-label {
+  min-width: 150px;
+  font-weight: 500;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progress-fill.Complete {
+  background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.progress-fill.InProgress {
+  background: linear-gradient(90deg, #ffc107, #fd7e14);
+}
+
+.progress-fill.InComplete {
+  background: linear-gradient(90deg, #dc3545, #e83e8c);
+}
+
+.progress-text {
+  min-width: 100px;
+  text-align: right;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state mat-icon {
+  font-size: 4rem;
+  height: 4rem;
+  width: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+/* Help Text */
+.help-text {
+  margin-top: 30px;
+}
+
+.help-text .card-header {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.help-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.help-item {
+  padding: 15px;
+  background: #f8f9fa;
+  border-left: 4px solid #17a2b8;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.help-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 10px;
+  }
+  
+  .card-header {
+    padding: 15px;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .report-info {
+    font-size: 0.8rem;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .action-buttons button {
+    min-width: 120px;
+    font-size: 0.9rem;
+  }
+  
+  .stage-status-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ag-grid-container {
+    overflow-x: auto;
+  }
+  
+  .summary-card {
+    margin-bottom: 15px;
+  }
+  
+  .progress-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .progress-label {
+    min-width: auto;
+  }
+  
+  .progress-bar {
+    width: 100%;
+  }
+  
+  .progress-text {
+    min-width: auto;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-body {
+    padding: 15px;
+  }
+  
+  .stage-item {
+    padding: 12px;
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .stage-info {
+    text-align: center;
+  }
+  
+  .summary-value {
+    font-size: 1.5rem;
+  }
+  
+  .help-item {
+    padding: 12px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .action-buttons,
+  .help-text {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+    break-inside: avoid;
+  }
+  
+  .card-header {
+    background: #f8f9fa !important;
+    color: #495057 !important;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .summary-card {
+    background: #f8f9fa !important;
+    color: #495057 !important;
+    border: 1px solid #dee2e6;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .stage-item {
+    break-inside: avoid;
+  }
+  
+  .ag-grid-container {
+    height: auto !important;
+  }
+}
+
+/* Loading States */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom Scrollbar */
+.ag-grid-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ag-grid-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ag-grid-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.ag-grid-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

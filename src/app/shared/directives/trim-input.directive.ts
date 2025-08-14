@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener } from '@angular/core';
+import { Directive, HostListener, Optional, Self } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
@@ -6,14 +6,13 @@ import { NgControl } from '@angular/forms';
   standalone: false
 })
 export class TrimInputDirective {
- constructor(private ngControl: NgControl) {}
+  constructor(@Optional() @Self() private ngControl: NgControl) {}
 
   @HostListener('blur', ['$event.target.value'])
   onBlur(value: string) {
-    const trimmed = value.trim(); // only trims start and end
+    const trimmed = value.trim();
     if (value !== trimmed) {
-      this.ngControl.control?.setValue(trimmed);
+      this.ngControl?.control?.setValue(trimmed);
     }
   }
-
 }

@@ -1,0 +1,342 @@
+<div class="reports-container">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <mat-icon>assessment</mat-icon>
+        Reports Dashboard
+      </h3>
+    </div>
+
+    <div class="card-body">
+      <form [formGroup]="reportForm">
+        <div class="row">
+          <!-- Report Type Selection -->
+          <div class="col-md-4">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Report Type</mat-label>
+              <mat-select formControlName="reportType">
+                <mat-option *ngFor="let type of reportTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Vendor Selection (Only for Admins/Users) -->
+          <div class="col-md-4" *appUserRole="['admin', 'user']">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Vendor</mat-label>
+              <input appTrimInput type="text"
+                     placeholder="Pick a vendor"
+                     aria-label="Vendor"
+                     matInput
+                     [formControl]="vendorControl"
+                     [matAutocomplete]="vendorAuto"
+                     (focus)="showAllVendors()">
+              <mat-autocomplete #vendorAuto="matAutocomplete"
+                               (optionSelected)="onVendorSelect($event)"
+                               [displayWith]="displayVendor">
+                <mat-option *ngFor="let vendor of filteredVendors$ | async" 
+                            [value]="vendor.id">
+                  {{ vendor.vendorCode }} - {{ vendor.companyName }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Purchase Order Selection (Only for PO Stage Report) -->
+          <div class="col-md-4" *ngIf="requiresPoSelection()">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Purchase Order</mat-label>
+              <mat-select formControlName="po" [disabled]="!reportForm.get('vendor')?.value">
+                <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
+                  {{ po.pO_NO }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Date Range Selection (Only for All POs Report) -->
+        <div class="row" *ngIf="requiresDateRange()">
+          <div class="col-md-4">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>From Date</mat-label>
+              <input matInput [matDatepicker]="fromDatePicker" formControlName="fromDate">
+              <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #fromDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <div class="col-md-4">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>To Date</mat-label>
+              <input matInput [matDatepicker]="toDatePicker" formControlName="toDate">
+              <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #toDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="action-buttons">
+              <button mat-raised-button color="primary" 
+                      [disabled]="!reportForm.get('vendor')?.value"
+                      (click)="generateReport()">
+                <mat-icon>search</mat-icon>
+                Generate Report
+              </button>
+              <button mat-raised-button 
+                      (click)="onCancel()">
+                <mat-icon>clear</mat-icon>
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Report Grid for STATUS OF PO STAGE -->
+  <div class="card mt-4" *ngIf="poStageRowData.length > 0 && reportForm.get('reportType')?.value === 'po_stage'">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>table_chart</mat-icon>
+        STATUS OF PO STAGE
+      </h4>
+      <div class="report-info">
+        <span *ngIf="selectedPoData">
+          PO: {{ selectedPoData.pO_NO }} | 
+          Vendor: {{ selectedPoData.vendorCode }} | 
+          Created: {{ (selectedPoData.createdAt) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="ag-grid-container">
+        <ag-grid-angular
+          class="ag-theme-alpine"
+          [columnDefs]="poStageColumnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowData]="poStageRowData"
+          [modules]="modules"
+          [pagination]="true"
+          [paginationPageSize]="20"
+          [rowSelection]="'single'"
+          [suppressHorizontalScroll]="false"
+          style="width: 100%; height: 400px;">
+        </ag-grid-angular>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Grid for STATUS OF All POs -->
+  <div class="card mt-4" *ngIf="allPosRowData.length > 0 && reportForm.get('reportType')?.value === 'all_pos'">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>table_chart</mat-icon>
+        STATUS OF All POs
+      </h4>
+      <div class="report-info">
+        <span>
+          Total POs: {{ allPosRowData.length }} | 
+          Vendor: {{ reportForm.get('vendor')?.value?.vendorCode }}
+          <span *ngIf="reportForm.get('fromDate')?.value || reportForm.get('toDate')?.value">
+            | Date Range: {{ (reportForm.get('fromDate')?.value) }} - {{ (reportForm.get('toDate')?.value) }}
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="ag-grid-container">
+        <ag-grid-angular
+          class="ag-theme-alpine"
+          [columnDefs]="allPosColumnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowData]="allPosRowData"
+          [modules]="modules"
+          [pagination]="true"
+          [paginationPageSize]="20"
+          [rowSelection]="'single'"
+          [suppressHorizontalScroll]="false"
+          style="width: 100%; height: 500px;">
+        </ag-grid-angular>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Grid for STAGE WISE ACTIONS -->
+  <div class="card mt-4" *ngIf="stageWiseRowData.length > 0 && reportForm.get('reportType')?.value === 'stage_wise'">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>table_chart</mat-icon>
+        STAGE WISE ACTIONS
+      </h4>
+      <div class="report-info">
+        <span>
+          Total Stage Actions: {{ stageWiseRowData.length }} | 
+          Vendor: {{ reportForm.get('vendor')?.value?.vendorCode }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="ag-grid-container">
+        <ag-grid-angular
+          class="ag-theme-alpine"
+          [columnDefs]="stageWiseColumnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowData]="stageWiseRowData"
+          [modules]="modules"
+          [pagination]="true"
+          [paginationPageSize]="20"
+          [rowSelection]="'single'"
+          [suppressHorizontalScroll]="false"
+          style="width: 100%; height: 600px;">
+        </ag-grid-angular>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage Status Details (Only for PO Stage Report) -->
+  <!-- <div class="card mt-4" *ngIf="selectedPoData && reportForm.get('reportType')?.value === 'po_stage'">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>timeline</mat-icon>
+        Stage Status Details
+      </h4>
+    </div>
+
+    <div class="card-body">
+      <div class="stage-status-grid">
+        <div class="stage-item" 
+             *ngFor="let stage of selectedPoData.stageStatuses" 
+             [class.completed]="stage.status === 'Complete'"
+             [class.in-progress]="stage.status === 'InProgress'"
+             [class.incomplete]="stage.status === 'InComplete'">
+          <div class="stage-number">{{ stage.stageId }}</div>
+          <div class="stage-info">
+            <div class="stage-status">{{ stage.status }}</div>
+            <div class="stage-date">{{ (stage.updatedAt) }}</div>
+            <div class="stage-tnc" *ngIf="stage.tncAccepted">
+              <mat-icon class="check-icon">check_circle</mat-icon>
+              T&C Accepted
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <div class="card mt-4" *ngIf="selectedPoData">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>timeline</mat-icon>
+        Stage Status Details
+      </h4>
+    </div>
+
+    <div class="card-body">
+      <!-- <div class="stage-status-grid">
+        <div class="stage-item" 
+             *ngFor="let stage of selectedPoData.stageStatuses" 
+             [class.completed]="stage.status === 'Complete'"
+             [class.in-progress]="stage.status === 'InProgress'"
+             [class.incomplete]="stage.status === 'InComplete'">
+          <div class="stage-number">{{ stage.stageId }}</div>
+          <div class="stage-info">
+            <div class="stage-status">{{ stage.status }}</div>
+            <div class="stage-date">{{ (stage.updatedAt) }}</div>
+            <div class="stage-tnc" *ngIf="stage.tncAccepted">
+              <mat-icon class="check-icon">check_circle</mat-icon>
+              T&C Accepted
+            </div>
+          </div>
+        </div>
+      </div> -->
+   <div class="stage-status-grid">
+  <div class="stage-item" 
+       *ngFor="let stage of selectedPoData.stageStatuses" 
+       [class.completed]="stage.status === 'Complete'"
+       [class.in-progress]="stage.status === 'InProgress'"
+       [class.incomplete]="stage.status === 'InComplete'">
+
+    <div class="stage-number">Stage {{ stage.stageId }}</div>
+    
+    <div class="stage-info">
+      <div class="stage-status">
+        <strong>Status:</strong> {{ stage.statusText || stage.status }}
+      </div>
+      <div class="stage-date">
+        <strong>Last Updated:</strong> {{ stage.updatedAt | date: 'medium' }}
+      </div>
+      <div class="stage-action" *ngIf="stage.actionPendingWith">
+        <strong>Action Pending With:</strong> {{ stage.actionPendingWith }}
+      </div>
+      <div class="stage-tnc" *ngIf="stage.tncAccepted">
+        <mat-icon class="check-icon">check_circle</mat-icon>
+        T&C Accepted
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+    </div>
+  </div>
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="getCurrentRowData().length === 0 && reportForm.get('vendor')?.value">
+    <mat-icon>search</mat-icon>
+    <h3>No Data Available</h3>
+    <p>Please select the required criteria and click "Generate Report" to view the data.</p>
+  </div>
+
+  <!-- Report Type Instructions -->
+  <div class="card mt-4" *ngIf="!reportForm.get('vendor')?.value">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>info</mat-icon>
+        Report Types
+      </h4>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="report-type-info">
+            <h5>STATUS OF PO STAGE</h5>
+            <p>Shows detailed status of a specific Purchase Order including stage completion, delivery dates, and document status.</p>
+            <ul>
+              <li>Requires: Vendor + Specific PO</li>
+              <li>Shows: Single PO detailed view</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="report-type-info">
+            <h5>STATUS OF All POs</h5>
+            <p>Shows overview of all Purchase Orders for a vendor with completion status and delivery information.</p>
+            <ul>
+              <li>Requires: Vendor</li>
+              <li>Optional: Date Range</li>
+              <li>Shows: All POs summary</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="report-type-info">
+            <h5>STAGE WISE ACTIONS</h5>
+            <p>Shows detailed actions required at each stage for all Purchase Orders, including pending actions and responsibilities.</p>
+            <ul>
+              <li>Requires: Vendor</li>
+              <li>Shows: Stage-level details</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
