@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
@@ -13,6 +13,46 @@ interface Vendor {
   vendorCode: string;
 }
 
+interface StaggeredData {
+  id: number;
+  quantity: number;
+  deliveryDateOfQuantity: Date;
+  poId: number;
+}
+
+interface PurchaseOrder {
+  id: number;
+  pO_NO: string;
+  poDescription: string;
+  poType: number;
+  incoterms: number;
+  poTypeName: string;
+  incotermName: string;
+  contractualDeliveryDate: string;
+  actualDeliveryDate: string;
+  contactPersonName: string;
+  contactPersonEmailId: string;
+  contactNo: string;
+  createdAt: string;
+  createdBy: number;
+  updatedAt: string;
+  updatedBy: number;
+  isDeleted: boolean;
+  vendorId: number;
+  poFilePath: string;
+  vendorCode: string;
+  reminderSent: boolean;
+  vendName: string | null;
+  staggeredOrder: boolean;
+  orderValue: string | null;
+  shippingDate: string | null;
+  cpbgDueDate: string | null;
+  dlpDueDate: string | null;
+  stageStatuses: any[];
+  staggeredDataList: any[] | null;
+  uploadedDocumentFlow: any[] | null;
+}
+
 @Component({
   selector: 'app-orderacknowledgement',
   standalone: false,  
@@ -22,6 +62,7 @@ interface Vendor {
 export class OrderacknowledgementComponent {
   @ViewChild('fileInput') fileInput!: ElementRef;
   poForm: FormGroup;
+  editPoForm: FormGroup;
   rowData: any[] = [];
   
   userId: string | null = null;
@@ -39,6 +80,12 @@ export class OrderacknowledgementComponent {
   vendorId: string | null = null;
   selectedVendorId: number | null = null;
   
+  isStaggeredOrder: boolean = false;
+  
+  // Edit functionality properties
+  allPurchaseOrders: PurchaseOrder[] = [];
+  selectedPoForEdit: number | null = null;
+  isEditMode: boolean = false;
   
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
@@ -101,6 +148,32 @@ export class OrderacknowledgementComponent {
       poFilePath: [null, Validators.required],
       poNo: ['', [Validators.required]],
       vendorCode: ['', Validators.required],
+      orderValue: ['', Validators.required],
+      shippingDate: ['', Validators.required],
+      cpbgDueDate: ['', Validators.required],
+      dlpDueDate: ['', Validators.required],
+      isStaggered: [false],
+      staggeredDataList: this.fb.array([])
+    });
+
+    // Initialize edit form
+    this.editPoForm = this.fb.group({
+      id: [{ value: '', disabled: true }],
+      poNo: [{ value: '', disabled: true }],
+      poDescription: [{ value: '', disabled: true }],
+      poType: [{ value: '', disabled: true }],
+      incoterms: [{ value: '', disabled: true }],
+      contactPersonName: [{ value: '', disabled: true }],
+      contactPersonEmailId: [{ value: '', disabled: true }],
+      contactNumber: [{ value: '', disabled: true }],
+      vendorCode: [{ value: '', disabled: true }],
+      orderValue: [{ value: '', disabled: true }],
+      // Editable date fields
+      contractualDeliveryDate: ['', Validators.required],
+      actualDeliveryDate: ['', Validators.required],
+      shippingDate: ['', Validators.required],
+      cpbgDueDate: ['', Validators.required],
+      dlpDueDate: ['', Validators.required]
     });
   }
 
@@ -109,7 +182,52 @@ export class OrderacknowledgementComponent {
     this.fetchIncoterms();
     this.fetchpotypes();
     this.fetchVendors();
+    this.fetchAllPurchaseOrders();
     this.userId = this.authService.getUserId();
+    
+    // Initialize with one staggered item by default
+    this.addStaggeredItem();
+  }
+
+  get staggeredDataList() {
+    return this.poForm.get('staggeredDataList') as FormArray;
+  }
+
+  onStaggeredChange(event: any): void {
+    this.isStaggeredOrder = event.checked;
+    
+    if (this.isStaggeredOrder) {
+      // If enabling staggered order and no items exist, add one
+      if (this.staggeredDataList.length === 0) {
+        this.addStaggeredItem();
+      }
+    } else {
+      // If disabling staggered order, clear all items
+      this.clearStaggeredItems();
+    }
+  }
+
+  addStaggeredItem(): void {
+    const staggeredGroup = this.fb.group({
+      id: [0],
+      quantity: ['', [Validators.required, Validators.min(1)]],
+      deliveryDateOfQuantity: ['', Validators.required],
+      poId: [0]
+    });
+    
+    this.staggeredDataList.push(staggeredGroup);
+  }
+
+  removeStaggeredItem(index: number): void {
+    if (this.staggeredDataList.length > 1) {
+      this.staggeredDataList.removeAt(index);
+    }
+  }
+
+  clearStaggeredItems(): void {
+    while (this.staggeredDataList.length !== 0) {
+      this.staggeredDataList.removeAt(0);
+    }
   }
 
   fetchVendors(): void {
@@ -124,6 +242,115 @@ export class OrderacknowledgementComponent {
         console.error('Error fetching vendors:', error);
       }
     });
+  }
+
+  // Fetch all purchase orders for edit dropdown
+  fetchAllPurchaseOrders(): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get<PurchaseOrder[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+      next: (response) => {
+        this.allPurchaseOrders = response;
+      },
+      error: (error) => {
+        console.error('Error fetching all purchase orders:', error);
+        this.ToastserviceService.showToast('error', 'Error fetching purchase orders');
+      }
+    });
+  }
+
+  // Fetch specific PO by ID and populate edit form
+  onPoSelectionForEdit(poId: number): void {
+    if (!poId) {
+      this.resetEditForm();
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get<PurchaseOrder>(`${environment.apiUrl}/v1/PurchaseOrder/${poId}`, { headers }).subscribe({
+      next: (po) => {
+        this.populateEditForm(po);
+        this.isEditMode = true;
+      },
+      error: (error) => {
+        console.error('Error fetching PO details:', error);
+        this.ToastserviceService.showToast('error', 'Error fetching PO details');
+      }
+    });
+  }
+
+  populateEditForm(po: PurchaseOrder): void {
+    // Convert date strings to Date objects for form
+    const contractualDate = po.contractualDeliveryDate ? new Date(po.contractualDeliveryDate) : null;
+    const actualDate = po.actualDeliveryDate ? new Date(po.actualDeliveryDate) : null;
+    const shippingDate = po.shippingDate ? new Date(po.shippingDate) : null;
+    const cpbgDate = po.cpbgDueDate ? new Date(po.cpbgDueDate) : null;
+    const dlpDate = po.dlpDueDate ? new Date(po.dlpDueDate) : null;
+
+    this.editPoForm.patchValue({
+      id: po.id,
+      poNo: po.pO_NO,
+      poDescription: po.poDescription,
+      poType: po.poTypeName,
+      incoterms: po.incotermName,
+      contactPersonName: po.contactPersonName,
+      contactPersonEmailId: po.contactPersonEmailId,
+      contactNumber: po.contactNo,
+      vendorCode: po.vendorCode,
+      orderValue: po.orderValue || '',
+      // Editable date fields
+      contractualDeliveryDate: contractualDate,
+      actualDeliveryDate: actualDate,
+      shippingDate: shippingDate,
+      cpbgDueDate: cpbgDate,
+      dlpDueDate: dlpDate
+    });
+  }
+
+  onEditSubmit(): void {
+    if (!this.editPoForm.valid || !this.selectedPoForEdit) {
+      this.markFormGroupTouched(this.editPoForm);
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    const formValues = this.editPoForm.getRawValue();
+    
+    const updatePayload = {
+      contractualDeliveryDate: formValues.contractualDeliveryDate ? new Date(formValues.contractualDeliveryDate).toISOString() : null,
+      actualDeliveryDate: formValues.actualDeliveryDate ? new Date(formValues.actualDeliveryDate).toISOString() : null,
+      shippingDate: formValues.shippingDate ? new Date(formValues.shippingDate).toISOString() : null,
+      cpbgDueDate: formValues.cpbgDueDate ? new Date(formValues.cpbgDueDate).toISOString() : null,
+      dlpDueDate: formValues.dlpDueDate ? new Date(formValues.dlpDueDate).toISOString() : null,
+      modifiedAt: new Date().toISOString(),
+      modifiedBy: parseInt(this.userId || '0')
+    };
+
+    this.http.patch(`${environment.apiUrl}/v1/PurchaseOrder/dates/update?poId=${this.selectedPoForEdit}`, updatePayload, { headers })
+      .subscribe({
+        next: (response) => {
+          console.log('PO dates updated successfully:', response);
+          this.ToastserviceService.showToast('success', 'PO Dates Updated Successfully');
+          this.fetchPo(); // Refresh the main PO list
+          this.fetchAllPurchaseOrders(); // Refresh the edit dropdown list
+          this.resetEditForm();
+        },
+        error: (error) => {
+          console.error('Error updating PO dates:', error);
+          this.ToastserviceService.showToast('error', 'Error updating PO dates');
+        }
+      });
+  }
+
+  resetEditForm(): void {
+    this.editPoForm.reset();
+    this.selectedPoForEdit = null;
+    this.isEditMode = false;
   }
 
   onVendorSelect(selectedCode: string): void {
@@ -150,7 +377,6 @@ export class OrderacknowledgementComponent {
           shipmentDate: new Date(item.shipmentDate).toLocaleDateString(), 
           createdAt: new Date(item.createdAt).toLocaleDateString(),
           updatedAt: new Date(item.updatedAt).toLocaleDateString()
-          
         }));
   
         this.filteredRowData = this.rowData;
@@ -192,57 +418,108 @@ export class OrderacknowledgementComponent {
       },
     });
   }
-  
+
   onSubmit(): void {
-    if (this.poForm.valid && this.selectedFile) {
-      const token = localStorage.getItem('authToken');
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-      
-      const formData = new FormData();
-      formData.append('file', this.selectedFile, this.selectedFile.name);
-      formData.append('ContactPersonName', this.poForm.value.contactPersonName);
-      formData.append('PO_NO', this.poForm.value.poNo);
-      formData.append('ContactNumber', this.poForm.value.contactNumber);
-      formData.append('ContactPersonEmailId', this.poForm.value.contactPersonEmailId);
-      formData.append('VendorId', this.selectedVendorId ? this.selectedVendorId.toString() : '');
-      formData.append('UpdatedAt', new Date().toISOString());
-      formData.append('IsDeleted', 'false');
-      formData.append('ContractualDeliveryDate', this.poForm.value.contractualDeliveryDate.toISOString());
-      formData.append('ActualDeliveryDate', this.poForm.value.actualDeliveryDate.toISOString());
-      formData.append('UpdatedBy', this.userId ?? ''); 
-      formData.append('Incoterms', this.poForm.value.incoterms.toString());
-      formData.append('PoType', this.poForm.value.poType.toString());
-      formData.append('CreatedAt', new Date().toISOString());
-      formData.append('PoDescription', this.poForm.value.poDescription);
-      formData.append('vendorCode', this.poForm.value.vendorCode);
-      formData.append(
-        'StageStatuses',
-        JSON.stringify([])
-      );
-      formData.append('CreatedBy', this.userId ?? '');
-  
-      this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers }).subscribe({
+  if (this.selectedFile) {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    const staggeredData = this.isStaggeredOrder
+      ? this.staggeredDataList.value.map((item: any) => ({
+          id: 0,
+          quantity: parseInt(item.quantity),
+          deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
+          poId: 0
+        }))
+      : []; 
+
+    // Create the JSON payload matching your required format
+    const jsonPayload = {
+      id: 0,
+      po_NO: this.poForm.value.poNo,
+      poDescription: this.poForm.value.poDescription,
+      poType: parseInt(this.poForm.value.poType),
+      incoterms: parseInt(this.poForm.value.incoterms),
+      poTypeName: 'purchaseOrder.poTypeName',
+      incotermName: 'purchaseOrder.incotermName',
+      contractualDeliveryDate: this.poForm.value.contractualDeliveryDate.toISOString(),
+      actualDeliveryDate: this.poForm.value.actualDeliveryDate.toISOString(),
+      contactPersonName: this.poForm.value.contactPersonName,
+      contactPersonEmailId: this.poForm.value.contactPersonEmailId,
+      contactNo: this.poForm.value.contactNumber,
+      createdAt: new Date().toISOString(),
+      createdBy: this.userId ?? 0,
+      updatedAt: new Date().toISOString(),
+      updatedBy: this.userId ?? 0,
+      isDeleted: false,
+      vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,
+      poFilePath: 'purchaseOrder.poFilePath',
+      vendorCode: this.poForm.value.vendorCode,
+      reminderSent: false,
+      vendName: 'purchaseOrder.vendName',
+      staggeredOrder: this.isStaggeredOrder,
+      orderValue: this.poForm.value.orderValue,
+      shippingDate: this.poForm.value.shippingDate.toISOString(),
+      cpbgDueDate: this.poForm.value.cpbgDueDate.toISOString(),
+      dlpDueDate: this.poForm.value.dlpDueDate.toISOString(),
+      stageStatuses: [],
+      staggeredDataList: staggeredData,
+      uploadedDocumentFlow: []
+    };
+
+    // Build FormData
+    const formData = new FormData();
+    formData.append('file', this.selectedFile, this.selectedFile.name);
+    formData.append('purchaseOrderJson', JSON.stringify(jsonPayload));
+
+    this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers })
+      .subscribe({
         next: (response) => {
           console.log('PO submitted successfully:', response);
-          this.ToastserviceService.showToast('success', this.poForm ? 'PO Created Successfully' : 'PO Created Successfully');
+          this.ToastserviceService.showToast('success', 'PO Created Successfully');
           this.fetchPo();
-          this.poForm.reset();
-          this.selectedFile = null;
-          if (this.fileInput) {
-            this.fileInput.nativeElement.value = '';
-          }
+          this.fetchAllPurchaseOrders(); // Refresh edit dropdown
+          this.resetForm();
         },
         error: (error) => {
           console.error('Error submitting PO:', error);
-          this.ToastserviceService.showToast('error', this.poForm ? 'PO Updated Error' : 'PO Created Error');
+          this.ToastserviceService.showToast('error', 'PO Creation Error');
         },
       });
-    } else {
-      console.log(this.poForm);
-      console.log('Form is invalid or file not selected');
+
+  } else {
+    console.log('Form is invalid or file not selected');
+    this.markFormGroupTouched(this.poForm);
+  }
+}
+
+  resetForm(): void {
+    this.poForm.reset();
+    this.selectedFile = null;
+    this.isStaggeredOrder = false;
+    this.clearStaggeredItems();
+    this.addStaggeredItem(); // Add one default item
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
     }
   }
-  
+
+  markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(field => {
+      const control = formGroup.get(field);
+      control?.markAsTouched({ onlySelf: true });
+      
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      } else if (control instanceof FormArray) {
+        control.controls.forEach(arrayControl => {
+          if (arrayControl instanceof FormGroup) {
+            this.markFormGroupTouched(arrayControl);
+          }
+        });
+      }
+    });
+  }
   
   onSearchPO(): void {
     if (this.poSearchText.trim()) {
@@ -250,13 +527,11 @@ export class OrderacknowledgementComponent {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       this.http.get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poSearchText.trim()}`, { headers }).subscribe({
         next: (data) => {
-
           this.filteredRowData = [data];
           console.log('PO found:', data);
         },
         error: (error) => {
           console.error('Error fetching PO:', error);
-
           this.filteredRowData = [];
         },
       });
@@ -284,18 +559,21 @@ export class OrderacknowledgementComponent {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
   
       const formData = new FormData();
-      formData.append('ExcelFile', this.bulkPoFile, this.bulkPoFile.name); // Change 'file' to 'ExcelFile'
+      formData.append('ExcelFile', this.bulkPoFile, this.bulkPoFile.name);
       formData.append('VendorId', this.vendorId ?? '');
   
       this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder/upload`, formData, { headers }).subscribe({
         next: (response) => {
           console.log('Bulk PO uploaded successfully:', response);
+          this.ToastserviceService.showToast('success', 'Bulk PO Uploaded Successfully');
           this.bulkPoFile = null;
           this.bulkPoFileName = '';
-          this.fetchPo(); // Refresh the PO list
+          this.fetchPo();
+          this.fetchAllPurchaseOrders(); // Refresh edit dropdown
         },
         error: (error) => {
           console.error('Error uploading bulk PO:', error);
+          this.ToastserviceService.showToast('error', 'Bulk PO Upload Error');
         },
       });
     } else {
@@ -327,12 +605,10 @@ export class OrderacknowledgementComponent {
       })
       .catch(error => {
         console.error('Error viewing document:', error);
-        // You might want to add a user-friendly error message here
         alert('Error viewing document. Please ensure you are logged in and try again.');
       });
   }
   
-
   downloadDocument(documentName: number): void {
     const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentName)}`;
   
@@ -345,17 +621,14 @@ export class OrderacknowledgementComponent {
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = blobUrl;
-        link.download = `document_${documentName}.pdf`; // Add appropriate extension
+        link.download = `document_${documentName}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl); // Clean up the blob URL
+        URL.revokeObjectURL(blobUrl);
       })
       .catch(error => {
         console.error('Error downloading document:', error);
-        // Add appropriate error handling/user notification here
       });
   }
-  
-  
 }

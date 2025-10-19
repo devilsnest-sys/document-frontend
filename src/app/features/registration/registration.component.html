@@ -215,26 +215,48 @@
             </div>
 
             <div class="col-md-6">
-              <!-- User Designation For Stage - Disabled in edit mode -->
-              <mat-form-field appearance="fill" class="full-width">
-                <mat-label>User Designation For Stage</mat-label>
-                <mat-select
-                  id="UserDesignationForstageId"
-                  formControlName="UserDesignationForstageId"
-                  multiple
-                  [placeholder]="isEditMode ? 'Stages cannot be edited' : 'Select Stages'"
-                >
-                  <mat-option *ngFor="let stage of stages" [value]="stage.id">
-                    {{ stage.stageName }}
-                  </mat-option>
-                </mat-select>
-                <mat-error
-                  *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid && !isEditMode"
-                >
-                  <small>User Designation For Stage is required.</small>
-                </mat-error>
-              </mat-form-field>
-            </div>
+  <!-- User Designation For Stage - Now editable in edit mode -->
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>User Designation For Stage</mat-label>
+    <mat-select
+      id="UserDesignationForstageId"
+      formControlName="UserDesignationForstageId"
+      multiple
+      [placeholder]="'Select Stages'"
+      [required]="true"
+    >
+      <!-- Select All Option - Now enabled in edit mode -->
+      <mat-option 
+        #allSelected
+        [value]="'selectAll'"
+        (click)="toggleAllSelection()"
+      >
+        <mat-checkbox 
+          [checked]="isAllSelected()"
+          [indeterminate]="isIndeterminate()">
+        </mat-checkbox>
+        Select All
+      </mat-option>
+
+      <!-- Individual Stage Options - Now enabled in edit mode -->
+      <mat-option 
+        *ngFor="let stage of stages" 
+        [value]="stage.id"
+        (click)="togglePerOne(stage.id)"
+      >
+        <mat-checkbox 
+          [checked]="isStageSelected(stage.id)">
+        </mat-checkbox>
+        {{ stage.stageName }}
+      </mat-option>
+    </mat-select>
+    <mat-error
+      *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid"
+    >
+      <small>User Designation For Stage is required.</small>
+    </mat-error>
+  </mat-form-field>
+</div>
           </div>
   
           <!-- Submit Button -->

@@ -1,0 +1,185 @@
+<div class="staggered-po-container mt-4">
+  <!-- Header Section -->
+  <div class="table-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <i class="icon-layers"></i>
+      </div>
+      <div class="header-text">
+        <h2 class="header-title">Staggered Purchase Order</h2>
+        <p class="header-subtitle">Manage delivery schedules and submissions</p>
+      </div>
+      <div class="header-stats" *ngIf="!loading && !error && tableData.length > 0">
+        <div class="stat-item">
+          <span class="stat-number">{{ tableData.length }}</span>
+          <span class="stat-label">Total Items</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ getSubmittedCount() }}</span>
+          <span class="stat-label">Submitted</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ getPendingCount() }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="state-container loading-state">
+    <div class="state-content">
+      <div class="modern-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <h4 class="state-title">Loading Data</h4>
+      <p class="state-message">Fetching staggered purchase order details...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="state-container error-state">
+    <div class="state-content">
+      <div class="error-icon">
+        <i class="icon-alert"></i>
+      </div>
+      <h4 class="state-title">Something went wrong</h4>
+      <p class="state-message">{{ error }}</p>
+      <button class="btn btn-retry" (click)="retryLoad()">
+        <i class="icon-refresh"></i>
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Enhanced Table -->
+  <div *ngIf="!loading && !error && tableData.length > 0" class="table-container">
+    <div class="table-wrapper">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th scope="col" class="col-sn">
+              <div class="th-content">
+                <i class="icon-hash"></i>
+                <span>Serial No.</span>
+              </div>
+            </th>
+            <th scope="col" class="col-quantity">
+              <div class="th-content">
+                <i class="icon-package"></i>
+                <span>Quantity</span>
+              </div>
+            </th>
+            <th scope="col" class="col-date">
+              <div class="th-content">
+                <i class="icon-calendar"></i>
+                <span>Delivery Date</span>
+              </div>
+            </th>
+            <th scope="col" class="col-status">
+              <div class="th-content">
+                <i class="icon-activity"></i>
+                <span>Status</span>
+              </div>
+            </th>
+            <th scope="col" class="col-action">
+              <div class="th-content">
+                <i class="icon-settings"></i>
+                <span>Action</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            *ngFor="let row of tableData; let i = index; trackBy: trackByFn"
+            [class.submitted-row]="row.submitted"
+            [class.pending-row]="!row.submitted"
+            class="table-row"
+            [style.animation-delay]="i * 0.1 + 's'"
+          >
+            <td class="col-sn">
+              <div class="cell-content">
+                <span class="serial-badge">{{ row.sn }}</span>
+              </div>
+            </td>
+            <td class="col-quantity">
+              <div class="cell-content">
+                <div class="quantity-display">
+                  <i class="icon-box"></i>
+                  <span class="quantity-number">{{ row.quantity | number }}</span>
+                  <span class="quantity-unit">units</span>
+                </div>
+              </div>
+            </td>
+            <td class="col-date">
+              <div class="cell-content">
+                <div class="date-display">
+                  <span class="date-primary">{{ formatDate(row.dateDeliver) }}</span>
+                  <span class="date-secondary">{{ getRelativeDate(row.dateDeliver) }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="col-status">
+              <div class="cell-content">
+                <span class="status-badge" [ngClass]="row.submitted ? 'status-submitted' : 'status-pending'">
+                  <i [class]="row.submitted ? 'icon-check' : 'icon-clock'"></i>
+                  <span>{{ row.submitted ? 'Submitted' : 'Pending' }}</span>
+                </span>
+              </div>
+            </td>
+            <td class="col-action">
+              <div class="cell-content">
+                <button 
+                  class="action-btn"
+                  [class.btn-submitted]="row.submitted"
+                  [class.btn-pending]="!row.submitted"
+                  [disabled]="row.submitted || loading"
+                  (click)="onSubmit(row)"
+                >
+                  <span *ngIf="row.isSubmitting" class="btn-spinner"></span>
+                  <i *ngIf="!row.isSubmitting" [class]="row.submitted ? 'icon-check' : 'icon-send'"></i>
+                  <span>{{ row.submitted ? 'Completed' : 'Submit' }}</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Table Footer -->
+    <div class="table-footer">
+      <div class="footer-info">
+        <span class="footer-text">Showing {{ tableData.length }} entries</span>
+      </div>
+      <div class="footer-actions">
+        <button class="btn btn-secondary btn-sm" (click)="exportData()">
+          <i class="icon-download"></i>
+          Export
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="refreshData()">
+          <i class="icon-refresh"></i>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!loading && !error && tableData.length === 0" class="state-container empty-state">
+    <div class="state-content">
+      <div class="empty-icon">
+        <i class="icon-inbox"></i>
+      </div>
+      <h4 class="state-title">No Data Available</h4>
+      <p class="state-message">No staggered purchase order data found for this order.</p>
+      <button class="btn btn-primary" (click)="loadData()">
+        <i class="icon-refresh"></i>
+        Refresh Data
+      </button>
+    </div>
+  </div>
+</div>

@@ -16,6 +16,7 @@ export class RegistrationComponent implements OnInit {
   userList: Array<{ username: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
+  
 
   constructor(
     private fb: FormBuilder,
@@ -139,7 +140,7 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.get('role')?.disable();
     this.registrationForm.get('designation')?.disable();
     this.registrationForm.get('companyId')?.disable();
-    this.registrationForm.get('UserDesignationForstageId')?.disable();
+    // this.registrationForm.get('UserDesignationForstageId')?.disable();
     this.registrationForm.get('userType')?.disable();
     this.registrationForm.get('salt')?.disable();
     
@@ -147,7 +148,60 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.get('email')?.enable();
     this.registrationForm.get('MobileNo')?.enable();
   }
+toggleAllSelection(): void {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  
+  if (this.isAllSelected()) {
+    // Deselect all
+    this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
+  } else {
+    // Select all stages
+    const allStageIds = this.stages.map(stage => stage.id);
+    this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
+  }
+}
 
+/**
+ * Toggle individual stage selection
+ */
+togglePerOne(stageId: number): void {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  const index = currentValue.indexOf(stageId);
+  
+  if (index > -1) {
+    // Remove the stage
+    currentValue.splice(index, 1);
+  } else {
+    // Add the stage
+    currentValue.push(stageId);
+  }
+  
+  this.registrationForm.get('UserDesignationForstageId')?.setValue([...currentValue]);
+}
+
+/**
+ * Check if all stages are selected
+ */
+isAllSelected(): boolean {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  return currentValue.length === this.stages.length && this.stages.length > 0;
+}
+
+/**
+ * Check if selection is indeterminate (some but not all selected)
+ */
+isIndeterminate(): boolean {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  return currentValue.length > 0 && currentValue.length < this.stages.length;
+}
+
+/**
+ * Check if a specific stage is selected
+ */
+isStageSelected(stageId: number): boolean {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  return currentValue.includes(stageId);
+}
   checkEmailExists(email: string, type: string = 'user'): void {
     if (!email || this.isEditMode) return;
   
@@ -268,7 +322,8 @@ export class RegistrationComponent implements OnInit {
   isEditFormValid(): boolean {
     const emailControl = this.registrationForm.get('email');
     const mobileControl = this.registrationForm.get('MobileNo');
+    const stagesControl = this.registrationForm.get('UserDesignationForstageId');
     
-    return !!(emailControl?.valid && mobileControl?.valid && this.selectedUserId);
+    return !!(emailControl?.valid && mobileControl?.valid &&  stagesControl?.valid &&  this.selectedUserId);
   }
 }

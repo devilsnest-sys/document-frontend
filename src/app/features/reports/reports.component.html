@@ -45,7 +45,7 @@
           </div>
 
           <!-- Purchase Order Selection (Only for PO Stage Report) -->
-          <div class="col-md-4" *ngIf="requiresPoSelection()">
+          <div class="col-md-4" *ngIf="reportForm.get('reportType')?.value === 'po_stage'">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Select Purchase Order</mat-label>
               <mat-select formControlName="po" [disabled]="!reportForm.get('vendor')?.value">
@@ -58,7 +58,7 @@
         </div>
 
         <!-- Date Range Selection (Only for All POs Report) -->
-        <div class="row" *ngIf="requiresDateRange()">
+        <div class="row" *ngIf="reportForm.get('reportType')?.value === 'all_pos'">
           <div class="col-md-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>From Date</mat-label>
@@ -81,7 +81,7 @@
         <div class="row mt-3">
           <div class="col-12">
             <div class="action-buttons">
-              <button mat-raised-button color="primary" 
+              <!-- <button mat-raised-button color="primary" 
                       [disabled]="!reportForm.get('vendor')?.value"
                       (click)="generateReport()">
                 <mat-icon>search</mat-icon>
@@ -91,7 +91,7 @@
                       (click)="onCancel()">
                 <mat-icon>clear</mat-icon>
                 Clear
-              </button>
+              </button> -->
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
         <span *ngIf="selectedPoData">
           PO: {{ selectedPoData.pO_NO }} | 
           Vendor: {{ selectedPoData.vendorCode }} | 
-          Created: {{ (selectedPoData.createdAt) }}
+          Created: {{ selectedPoData.createdAt | date:'medium' }}
         </span>
       </div>
     </div>
@@ -142,10 +142,12 @@
       </h4>
       <div class="report-info">
         <span>
-          Total POs: {{ allPosRowData.length }} | 
-          Vendor: {{ reportForm.get('vendor')?.value?.vendorCode }}
+          Total POs: {{ allPosRowData.length }}
+          <span *ngIf="reportForm.get('vendor')?.value">
+            | Vendor: {{ reportForm.get('vendor')?.value.vendorCode }}
+          </span>
           <span *ngIf="reportForm.get('fromDate')?.value || reportForm.get('toDate')?.value">
-            | Date Range: {{ (reportForm.get('fromDate')?.value) }} - {{ (reportForm.get('toDate')?.value) }}
+            | Date Range: {{ reportForm.get('fromDate')?.value | date:'mediumDate' }} - {{ reportForm.get('toDate')?.value | date:'mediumDate' }}
           </span>
         </span>
       </div>
@@ -178,8 +180,10 @@
       </h4>
       <div class="report-info">
         <span>
-          Total Stage Actions: {{ stageWiseRowData.length }} | 
-          Vendor: {{ reportForm.get('vendor')?.value?.vendorCode }}
+          Total Stage Actions: {{ stageWiseRowData.length }}
+          <span *ngIf="reportForm.get('vendor')?.value">
+            | Vendor: {{ reportForm.get('vendor')?.value.vendorCode }}
+          </span>
         </span>
       </div>
     </div>
@@ -202,8 +206,8 @@
     </div>
   </div>
 
-  <!-- Stage Status Details (Only for PO Stage Report) -->
-  <!-- <div class="card mt-4" *ngIf="selectedPoData && reportForm.get('reportType')?.value === 'po_stage'">
+  <!-- Stage Status Details -->
+  <div class="card mt-4" *ngIf="selectedPoData">
     <div class="card-header">
       <h4 class="card-title">
         <mat-icon>timeline</mat-icon>
@@ -218,10 +222,19 @@
              [class.completed]="stage.status === 'Complete'"
              [class.in-progress]="stage.status === 'InProgress'"
              [class.incomplete]="stage.status === 'InComplete'">
-          <div class="stage-number">{{ stage.stageId }}</div>
+
+          <div class="stage-number">Stage {{ stage.stageId }}</div>
+          
           <div class="stage-info">
-            <div class="stage-status">{{ stage.status }}</div>
-            <div class="stage-date">{{ (stage.updatedAt) }}</div>
+            <div class="stage-status">
+              <strong>Status:</strong> {{ stage.statusText || stage.status }}
+            </div>
+            <div class="stage-date">
+              <strong>Last Updated:</strong> {{ stage.updatedAt | date: 'medium' }}
+            </div>
+            <div class="stage-action" *ngIf="stage.actionPendingWith">
+              <strong>Action Pending With:</strong> {{ stage.actionPendingWith }}
+            </div>
             <div class="stage-tnc" *ngIf="stage.tncAccepted">
               <mat-icon class="check-icon">check_circle</mat-icon>
               T&C Accepted
@@ -230,70 +243,14 @@
         </div>
       </div>
     </div>
-  </div> -->
-
-  <div class="card mt-4" *ngIf="selectedPoData">
-    <div class="card-header">
-      <h4 class="card-title">
-        <mat-icon>timeline</mat-icon>
-        Stage Status Details
-      </h4>
-    </div>
-
-    <div class="card-body">
-      <!-- <div class="stage-status-grid">
-        <div class="stage-item" 
-             *ngFor="let stage of selectedPoData.stageStatuses" 
-             [class.completed]="stage.status === 'Complete'"
-             [class.in-progress]="stage.status === 'InProgress'"
-             [class.incomplete]="stage.status === 'InComplete'">
-          <div class="stage-number">{{ stage.stageId }}</div>
-          <div class="stage-info">
-            <div class="stage-status">{{ stage.status }}</div>
-            <div class="stage-date">{{ (stage.updatedAt) }}</div>
-            <div class="stage-tnc" *ngIf="stage.tncAccepted">
-              <mat-icon class="check-icon">check_circle</mat-icon>
-              T&C Accepted
-            </div>
-          </div>
-        </div>
-      </div> -->
-   <div class="stage-status-grid">
-  <div class="stage-item" 
-       *ngFor="let stage of selectedPoData.stageStatuses" 
-       [class.completed]="stage.status === 'Complete'"
-       [class.in-progress]="stage.status === 'InProgress'"
-       [class.incomplete]="stage.status === 'InComplete'">
-
-    <div class="stage-number">Stage {{ stage.stageId }}</div>
-    
-    <div class="stage-info">
-      <div class="stage-status">
-        <strong>Status:</strong> {{ stage.statusText || stage.status }}
-      </div>
-      <div class="stage-date">
-        <strong>Last Updated:</strong> {{ stage.updatedAt | date: 'medium' }}
-      </div>
-      <div class="stage-action" *ngIf="stage.actionPendingWith">
-        <strong>Action Pending With:</strong> {{ stage.actionPendingWith }}
-      </div>
-      <div class="stage-tnc" *ngIf="stage.tncAccepted">
-        <mat-icon class="check-icon">check_circle</mat-icon>
-        T&C Accepted
-      </div>
-    </div>
-    
   </div>
-</div>
 
-    </div>
-  </div>
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="getCurrentRowData().length === 0 && reportForm.get('vendor')?.value">
+  <!-- <div class="empty-state" *ngIf="getEmptyStateCondition()">
     <mat-icon>search</mat-icon>
     <h3>No Data Available</h3>
     <p>Please select the required criteria and click "Generate Report" to view the data.</p>
-  </div>
+  </div> -->
 
   <!-- Report Type Instructions -->
   <div class="card mt-4" *ngIf="!reportForm.get('vendor')?.value">

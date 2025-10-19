@@ -44,6 +44,9 @@ interface PurchaseOrderData {
   reminderSent: boolean;
   stageStatuses: StageStatus[];
   uploadedDocumentFlow: any[];
+  cpbgDueDate?: string; // CPBG due date from PO
+  dlpDueDate?: string; // DLP due date from PO registration
+  shippingDate?: string; // Shipping date from PO
 }
 
 // Report 1: STATUS OF PO STAGE
@@ -85,6 +88,7 @@ interface StageWiseReportData {
   action: string;
   pendingWith: string;
   dateOfReturnByUser: string;
+  dateOfReturnByVendor: string;
   dateOfReceipt: string;
   acdCcd: string;
   numberOfDaysComplete: number;
@@ -99,6 +103,9 @@ interface StageWiseReportData {
   styleUrl: './reports.component.css'
 })
 export class ReportsComponent implements OnInit {
+getCurrentRowData() {
+throw new Error('Method not implemented.');
+}
   reportForm!: FormGroup;
   vendors: any[] = [];
   purchaseOrders: any[] = [];
@@ -162,41 +169,42 @@ export class ReportsComponent implements OnInit {
       field: 'numberOfDaysComplete',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD)'
+      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD) to current date'
     },
     {
       headerName: 'Remaining Days',
       field: 'remainingDays',
       minWidth: 150,
       width: 180,
-      headerTooltip: 'Remaining days- Delayed or in time'
+      headerTooltip: 'Remaining days from current date to shipping day - Delayed or in time'
     },
     {
       headerName: 'CPBG Due Date',
       field: 'cpbgDueDate',
       minWidth: 150,
       width: 170,
-      headerTooltip: 'CPBG due date Received not'
+      headerTooltip: 'CPBG due date - Received or Not Received based on PO data'
     },
     {
       headerName: 'Shipping Docs',
       field: 'receiptOfShipping',
       minWidth: 150,
       width: 170,
-      headerTooltip: 'Receipt of Shipping documents'
+      headerTooltip: 'Receipt of Shipping documents - Received if shipping document stage has documents'
     },
     {
       headerName: 'DLP Due Date',
       field: 'dlpDueDate',
       minWidth: 130,
-      width: 150
+      width: 150,
+      headerTooltip: 'DLP due date taken from PO registration'
     },
     {
       headerName: 'Order Status',
       field: 'orderStatus',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Order Status open/closed'
+      headerTooltip: 'Order Status open/closed - Closed if DLP date is completed, otherwise Open'
     }
   ];
 
@@ -241,21 +249,21 @@ export class ReportsComponent implements OnInit {
       field: 'numberOfDaysComplete',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD)'
+      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD) to current date'
     },
     {
       headerName: 'Remaining Days',
       field: 'remainingDays',
       minWidth: 150,
       width: 180,
-      headerTooltip: 'Remaining days- Delayed or in time'
+      headerTooltip: 'Remaining days from current date to shipping day - Delayed or in time'
     },
     {
       headerName: 'Order Status',
       field: 'orderStatus',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Order Status open/closed'
+      headerTooltip: 'Order Status open/closed - Closed if DLP date is completed, otherwise Open'
     }
   ];
 
@@ -303,16 +311,25 @@ export class ReportsComponent implements OnInit {
       width: 150
     },
     {
-      headerName: 'Date of Return by User/Vendor',
+      headerName: 'Date of Return by User',
       field: 'dateOfReturnByUser',
       minWidth: 180,
-      width: 200
+      width: 200,
+      headerTooltip: 'Date when document was returned by User with document names (comma separated if multiple)'
+    },
+    {
+      headerName: 'Date of Return by Vendor',
+      field: 'dateOfReturnByVendor',
+      minWidth: 180,
+      width: 200,
+      headerTooltip: 'Date when document was returned by Vendor with document names (comma separated if multiple)'
     },
     {
       headerName: 'Date of Receipt',
       field: 'dateOfReceipt',
       minWidth: 130,
-      width: 150
+      width: 150,
+      headerTooltip: 'Shipping document date - when document type is receipt and approved'
     },
     {
       headerName: 'ACD/CCD',
@@ -325,21 +342,21 @@ export class ReportsComponent implements OnInit {
       field: 'numberOfDaysComplete',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD)'
+      headerTooltip: 'Number of days completed from Actual Delivery Date(ACD/CCD) to current date'
     },
     {
       headerName: 'Remaining Days',
       field: 'remainingDays',
       minWidth: 150,
       width: 180,
-      headerTooltip: 'Remaining days- Delayed or in time'
+      headerTooltip: 'Remaining days from current date to shipping day - Delayed or in time'
     },
     {
       headerName: 'Order Status',
       field: 'orderStatus',
       minWidth: 120,
       width: 140,
-      headerTooltip: 'Order Status open/closed'
+      headerTooltip: 'Order Status open/closed - Closed if DLP date is completed, otherwise Open'
     }
   ];
 
@@ -363,6 +380,9 @@ export class ReportsComponent implements OnInit {
     this.loadVendors();
     this.setupVendorFilter();
     this.checkUserTypeAndSetVendor();
+  }
+  checkUserTypeAndSetVendor() {
+    throw new Error('Method not implemented.');
   }
 
   private initializeForm(): void {
@@ -574,20 +594,36 @@ export class ReportsComponent implements OnInit {
   private processPoStageData(poData: PurchaseOrderData): void {
     const vendor = this.reportForm.get('vendor')?.value;
     
+    // Updated calculation logic based on requirements
     const actualDeliveryDate = new Date(poData.actualDeliveryDate);
     const today = new Date();
+    const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
+    const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
+    
+    // 1. Number of days completed from ACD to current date
     const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // 2. Remaining days = current date to shipping day
+    let remainingDaysText = 'N/A';
+    if (shippingDate) {
+      const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+    }
     
     const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
     const totalStages = poData.stageStatuses?.length || 0;
     
-    const contractualDate = new Date(poData.contractualDeliveryDate);
-    const remainingDays = Math.floor((contractualDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    const remainingStatus = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+    // 3. CPBG due date - received or not received based on PO data
+    const cpbgStatus = poData.cpbgDueDate ? 'Received' : 'Not Received';
     
-    const orderStatus = completedStages === totalStages && totalStages > 0 ? 'Closed' : 'Open';
-    const cpbgStatus = this.calculateCPBGStatus(poData.stageStatuses);
-    const shippingStatus = this.calculateShippingStatus(poData.stageStatuses);
+    // 4. Receipt of shipping documents - check if shipping document stage has documents
+    const shippingStatus = this.calculateShippingDocumentStatus(poData.stageStatuses, poData.uploadedDocumentFlow);
+    
+    // 5. DLP due date from PO registration
+    const dlpDueDateText = poData.dlpDueDate ? this.formatDate(poData.dlpDueDate) : 'N/A';
+    
+    // 6. Order status - closed if DLP date is completed, otherwise open
+    const orderStatus = this.calculateOrderStatus(dlpDate);
 
     const reportData: PoStageReportData = {
       vendorName: vendor?.companyName || 'N/A',
@@ -597,10 +633,10 @@ export class ReportsComponent implements OnInit {
       stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${totalStages}` : 'No stages',
       acdCcd: this.formatDate(poData.actualDeliveryDate),
       numberOfDaysComplete: Math.max(0, daysDifference),
-      remainingDays: remainingStatus,
+      remainingDays: remainingDaysText,
       cpbgDueDate: cpbgStatus,
       receiptOfShipping: shippingStatus,
-      dlpDueDate: this.formatDate(poData.contractualDeliveryDate),
+      dlpDueDate: dlpDueDateText,
       orderStatus: orderStatus
     };
 
@@ -611,16 +647,24 @@ private processAllPosData(posData: PurchaseOrderData[]): void {
   this.allPosRowData = posData.map(poData => {
     const actualDeliveryDate = new Date(poData.actualDeliveryDate);
     const today = new Date();
+    const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
+    const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
+    
+    // Updated calculation logic
     const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Remaining days = current date to shipping day
+    let remainingDaysText = 'N/A';
+    if (shippingDate) {
+      const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+    }
     
     const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
     const totalStages = poData.stageStatuses?.length || 0;
     
-    const contractualDate = new Date(poData.contractualDeliveryDate);
-    const remainingDays = Math.floor((contractualDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    const remainingStatus = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
-    
-    const orderStatus = completedStages === totalStages && totalStages > 0 ? 'Closed' : 'Open';
+    // Order status based on DLP completion
+    const orderStatus = this.calculateOrderStatus(dlpDate);
 
     // Get vendor name from PO data instead of form selection
     const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
@@ -633,7 +677,7 @@ private processAllPosData(posData: PurchaseOrderData[]): void {
       stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${totalStages}` : 'No stages',
       acdCcd: this.formatDate(poData.actualDeliveryDate),
       numberOfDaysComplete: Math.max(0, daysDifference),
-      remainingDays: remainingStatus,
+      remainingDays: remainingDaysText,
       orderStatus: orderStatus
     };
   });
@@ -645,16 +689,24 @@ private processStageWiseData(posData: PurchaseOrderData[]): void {
   posData.forEach(poData => {
     const actualDeliveryDate = new Date(poData.actualDeliveryDate);
     const today = new Date();
+    const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
+    const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
+    
+    // Updated calculation logic
     const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Remaining days = current date to shipping day
+    let remainingDaysText = 'N/A';
+    if (shippingDate) {
+      const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+    }
     
     const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
     const totalStages = poData.stageStatuses?.length || 0;
     
-    const contractualDate = new Date(poData.contractualDeliveryDate);
-    const remainingDays = Math.floor((contractualDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    const remainingStatus = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
-    
-    const orderStatus = completedStages === totalStages && totalStages > 0 ? 'Closed' : 'Open';
+    // Order status based on DLP completion
+    const orderStatus = this.calculateOrderStatus(dlpDate);
 
     // Get vendor name from PO data instead of form selection
     const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
@@ -664,6 +716,12 @@ private processStageWiseData(posData: PurchaseOrderData[]): void {
       const stageAction = this.getStageAction(stage);
       const pendingWith = this.getPendingWith(stage);
       
+      // 7. Date of return by User/Vendor with document names
+      const returnInfo = this.getReturnInformation(stage, poData.uploadedDocumentFlow);
+      
+      // 8. Date of receipt - shipping document date when document type is receipt and approved
+      const receiptDate = this.getReceiptDate(stage, poData.uploadedDocumentFlow);
+      
       stageWiseData.push({
         vendorName: vendorName,
         vendorCode: poData.vendorCode || 'N/A',
@@ -672,11 +730,12 @@ private processStageWiseData(posData: PurchaseOrderData[]): void {
         statusOfStage: this.getStageTypeName(stage.stageId),
         action: stageAction,
         pendingWith: pendingWith,
-        dateOfReturnByUser: this.formatDate(stage.updatedAt),
-        dateOfReceipt: this.formatDate(stage.updatedAt),
+        dateOfReturnByUser: returnInfo.userReturn,
+        dateOfReturnByVendor: returnInfo.vendorReturn,
+        dateOfReceipt: receiptDate,
         acdCcd: this.formatDate(poData.actualDeliveryDate),
         numberOfDaysComplete: Math.max(0, daysDifference),
-        remainingDays: remainingStatus,
+        remainingDays: remainingDaysText,
         orderStatus: orderStatus
       });
     });
@@ -685,73 +744,120 @@ private processStageWiseData(posData: PurchaseOrderData[]): void {
   this.stageWiseRowData = stageWiseData;
 }
 
+// Helper method to calculate order status based on DLP completion
+private calculateOrderStatus(dlpDate: Date | null): string {
+  if (!dlpDate) return 'Open';
+  
+  const today = new Date();
+  return dlpDate <= today ? 'Closed' : 'Open';
+}
+
+// Helper method to calculate shipping document status
+private calculateShippingDocumentStatus(stageStatuses: StageStatus[], uploadedDocuments: any[]): string {
+  // Find shipping document stage (adjust stage ID based on your business logic)
+  const shippingStages = stageStatuses?.filter(stage => 
+    stage.stageId >= 8 && stage.stageId <= 12 // Assuming these are shipping related stages
+  ) || [];
+  
+  // Check if there are uploaded documents for shipping stages
+  const hasShippingDocuments = uploadedDocuments?.some(doc => 
+    doc.stageId >= 8 && doc.stageId <= 12 && doc.status === 'Approved'
+  );
+  
+  if (hasShippingDocuments && shippingStages.some(stage => stage.status === 'Complete')) {
+    return 'Received';
+  } else if (shippingStages.some(stage => stage.status === 'InProgress')) {
+    return 'Partially Received';
+  } else {
+    return 'Pending';
+  }
+}
+
+// Helper method to get return information for documents
+private getReturnInformation(stage: StageStatus, uploadedDocuments: any[]): { userReturn: string, vendorReturn: string } {
+  const stageDocuments = uploadedDocuments?.filter(doc => doc.stageId === stage.stageId) || [];
+  
+  const userReturns: string[] = [];
+  const vendorReturns: string[] = [];
+  
+  stageDocuments.forEach(doc => {
+    if (doc.returnedBy === 'User' && doc.returnDate) {
+      const returnInfo = `${this.formatDate(doc.returnDate)} - ${doc.documentName || doc.fileName}`;
+      userReturns.push(returnInfo);
+    } else if (doc.returnedBy === 'Vendor' && doc.returnDate) {
+      const returnInfo = `${this.formatDate(doc.returnDate)} - ${doc.documentName || doc.fileName}`;
+      vendorReturns.push(returnInfo);
+    }
+  });
+  
+  return {
+    userReturn: userReturns.length > 0 ? userReturns.join(', ') : 'N/A',
+    vendorReturn: vendorReturns.length > 0 ? vendorReturns.join(', ') : 'N/A'
+  };
+}
+
+// Helper method to get receipt date for shipping documents
+private getReceiptDate(stage: StageStatus, uploadedDocuments: any[]): string {
+  // Find shipping document with type 'receipt' that is approved
+  const receiptDocument = uploadedDocuments?.find(doc => 
+    doc.stageId === stage.stageId && 
+    doc.documentType?.toLowerCase().includes('receipt') && 
+    doc.status === 'Approved'
+  );
+  
+  return receiptDocument && receiptDocument.approvedDate 
+    ? this.formatDate(receiptDocument.approvedDate) 
+    : 'N/A';
+}
+
 private getVendorNameByCode(vendorCode: string): string | null {
   const vendor = this.vendors.find(v => v.vendorCode === vendorCode);
   return vendor ? vendor.companyName : null;
 }
-  private getStageTypeName(stageId: number): string {
-    // Map stage IDs to their names - adjust based on your business logic
-    const stageNames: { [key: number]: string } = {
-      1: 'LC',
-      2: 'FF',
-      3: 'CPBG',
-      4: 'Shipping',
-      5: 'Documentation',
-      // Add more stages as needed
-    };
-    return stageNames[stageId] || `Stage ${stageId}`;
-  }
 
-  private getStageAction(stage: StageStatus): string {
-    // Generate action description based on stage status
-    if (stage.status === 'Complete') {
-      return 'Completed';
-    } else if (stage.status === 'InProgress') {
-      return 'In Progress';
-    } else {
-      return 'No Action';
-    }
-  }
+private getStageTypeName(stageId: number): string {
+  // Map stage IDs to their names - adjust based on your business logic
+  const stageNames: { [key: number]: string } = {
+    1: 'LC',
+    2: 'FF',
+    3: 'CPBG',
+    4: 'Shipping',
+    5: 'Documentation',
+    6: 'Insurance',
+    7: 'Customs',
+    8: 'Shipping Documents',
+    9: 'Bill of Lading',
+    10: 'Invoice',
+    11: 'Packing List',
+    12: 'Certificate of Origin'
+    // Add more stages as needed
+  };
+  return stageNames[stageId] || `Stage ${stageId}`;
+}
 
-  private getPendingWith(stage: StageStatus): string {
-    // Determine who the stage is pending with
-    if (stage.status === 'Complete') {
-      return 'N/A';
-    } else if (stage.tncAccepted) {
-      return 'User';
-    } else {
-      return 'Vendor';
-    }
+private getStageAction(stage: StageStatus): string {
+  // Generate action description based on stage status
+  if (stage.status === 'Complete') {
+    return 'Completed';
+  } else if (stage.status === 'InProgress') {
+    return 'In Progress - Pending approval';
+  } else {
+    return 'Draft document returned for correction';
   }
+}
 
-  private calculateCPBGStatus(stageStatuses: StageStatus[]): string {
-    const cpbgRelevantStages = stageStatuses?.filter(stage => 
-      stage.stageId <= 3 && stage.status === 'Complete'
-    ) || [];
-    
-    if (cpbgRelevantStages.length >= 2) {
-      return 'Received';
-    } else if (cpbgRelevantStages.length >= 1) {
-      return 'Partially Received';
-    } else {
-      return 'Not Received';
-    }
+private getPendingWith(stage: StageStatus): string {
+  // Determine who the stage is pending with
+  if (stage.status === 'Complete') {
+    return 'N/A';
+  } else if (stage.actionPendingWith) {
+    return stage.actionPendingWith;
+  } else if (stage.tncAccepted) {
+    return 'User';
+  } else {
+    return 'Vendor';
   }
-
-  private calculateShippingStatus(stageStatuses: StageStatus[]): string {
-    const shippingRelevantStages = stageStatuses?.filter(stage => 
-      stage.stageId >= 8 && stage.stageId <= 12 && stage.status === 'Complete'
-    ) || [];
-    
-    if (shippingRelevantStages.length >= 3) {
-      return 'Received';
-    } else if (shippingRelevantStages.length >= 1) {
-      return 'Partially Received';
-    } else {
-      return 'Pending';
-    }
-  }
-
+}
   private formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     
@@ -767,132 +873,6 @@ private getVendorNameByCode(vendorCode: string): string | null {
     } catch (error) {
       console.error('Error formatting date:', error);
       return 'Invalid Date';
-    }
-  }
-
-  private checkUserTypeAndSetVendor(): void {
-    const userType = localStorage.getItem('userType');
-    const vendorId = localStorage.getItem('userId');
-
-    if (userType === 'vendor' && vendorId) {
-      const parsedVendorId = parseInt(vendorId, 10);
-      if (!isNaN(parsedVendorId)) {
-        this.loadVendorById(parsedVendorId);
-      }
-    }
-  }
-
-  private loadVendorById(vendorId: number): void {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      this.toastService.showToast('error', 'Authentication token not found');
-      return;
-    }
-
-    const url = `${environment.apiUrl}/v1/vendors/${vendorId}`;
-    const headers = { Authorization: `Bearer ${token}` };
-
-    this.http.get<any>(url, { headers }).subscribe({
-      next: vendor => {
-        if (vendor) {
-          this.reportForm.patchValue({ vendor: vendor });
-          this.vendorControl.setValue(vendor, { emitEvent: false });
-          
-          const reportType = this.reportForm.get('reportType')?.value;
-          if (reportType === 'po_stage') {
-            this.onVendorChange(vendor.vendorCode);
-          } else {
-            this.fetchAllPurchaseOrdersData(vendor.vendorCode);
-          }
-        }
-      },
-      error: err => {
-        console.error('Error fetching vendor:', err);
-        this.toastService.showToast('error', 'Error loading vendor');
-      }
-    });
-  }
-
-  onCancel(): void {
-    this.reportForm.reset();
-    this.reportForm.patchValue({ reportType: 'po_stage' });
-    this.vendorControl.setValue('', { emitEvent: false });
-    this.purchaseOrders = [];
-    this.clearAllData();
-    this.filteredVendors$.next(this.vendors);
-  }
-
-  // Get current report data based on selected report type
-  getCurrentRowData(): any[] {
-    const reportType = this.reportForm.get('reportType')?.value;
-    switch (reportType) {
-      case 'po_stage':
-        return this.poStageRowData;
-      case 'all_pos':
-        return this.allPosRowData;
-      case 'stage_wise':
-        return this.stageWiseRowData;
-      default:
-        return [];
-    }
-  }
-
-  // Get current column definitions based on selected report type
-  getCurrentColumnDefs(): ColDef[] {
-    const reportType = this.reportForm.get('reportType')?.value;
-    switch (reportType) {
-      case 'po_stage':
-        return this.poStageColumnDefs;
-      case 'all_pos':
-        return this.allPosColumnDefs;
-      case 'stage_wise':
-        return this.stageWiseColumnDefs;
-      default:
-        return this.poStageColumnDefs;
-    }
-  }
-
-  // Get current report title based on selected report type
-  getCurrentReportTitle(): string {
-    const reportType = this.reportForm.get('reportType')?.value;
-    const reportTypeObj = this.reportTypes.find(rt => rt.value === reportType);
-    return reportTypeObj ? reportTypeObj.label : 'Report';
-  }
-
-  // Check if current report type requires PO selection
-  requiresPoSelection(): boolean {
-    const reportType = this.reportForm.get('reportType')?.value;
-    return reportType === 'po_stage';
-  }
-
-  // Check if current report type requires date range
-  requiresDateRange(): boolean {
-    const reportType = this.reportForm.get('reportType')?.value;
-    return reportType === 'all_pos';
-  }
-
-  // Generate report based on current selections
-  generateReport(): void {
-    const reportType = this.reportForm.get('reportType')?.value;
-    const vendor = this.reportForm.get('vendor')?.value;
-    const po = this.reportForm.get('po')?.value;
-
-    if (!vendor) {
-      this.toastService.showToast('warning', 'Please select a vendor');
-      return;
-    }
-
-    if (reportType === 'po_stage' && !po) {
-      this.toastService.showToast('warning', 'Please select a purchase order');
-      return;
-    }
-
-    // Data is already loaded through form change listeners
-    const currentData = this.getCurrentRowData();
-    if (currentData.length === 0) {
-      this.toastService.showToast('error', 'No data available for the selected criteria');
-    } else {
-      this.toastService.showToast('success', `${currentData.length} records loaded successfully`);
     }
   }
 }

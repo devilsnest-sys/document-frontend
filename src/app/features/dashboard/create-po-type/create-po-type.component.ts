@@ -113,6 +113,8 @@ export class CreatePoTypeComponent {
       const payload = {
         id: 0,
         potypeName: this.poType.value.potypeName?.trim(),
+        createdBy: this.userId, 
+      createdAt: new Date().toISOString(),
       };
 
       this.http
@@ -122,6 +124,7 @@ export class CreatePoTypeComponent {
             console.log('potype Created:', response);
             this.poType.reset();
             this.fetchpotypes();
+           
             this.ToastserviceService.showToast(
               'success',
               'potype Created Successfully'
@@ -180,6 +183,8 @@ export class CreatePoTypeComponent {
     const payload = {
       id: potypeId,
       potypeName: updatedData.potypeName,
+      createdBy: this.userId, 
+      createdAt: new Date().toISOString(),
     };
 
     this.http

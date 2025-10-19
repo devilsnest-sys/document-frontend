@@ -15,24 +15,6 @@ import { Router } from '@angular/router';
   styleUrl: './dashboard-main.component.css'
 })
 export class DashboardMainComponent {
-//   stageNames: { [key: number]: string } = {
-//   1: 'O.A',
-//   2: 'CPBG',
-//   3: 'LC Payment',
-//   4: 'Document Upload',
-//   5: 'Bank LC',
-//   6: 'Shipping Details',
-//   7: 'Dispatch Info',
-//   8: 'Original Shipping',
-//   9: 'Bank LC Upload',
-//   10: 'Bank CAD',
-//   11: 'Payment Advice',
-//   12: 'Credit',
-//   13: 'Document Entry',
-//   14: 'Acceptance',
-//   15: 'Final Approval'
-// };
-
   steps: number[] = Array.from({ length: 15 }, (_, i) => i + 1);
   currentStep = 3;
   stepStatuses: { [key: number]: string } = {};
@@ -46,6 +28,25 @@ export class DashboardMainComponent {
 
   // Add this property to track the selected PO number
   selectedPoNumber: string | null = null;
+// vendor-po.component.ts (or your component file)
+stages = [
+  { id: 1, stageName: 'OA' },
+  { id: 2, stageName: 'CPBG' },
+  { id: 3, stageName: 'LC' },
+  { id: 4, stageName: 'Advance' },
+  { id: 5, stageName: 'Drawing & QAP' },
+  { id: 6, stageName: 'FF' },
+  { id: 7, stageName: 'Draft Shipping' },
+  { id: 8, stageName: 'Original Shipping' },
+  { id: 9, stageName: 'Bank-LC' },
+  { id: 10, stageName: 'Bank-CAD' },
+  { id: 11, stageName: 'Bank-LSC' },
+  { id: 12, stageName: 'Credit' },
+  { id: 13, stageName: 'Imports Clearance' },
+  { id: 14, stageName: 'Acceptance' },
+  { id: 15, stageName: 'Payment' }
+];
+
 
   constructor(
     private fb: FormBuilder,

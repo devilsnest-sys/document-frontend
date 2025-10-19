@@ -9,4 +9,5 @@
     bottom: 0;
     top: unset;
     padding: 10px;
+        z-index: 1;
 }

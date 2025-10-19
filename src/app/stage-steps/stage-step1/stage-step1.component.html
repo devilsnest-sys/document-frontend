@@ -2,71 +2,105 @@
     <h2 class="text-center">Stage 1-OA</h2>
   
     <div class="container mx-auto p-4">
-      <div class="po-container">
-        <div class="po-card" *ngIf="poData.length > 0">
-          <table class="po-table">
-            <tbody>
-              <tr>
-                <td class="field-cell">PO Number</td>
-                <td class="value-cell">{{ poData[0]?.pO_NO || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Description</td>
-                <td class="value-cell">{{ poData[0]?.poDescription || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Actual Delivery Date</td>
-                <td class="value-cell">{{ poData[0]?.actualDeliveryDate || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Contractual Delivery Date</td>
-                <td class="value-cell">{{ poData[0]?.contractualDeliveryDate || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Contact Person</td>
-                <td class="value-cell">{{ poData[0]?.contactPersonName || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Email</td>
-                <td class="value-cell">
-                  <a [href]="'mailto:' + poData[0]?.contactPersonEmailId" class="email-link">
-                    {{ poData[0]?.contactPersonEmailId || 'N/A' }}
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="field-cell">Contact Number</td>
-                <td class="value-cell">{{ poData[0]?.contactNo || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">Incoterms</td>
-                <td class="value-cell">{{ poData[0]?.incotermName || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">PO Type</td>
-                <td class="value-cell">{{ poData[0]?.poTypeName || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="field-cell">PO File Download/View</td>
-                <td class="value-cell">
-                  {{ poData[0]?.poFilePath?.split('\\').pop() || 'N/A' }}
-                  <button
-                    class="btn btn-sm btn-primary ms-2"
-                    (click)="downloadPoFile(poData[0]?.id)"
-                    [disabled]="!poData[0]?.poFilePath"
-                  >
-                    Download
-                  </button>
-                  <button class="btn btn-sm btn-primary ms-2" (click)="viewPoFile(poData[0]?.id)">View PO</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+<div class="po-container">
+  <div class="po-card" *ngIf="poData.length > 0">
+    <div class="po-header">
+      <h2 class="po-title">Purchase Order Details</h2>
+      <div class="po-badge">{{ poData[0]?.pO_NO || 'N/A' }}</div>
+    </div>
+    
+    <div class="po-content">
+      <div class="po-grid">
+        <!-- Basic Information Section -->
+        <div class="po-section">
+          <h3 class="section-title">Basic Information</h3>
+          <div class="info-row">
+            <span class="info-label">Description</span>
+            <span class="info-value">{{ poData[0]?.poDescription || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">PO Type</span>
+            <span class="info-value">{{ poData[0]?.poTypeName || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Incoterms</span>
+            <span class="info-value">{{ poData[0]?.incotermName || 'N/A' }}</span>
+          </div>
         </div>
-  
-        <div *ngIf="loading" class="loading-state">Loading...</div>
-        <div *ngIf="error" class="error-state">{{ error }}</div>
+
+        <!-- Delivery Information Section -->
+        <div class="po-section">
+          <h3 class="section-title">Delivery Information</h3>
+          <div class="info-row">
+            <span class="info-label">Contractual Delivery</span>
+            <span class="info-value date-value">{{ poData[0]?.contractualDeliveryDate || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Actual Delivery</span>
+            <span class="info-value date-value">{{ poData[0]?.actualDeliveryDate || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <!-- Contact Information Section -->
+        <div class="po-section">
+          <h3 class="section-title">Contact Information</h3>
+          <div class="info-row">
+            <span class="info-label">Contact Person</span>
+            <span class="info-value">{{ poData[0]?.contactPersonName || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value">
+              <a [href]="'mailto:' + poData[0]?.contactPersonEmailId" class="email-link">
+                <i class="icon-email"></i>
+                {{ poData[0]?.contactPersonEmailId || 'N/A' }}
+              </a>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Contact Number</span>
+            <span class="info-value">{{ poData[0]?.contactNo || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <!-- Document Section -->
+        <div class="po-section po-section-full">
+          <h3 class="section-title">Document</h3>
+          <div class="document-actions">
+            <div class="file-info">
+              <i class="icon-file"></i>
+              <span class="file-name">{{ poData[0]?.poFilePath?.split('\\').pop() || 'No file available' }}</span>
+            </div>
+            <div class="action-buttons">
+              <button
+                class="btn btn-outline"
+                (click)="downloadPoFile(poData[0]?.id)"
+                [disabled]="!poData[0]?.poFilePath"
+              >
+                <i class="icon-download"></i>
+                Download
+              </button>
+              <button class="btn btn-primary" (click)="viewPoFile(poData[0]?.id)">
+                <i class="icon-view"></i>
+                View PO
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <span>Loading purchase order details...</span>
+  </div>
+  
+  <div *ngIf="error" class="error-state">
+    <i class="icon-error"></i>
+    <span>{{ error }}</span>
+  </div>
+</div>
 
       <!-- Loading State -->
       <div *ngIf="loading" class="text-center p-4">
@@ -79,7 +113,7 @@
       </div>
     </div>
   </div>
-
+<app-staggerd-po *ngIf="!loading && poData[0]?.staggeredOrder === true" [poId]="selectedPoId" [stageId]="1"></app-staggerd-po>
   <app-document-upload [stageNumber]="1"></app-document-upload>
   <app-additional-field-flow [stageNumber]="1"></app-additional-field-flow>
   <app-stage-submit *appUserRole="['user']"  [stageNumber]="1"></app-stage-submit>

@@ -6,3 +6,35 @@
   color: red;
   font-size: 12px;
 }
+/* Styles for multi-select with checkboxes */
+.mat-option .mat-checkbox {
+  margin-right: 8px;
+  pointer-events: none; /* Prevent checkbox from interfering with option click */
+}
+
+.mat-option .mat-checkbox .mat-checkbox-inner-container {
+  margin-right: 8px;
+}
+
+/* Ensure proper spacing for the select all option */
+.mat-option:first-child {
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+}
+
+/* Style for disabled state */
+.mat-option[aria-disabled="true"] .mat-checkbox {
+  opacity: 0.6;
+}
+
+/* Improve visual feedback */
+.mat-option:hover:not([aria-disabled="true"]) {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Custom styling for the select all option */
+.mat-option[value="selectAll"] {
+  font-weight: 500;
+  background-color: #f5f5f5;
+}

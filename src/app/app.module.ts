@@ -78,6 +78,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserRoleStageDirective } from './shared/directives/user-role-stage.directive';
 import { TrimInputDirective } from './shared/directives/trim-input.directive';
 import { ReportsComponent } from './features/reports/reports.component';
+import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po.component';
 
 
 
@@ -125,7 +126,8 @@ import { ReportsComponent } from './features/reports/reports.component';
     StageStep15Component,
     UserRoleStageDirective,
     TrimInputDirective,
-    ReportsComponent
+    ReportsComponent,
+    StaggerdPoComponent
     
   ],
   imports: [

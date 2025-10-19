@@ -32,6 +32,7 @@ import { CreatePoTypeComponent } from './features/dashboard/create-po-type/creat
 import { TermsandconditionComponent } from './shared/components/termsandcondition/termsandcondition.component';
 import { PasswordResetComponent } from './features/password-reset/password-reset.component';
 import { ReportsComponent } from './features/reports/reports.component';
+import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
@@ -67,6 +68,7 @@ const routes: Routes = [
   { path: 'tnc', component: TermsandconditionComponent },
   { path: 'resetpassword', component: PasswordResetComponent },
   {path: 'reports', component: ReportsComponent},
+  {path: 'staggered', component: StaggerdPoComponent},
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }

@@ -91,6 +91,7 @@ export class StageStep1Component implements OnInit {
           !Array.isArray(response)
         ) {
           this.poData = [response];
+          this.selectedPoId = response.id;
         } else if (Array.isArray(response)) {
           this.poData = response;
         } else {
