@@ -176,6 +176,7 @@ onVendorSelect(event: any): void {
   }
 
   onVendorChange(vendorCode: string | null): void {
+     
     if (!vendorCode) return;
     const token = localStorage.getItem('authToken');
     if (!token) return;
@@ -234,6 +235,7 @@ onVendorSelect(event: any): void {
   }
 
   onPoSelectionChange(): void {
+    this.fetchStages();
     // Refresh document selection data when PO is changed
     if (this.selectedPoNumber && this.allStages) {
       // First fetch document selection data, then fetch document types
@@ -274,8 +276,11 @@ onVendorSelect(event: any): void {
   fetchStages(): void {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-    this.http.get<{ id: number; name: string }[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
+ // Use the new API with PO ID
+  const po = this.purchaseOrders.find(p => p.pO_NO === this.selectedPoNumber);
+  if (!po) return;
+   const url = `${environment.apiUrl}/v1/stages/GetStagesByPoId/${po.id}`;
+   this.http.get<{ id: number; stageName: string }[]>(url, { headers }).subscribe({
       next: (stages) => {
         this.allStages = stages;
         this.setupGridColumns(stages);
@@ -290,7 +295,7 @@ onVendorSelect(event: any): void {
     });
   }
 
-  setupGridColumns(stages: { id: number; name: string }[]): void {
+  setupGridColumns(stages: { id: number; stageName: string }[]): void {
     this.columnDefs = [
       { field: 'id', headerName: 'Sr. No', valueGetter: 'node.rowIndex + 1', sortable: false },
       { field: 'documentName', headerName: 'Document Name', filter: 'agTextColumnFilter' },
@@ -298,7 +303,7 @@ onVendorSelect(event: any): void {
 
     stages.forEach((stage) => {
       this.columnDefs.push({
-        headerName: stage.name,
+        headerName: stage.stageName,
         field: `stage${stage.id}`,
         cellRenderer: this.checkboxRenderer,
         editable: false,
@@ -309,7 +314,7 @@ onVendorSelect(event: any): void {
     });
   }
 
-  fetchDocumentTypes(stages: { id: number; name: string }[]): void {
+  fetchDocumentTypes(stages: { id: number; stageName: string }[]): void {
     if (!this.selectedPoNumber) {
       console.warn('No PO selected');
       return;
