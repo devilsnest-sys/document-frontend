@@ -51,7 +51,6 @@ interface PurchaseOrder {
   stageStatuses: any[];
   staggeredDataList: any[] | null;
   uploadedDocumentFlow: any[] | null;
-  poForstageId:any[] | null;
 }
 
 @Component({
@@ -62,7 +61,6 @@ interface PurchaseOrder {
 })
 export class OrderacknowledgementComponent {
   @ViewChild('fileInput') fileInput!: ElementRef;
-  stages: Array<{ id: number; stageName: string }> = [];
   poForm: FormGroup;
   editPoForm: FormGroup;
   rowData: any[] = [];
@@ -155,8 +153,7 @@ export class OrderacknowledgementComponent {
       cpbgDueDate: ['', Validators.required],
       dlpDueDate: ['', Validators.required],
       isStaggered: [false],
-      staggeredDataList: this.fb.array([]),
-      POForstageId: [[], Validators.required], //for stage
+      staggeredDataList: this.fb.array([])
     });
 
     // Initialize edit form
@@ -176,8 +173,7 @@ export class OrderacknowledgementComponent {
       actualDeliveryDate: ['', Validators.required],
       shippingDate: ['', Validators.required],
       cpbgDueDate: ['', Validators.required],
-      dlpDueDate: ['', Validators.required],
-      POForstageId: [[]], // ✅ add this
+      dlpDueDate: ['', Validators.required]
     });
   }
 
@@ -188,25 +184,10 @@ export class OrderacknowledgementComponent {
     this.fetchVendors();
     this.fetchAllPurchaseOrders();
     this.userId = this.authService.getUserId();
-    this.fetchStages();  //for stages
+    
     // Initialize with one staggered item by default
     this.addStaggeredItem();
   }
-
-fetchStages(): void {
-  const token = localStorage.getItem('authToken');
-  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-  this.http.get<any[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
-    next: (response) => {
-      this.stages = response;
-      console.log('Stages fetched successfully:', this.stages);
-    },
-    error: (error) => {
-      console.error('Error fetching stages:', error);
-    }
-  });
-}
 
   get staggeredDataList() {
     return this.poForm.get('staggeredDataList') as FormArray;
@@ -325,13 +306,7 @@ fetchStages(): void {
       actualDeliveryDate: actualDate,
       shippingDate: shippingDate,
       cpbgDueDate: cpbgDate,
-      dlpDueDate: dlpDate,
-   POForstageId: Array.isArray(po.poForstageId)
-  ? (po.poForstageId as any[]).map(id => Number(id))
-  : (typeof po.poForstageId === 'string'
-      ? (po.poForstageId as string).split(',').map(id => Number(id))
-      : [])
-
+      dlpDueDate: dlpDate
     });
   }
 
@@ -353,7 +328,6 @@ fetchStages(): void {
       cpbgDueDate: formValues.cpbgDueDate ? new Date(formValues.cpbgDueDate).toISOString() : null,
       dlpDueDate: formValues.dlpDueDate ? new Date(formValues.dlpDueDate).toISOString() : null,
       modifiedAt: new Date().toISOString(),
-      poForstageId: this.editPoForm.value.POForstageId?.join(','),
       modifiedBy: parseInt(this.userId || '0')
     };
 
@@ -490,8 +464,7 @@ fetchStages(): void {
       dlpDueDate: this.poForm.value.dlpDueDate.toISOString(),
       stageStatuses: [],
       staggeredDataList: staggeredData,
-      uploadedDocumentFlow: [],
-      POForstageId: this.poForm.value.POForstageId.join(',') //for
+      uploadedDocumentFlow: []
     };
 
     // Build FormData
@@ -658,47 +631,4 @@ fetchStages(): void {
         console.error('Error downloading document:', error);
       });
   }
-
-  // for stage
- isAllStageSelected(): boolean {
-  const selected = this.poForm.get('POForstageId')?.value || [];
-  return selected.length === this.stages.length;
-}
-
-isStageIndeterminate(): boolean {
-  const selected = this.poForm.get('POForstageId')?.value || [];
-  return selected.length > 0 && selected.length < this.stages.length;
-}
-
-toggleAllStageSelection(): void {
-  const allSelected = this.isAllStageSelected();
-  if (allSelected) {
-    this.poForm.get('POForstageId')?.setValue([]);
-  } else {
-    this.poForm.get('POForstageId')?.setValue(this.stages.map((s: any) => s.id));
-  }
-}
-
-togglePerStage(stageId: number): void {
-  const current = this.poForm.get('POForstageId')?.value || [];
-  if (current.includes(stageId)) {
-    this.poForm.get('POForstageId')?.setValue(current.filter((id: number) => id !== stageId));
-  } else {
-    this.poForm.get('POForstageId')?.setValue([...current, stageId]);
-  }
-}
-
-isStageChecked(stageId: number): boolean {
-  const current = this.poForm.get('POForstageId')?.value || [];
-  return current.includes(stageId);
-}
-
-onSelectionChange(event: any): void {
-  const selected = this.poForm.get('POForstageId')?.value || [];
-  if (this.isAllStageSelected()) {
-    this.poForm.get('POForstageId')?.setValue(this.stages.map((s: any) => s.id));
-  } else if (selected.includes('selectAll')) {
-    this.poForm.get('POForstageId')?.setValue([]);
-  }
-}
 }
