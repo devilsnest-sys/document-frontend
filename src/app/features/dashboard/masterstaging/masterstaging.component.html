@@ -25,7 +25,7 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Stage Name</mat-label>
               <mat-icon matPrefix>star</mat-icon>
-              <input appTrimInput matInput formControlName="stageName" placeholder="Enter stage name" required />
+              <input appTrimInput matInput formControlName="stageName" required />
               <mat-error *ngIf="
                   stageForm.controls['stageName'].invalid &&
                   stageForm.controls['stageName'].touched

@@ -43,6 +43,59 @@
   min-width: 150px; /* Increase width */
 }
 
+.document-upload-container {
+    padding: 1rem;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .group-header:hover {
+    background-color: #e9ecef !important;
+  }
+
+  .document-row {
+    transition: background-color 0.2s;
+  }
+
+  .document-row:hover {
+    background-color: #f8f9fa;
+  }
+
+  .upload-row {
+    border-left: 3px solid #0d6efd;
+  }
+
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .loading-spinner {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .empty-state {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .material-icons {
+    vertical-align: middle;
+  }
+
+  .btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+  }
 /* Increase Specific Column Widths (Customize as needed) */
 .table th:nth-child(1) { min-width: 80px; } /* Sr No. */
 .table th:nth-child(2) { min-width: 220px; } /* Document Name */

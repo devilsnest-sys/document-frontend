@@ -23,7 +23,7 @@
     <div class="card-body">
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
-          <div class="col-lg-4">
+          <div class="col-lg-4 d-none">
             <!-- Username - Show dropdown in edit mode, input in create mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
@@ -65,7 +65,7 @@
 
           <div class="col-lg-4">
             <!-- Vendor Code - Disabled in edit mode -->
-            <mat-form-field appearance="fill" class="full-width">
+            <!-- <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>code</mat-icon>
               <mat-label>Vendor Code</mat-label>
               <input appTrimInput 
@@ -78,6 +78,11 @@
                 *ngIf="registrationForm.get('vendorCode')?.touched && registrationForm.get('vendorCode')?.invalid && !isEditMode">
                 <small>Vendor Code is required.</small>
               </mat-error>
+            </mat-form-field> -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-icon matPrefix>code</mat-icon>
+              <mat-label>Vendor Code</mat-label>
+              <input appTrimInput matInput formControlName="vendorCode" readonly placeholder="Auto-generated Vendor Code" [disabled]="true" />
             </mat-form-field>
           </div>
 
@@ -132,13 +137,13 @@
           </div>
     
           <!-- Fax - Always editable -->
-          <div class="col-lg-4">
+          <!-- <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>print</mat-icon>
               <mat-label>Fax</mat-label>
               <input appTrimInput matInput formControlName="fax" />
             </mat-form-field>
-          </div>
+          </div> -->
     
           <!-- Email - Always editable -->
           <div class="col-lg-4">
@@ -226,7 +231,7 @@
           </div>
     
           <!-- Contact Phone 2 - Disabled in edit mode -->
-          <div class="col-lg-4">
+          <!-- <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>smartphone</mat-icon>
               <mat-label>Contact Phone 2</mat-label>
@@ -236,10 +241,10 @@
                 [placeholder]="isEditMode ? 'Contact Phone 2 cannot be edited' : ''" 
               />
             </mat-form-field>
-          </div>
+          </div> -->
     
           <!-- Password - Disabled in edit mode -->
-          <div class="col-lg-4">
+          <div class="col-lg-4 d-none">
             <mat-form-field appearance="fill" class="full-width">
               <mat-icon matPrefix>lock</mat-icon>
               <mat-label>Password</mat-label>

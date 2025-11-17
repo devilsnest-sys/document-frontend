@@ -1,9 +1,96 @@
+/* Tab Navigation Styles */
+.tab-navigation {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.tab-btn.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Tab Icons */
+.icon-file::before { content: '📄'; margin-right: 4px; }
+.icon-details::before { content: '📋'; margin-right: 4px; }
+.icon-fields::before { content: '📝'; margin-right: 4px; }
+
+/* Tab Content */
+.tab-content {
+  min-height: 400px;
+  margin-bottom: 24px;
+}
+
+.tab-pane {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Submit Section */
+.submit-section {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 20px 0;
+  border-top: 2px solid #e2e8f0;
+  margin-top: 32px;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
 /* Container and Card Styles */
 .po-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -249,7 +336,6 @@
 
 /* Icon Styles */
 .icon-email::before { content: '✉'; }
-.icon-file::before { content: '📄'; }
 .icon-download::before { content: '⬇'; }
 .icon-view::before { content: '👁'; }
 .icon-error::before { content: '⚠'; }
@@ -296,8 +382,17 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .tab-navigation {
+    gap: 4px;
+  }
+  
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
   .po-container {
-    padding: 16px;
+    padding: 0;
   }
   
   .po-header {
@@ -342,9 +437,13 @@
   .info-value {
     text-align: left;
   }
+  
+  .submit-section {
+    padding: 16px 0;
+  }
 }
 
-/* Action Button Styles from Original */
+/* Action Button Styles */
 ::ng-deep .btn-action {
   background: none;
   border: none;
@@ -374,6 +473,14 @@
 
 /* Print Styles */
 @media print {
+  .tab-navigation {
+    display: none;
+  }
+  
+  .submit-section {
+    display: none;
+  }
+  
   .po-container {
     max-width: none;
     padding: 0;

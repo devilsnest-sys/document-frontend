@@ -79,6 +79,7 @@ import { UserRoleStageDirective } from './shared/directives/user-role-stage.dire
 import { TrimInputDirective } from './shared/directives/trim-input.directive';
 import { ReportsComponent } from './features/reports/reports.component';
 import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po.component';
+import { AllStagesDocumentsComponent } from './shared/components/all-stages-documents/all-stages-documents.component';
 
 
 
@@ -127,7 +128,8 @@ import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po
     UserRoleStageDirective,
     TrimInputDirective,
     ReportsComponent,
-    StaggerdPoComponent
+    StaggerdPoComponent,
+    AllStagesDocumentsComponent
     
   ],
   imports: [

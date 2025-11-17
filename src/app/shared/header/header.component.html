@@ -1,21 +1,175 @@
-<div class="title-header-bar">
-  <div class="header-left">
-    <img [src]="logoUrl" alt="Logo" class="logo-img">
-  </div>
-  <div class="header-center">
-    <h1 class="header-title">{{ headerTitle }}</h1>
-  </div>
-  <div class="header-right">
-    <div class="user-info-area" *ngIf="isLoggedIn">
-      <div class="user-avatar">
+<div class="modern-header" *ngIf="isLoggedIn">
+  <div class="header-container">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <img [src]="logoUrl" alt="Logo" class="logo-img">
+      <h1 class="brand-title">{{ headerTitle }}</h1>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="nav-menu">
+      <ul class="menu-list">
+        <li class="menu-item">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+            <mat-icon>dashboard</mat-icon>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li class="menu-item" *appUserRole="['user']">
+          <a routerLink="/orderAcknowledgement" routerLinkActive="active" class="nav-link">
+            <mat-icon>receipt_long</mat-icon>
+            <span>PO Number</span>
+          </a>
+        </li>
+
+        <li class="menu-item" *appUserRole="['user']">
+          <a routerLink="/registration" routerLinkActive="active" class="nav-link">
+            <mat-icon>person_add</mat-icon>
+            <span>User Registration</span>
+          </a>
+        </li>
+
+        <li class="menu-item" *appUserRole="['user']">
+          <a routerLink="/vendorRegistration" routerLinkActive="active" class="nav-link">
+            <mat-icon>business</mat-icon>
+            <span>Vendor Registration</span>
+          </a>
+        </li>
+
+        <li class="menu-item" *appUserRole="['user']">
+          <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+            <mat-icon>assessment</mat-icon>
+            <span>Reports</span>
+          </a>
+        </li>
+
+        <!-- Masters Dropdown -->
+        <li class="menu-item dropdown-container" *appUserRole="['user']">
+          <a class="nav-link">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>Masters</span>
+            <mat-icon class="dropdown-icon">expand_more</mat-icon>
+          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a routerLink="/master" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>folder</mat-icon>
+                <span>Stage Master</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/masterDocument" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>folder_open</mat-icon>
+                <span>Document Master</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/additionalField" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>edit_note</mat-icon>
+                <span>Additional Field</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/additionalFieldSelection" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>check_circle</mat-icon>
+                <span>Field Selection</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/documentSelection" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>description</mat-icon>
+                <span>Document Selection</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/incoterms" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>local_shipping</mat-icon>
+                <span>Incoterms</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/potype" routerLinkActive="active" class="dropdown-link">
+                <mat-icon>category</mat-icon>
+                <span>PO Type</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- User Profile Section -->
+    <div class="user-section">
+      <div class="user-profile">
         <div class="avatar-circle">
-          <span>{{ userName?.charAt(0) || 'U' }}</span>
+          <span>{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ userName || 'User' }}</span>
+          <span class="user-role">Admin</span>
         </div>
       </div>
-      <div class="user-details">
-        <p class="user-name">{{ userName || 'User' }}</p>
-      </div>
-    <button *ngIf="!isLoggedIn" (click)="login()" class="btn btn-primary">Login</button>
-    <!-- <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-outline-danger">Logout</button> -->
+      <button (click)="logout()" class="logout-btn" title="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+      <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+  </div>
+
+  <!-- Mobile Navigation -->
+  <div class="mobile-nav" [class.open]="isMobileMenuOpen">
+    <ul class="mobile-menu-list">
+      <li>
+        <a routerLink="/dashboard" (click)="closeMobileMenu()" class="mobile-link">
+          <mat-icon>dashboard</mat-icon>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li *appUserRole="['user']">
+        <a routerLink="/orderAcknowledgement" (click)="closeMobileMenu()" class="mobile-link">
+          <mat-icon>receipt_long</mat-icon>
+          <span>PO Number</span>
+        </a>
+      </li>
+      <li *appUserRole="['user']">
+        <a routerLink="/registration" (click)="closeMobileMenu()" class="mobile-link">
+          <mat-icon>person_add</mat-icon>
+          <span>User Registration</span>
+        </a>
+      </li>
+      <li *appUserRole="['user']">
+        <a routerLink="/vendorRegistration" (click)="closeMobileMenu()" class="mobile-link">
+          <mat-icon>business</mat-icon>
+          <span>Vendor Registration</span>
+        </a>
+      </li>
+      <li *appUserRole="['user']">
+        <a routerLink="/reports" (click)="closeMobileMenu()" class="mobile-link">
+          <mat-icon>assessment</mat-icon>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li class="mobile-dropdown" *appUserRole="['user']">
+        <button (click)="toggleMobileMasters()" class="mobile-link">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Masters</span>
+          <mat-icon class="dropdown-icon">{{ isMobileMastersOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        <ul class="mobile-submenu" [class.open]="isMobileMastersOpen">
+          <li><a routerLink="/master" (click)="closeMobileMenu()">Stage Master</a></li>
+          <li><a routerLink="/masterDocument" (click)="closeMobileMenu()">Document Master</a></li>
+          <li><a routerLink="/additionalField" (click)="closeMobileMenu()">Additional Field</a></li>
+          <li><a routerLink="/additionalFieldSelection" (click)="closeMobileMenu()">Field Selection</a></li>
+          <li><a routerLink="/documentSelection" (click)="closeMobileMenu()">Document Selection</a></li>
+          <li><a routerLink="/incoterms" (click)="closeMobileMenu()">Incoterms</a></li>
+          <li><a routerLink="/potype" (click)="closeMobileMenu()">PO Type</a></li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </div>

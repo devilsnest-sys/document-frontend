@@ -14,36 +14,40 @@ export class VendorRegistrationComponent implements OnInit {
   registrationForm!: FormGroup;
   isSubmitting = false;
   selectedFile: File | null = null;
-  vendorList: Array<{ username: string; id?: number; [key: string]: any }> = [];
+  vendorList: Array<{ username: string; id?: number;[key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedVendorId: number | null = null;
 
   constructor(
-    private fb: FormBuilder, 
-    private vendorService: VendorService, 
+    private fb: FormBuilder,
+    private vendorService: VendorService,
     private toastservice: ToastserviceService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initializeForm();
+    if (!this.isEditMode) {
+      const vendorCode = this.generateVendorCode();
+      this.registrationForm.patchValue({ vendorCode });
+    }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      vendorCode: ['', Validators.required],
+      vendorCode: [''],
       companyName: ['', Validators.required],
       mailingAddress: ['', Validators.required],
       telephone: ['', Validators.required],
-      fax: [''],
+      // fax: [''],
       email: ['', [Validators.required, Validators.email]],
       website: [''],
       contactNameTitle: ['', Validators.required],
       contactEmail: ['', [Validators.required, Validators.email]],
       contactPhone1: ['', Validators.required],
-      contactPhone2: [''],
+      // contactPhone2: [''],
       generalDetails: [''],
       username: ['', Validators.required],
-      HashedPassword: ['', [Validators.required, Validators.minLength(6)]],
+      HashedPassword: [''],
       userType: "vendor",
       salt: ['']
     });
@@ -51,7 +55,7 @@ export class VendorRegistrationComponent implements OnInit {
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
-    
+
     if (this.isEditMode) {
       this.fetchVendors(); // Load vendors when entering edit mode
       this.registrationForm.reset(); // Clear form
@@ -80,10 +84,10 @@ export class VendorRegistrationComponent implements OnInit {
 
     // Find the selected vendor
     const selectedVendor = this.vendorList.find(vendor => vendor.username === username);
-    
+
     if (selectedVendor && selectedVendor.id) {
       this.selectedVendorId = selectedVendor.id;
-      
+
       // Get vendor details by ID and populate form
       this.vendorService.getVendorById(selectedVendor.id).subscribe({
         next: (vendorData) => {
@@ -104,13 +108,13 @@ export class VendorRegistrationComponent implements OnInit {
       companyName: vendorData.companyName,
       mailingAddress: vendorData.mailingAddress,
       telephone: vendorData.telephone,
-      fax: vendorData.fax || '',
+      // fax: vendorData.fax || '',
       email: vendorData.email,
       website: vendorData.website || '',
       contactNameTitle: vendorData.contactNameTitle,
       contactEmail: vendorData.contactEmail,
       contactPhone1: vendorData.contactPhone1,
-      contactPhone2: vendorData.contactPhone2 || '',
+      // contactPhone2: vendorData.contactPhone2 || '',
       generalDetails: vendorData.generalDetails || '',
       username: vendorData.username,
       HashedPassword: '', // Don't populate password for security
@@ -127,16 +131,16 @@ export class VendorRegistrationComponent implements OnInit {
     this.registrationForm.get('contactNameTitle')?.disable();
     this.registrationForm.get('contactEmail')?.disable();
     this.registrationForm.get('contactPhone1')?.disable();
-    this.registrationForm.get('contactPhone2')?.disable();
+    // this.registrationForm.get('contactPhone2')?.disable();
     this.registrationForm.get('generalDetails')?.disable();
     this.registrationForm.get('username')?.disable();
     this.registrationForm.get('HashedPassword')?.disable();
     this.registrationForm.get('userType')?.disable();
     this.registrationForm.get('salt')?.disable();
-    
+
     // Keep these fields enabled for editing
     this.registrationForm.get('telephone')?.enable();
-    this.registrationForm.get('fax')?.enable();
+    // this.registrationForm.get('fax')?.enable();
     this.registrationForm.get('email')?.enable();
     this.registrationForm.get('website')?.enable();
   }
@@ -145,7 +149,7 @@ export class VendorRegistrationComponent implements OnInit {
     if (this.registrationForm.valid || (this.isEditMode && this.isEditFormValid())) {
       this.isSubmitting = true;
       const token = localStorage.getItem('authToken');
-      
+
       if (!token) {
         this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
         this.isSubmitting = false;
@@ -157,16 +161,18 @@ export class VendorRegistrationComponent implements OnInit {
       if (this.isEditMode && this.selectedVendorId) {
         // Update existing vendor
         payload.id = this.selectedVendorId;
-        
+
         this.vendorService.updateVendor(payload, token).subscribe({
           next: (response) => {
-            console.log('Vendor updated successfully:', response);
-            this.isSubmitting = false;
-            this.toastservice.showToast('success', 'Vendor Updated Successfully');
-            this.registrationForm.reset();
-            this.initializeForm();
-            this.isEditMode = false;
-            this.selectedVendorId = null;
+            // console.log('Vendor updated successfully:', response);
+            // this.isSubmitting = false;
+            // this.toastservice.showToast('success', 'Vendor Updated Successfully');
+            // this.registrationForm.reset();
+            // this.initializeForm();
+            // this.isEditMode = false;
+            // this.selectedVendorId = null;
+          this.toastservice.showToast('success', 'Vendor Updated Successfully');
+          this.resetFormState();
           },
           error: (error) => {
             console.error('Error updating vendor:', error);
@@ -176,6 +182,11 @@ export class VendorRegistrationComponent implements OnInit {
         });
       } else {
         // Create new vendor
+        const generatedPassword = this.generateRandomPassword(10);
+        const vendorCode = this.generateVendorCode();
+        payload.HashedPassword = generatedPassword;
+        payload.vendorCode = vendorCode;
+        payload.username = vendorCode;
         this.vendorService.registerVendor(payload).subscribe(
           (response) => {
             console.log('Vendor registered successfully:', response);
@@ -201,7 +212,7 @@ export class VendorRegistrationComponent implements OnInit {
   isEditFormValid(): boolean {
     const telephoneControl = this.registrationForm.get('telephone');
     const emailControl = this.registrationForm.get('email');
-    
+
     return !!(telephoneControl?.valid && emailControl?.valid && this.selectedVendorId);
   }
 
@@ -211,10 +222,36 @@ export class VendorRegistrationComponent implements OnInit {
       this.selectedFile = file;
     }
   }
-  
+
+  private generateRandomPassword(length: number = 10): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
+  private generateVendorCode(): string {
+    const timestamp = Date.now().toString().slice(-6); // take last 6 digits for compactness
+    return `VEN00${timestamp}`;
+  }
+
+  private resetFormState(): void {
+    this.isSubmitting = false;
+    this.registrationForm.reset();
+    this.initializeForm();
+    const vendorCode = this.generateVendorCode();
+    this.registrationForm.patchValue({ vendorCode }); // refresh for next entry
+    this.isEditMode = false;
+    this.selectedVendorId = null;
+  }
+
+
+
   checkEmailExists(email: string, type: string = 'vendor'): void {
     if (!email || this.isEditMode) return;
-   
+
     this.vendorService.checkEmailExists(email, type).subscribe(
       response => {
         if (response.exists) {
@@ -233,7 +270,7 @@ export class VendorRegistrationComponent implements OnInit {
 
   checkUsernameExists(username: string, type: string = 'vendor'): void {
     if (!username || this.isEditMode) return;
-  
+
     this.vendorService.checkUsernameExists(username, type).subscribe(
       response => {
         if (response.exists) {
@@ -251,7 +288,7 @@ export class VendorRegistrationComponent implements OnInit {
       this.toastservice.showToast('error', 'Upload Failed', 'Please select a file first.');
       return;
     }
-  
+
     Swal.fire({
       title: 'Are you sure?',
       text: 'Do you want to upload this file? This action cannot be undone!',

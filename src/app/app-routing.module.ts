@@ -34,6 +34,7 @@ import { PasswordResetComponent } from './features/password-reset/password-reset
 import { ReportsComponent } from './features/reports/reports.component';
 import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { AllStagesDocumentsComponent } from './shared/components/all-stages-documents/all-stages-documents.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -69,6 +70,10 @@ const routes: Routes = [
   { path: 'resetpassword', component: PasswordResetComponent },
   {path: 'reports', component: ReportsComponent},
   {path: 'staggered', component: StaggerdPoComponent},
+  {
+  path: 'all-documents/:poNumber',
+  component: AllStagesDocumentsComponent
+  },
   // { path: 'master', component: MasterstagingComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/login' }
