@@ -14,11 +14,11 @@ import { ActivatedRoute } from '@angular/router';
 interface DocumentType {
   id: number;
   documentName: string;
-  createdAt: string;
-  createdBy: number;
-  updatedAt: string;
-  updatedBy: number;
-  isDeleted: boolean;
+  createdAt?: string;
+  createdBy?: number;
+  updatedAt?: string;
+  updatedBy?: number;
+  isDeleted?: boolean;
 }
 
 interface UploadedDocument {
@@ -59,6 +59,11 @@ interface DocumentReviewPayload {
   docReviewDate: string;
 }
 
+// New interface for the API response
+interface DocumentsByPoGroupResponse {
+  [stageId: string]: DocumentType[];
+}
+
 @Component({
   selector: 'app-document-upload',
   standalone: false,
@@ -79,15 +84,18 @@ export class DocumentUploadComponent implements OnInit {
   poID: string | null = null;
   poNumber: string = '';
   
-  constructor(private http: HttpClient, private toasService : ToastserviceService, private route: ActivatedRoute,) {}
+  constructor(
+    private http: HttpClient, 
+    private toasService: ToastserviceService, 
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
-   
-    console.log('this is stage number',this.stageNumber);
+    console.log('this is stage number', this.stageNumber);
 
     this.poID = this.route.snapshot.paramMap.get('poNumber');
-    console.log('this is PO ID',this.poID);
+    console.log('this is PO ID', this.poID);
     this.fetchDPoNo();
   }
 
@@ -97,8 +105,8 @@ export class DocumentUploadComponent implements OnInit {
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
   }
+
   isGroupVisible(group: any): boolean {
-    // Return false if any document is approved
     if (
       group.uploadedDocuments.some(
         (doc: { isApproved: boolean }) => doc.isApproved
@@ -107,7 +115,6 @@ export class DocumentUploadComponent implements OnInit {
       return false;
     }
 
-    // Return true if any document is rejected or group has no documents and is expanded
     return (
       group.uploadedDocuments.some(
         (doc: { isRejected: boolean }) => doc.isRejected
@@ -118,114 +125,124 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   fetchDPoNo(): void {
-  this.isLoading = true;
-  this.errorMessage = '';
+    this.isLoading = true;
+    this.errorMessage = '';
 
-  this.http
-    .get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poID}`, {
-      headers: this.getHeaders(),
-    })
-    .pipe(
-      catchError(this.handleError.bind(this)),
-      finalize(() => (this.isLoading = false))
-    )
-    .subscribe({
-      next: (response) => {
-        console.log('Fetched PO details:', response);
-
-        this.poNumber = response.pO_NO; 
-        console.log("this is po number", this.poNumber ) // <- extract the PO number from response
-        this.documentTypes = response.documentTypes || [];
- this.fetchDocumentTypes();
-        this.documentTypes.forEach((docType) => {
-          this.expandedGroups[docType.id] = false;
-        });
-
-        this.fetchUploadedDocuments(); // now this.poNumber has the correct value
-      },
-    });
-}
+    this.http
+      .get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poID}`, {
+        headers: this.getHeaders(),
+      })
+      .pipe(
+        catchError(this.handleError.bind(this)),
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Fetched PO details:', response);
+          this.poNumber = response.pO_NO;
+          console.log('this is po number', this.poNumber);
+          
+          // Initialize documentTypes if available in response
+          this.documentTypes = response.documentTypes || [];
+          
+          // Fetch document types using the new API
+          this.fetchDocumentTypes();
+          
+          this.documentTypes.forEach((docType) => {
+            this.expandedGroups[docType.id] = false;
+          });
+        },
+      });
+  }
 
   fetchDocumentTypes(): void {
-  this.isLoading = true;
-  this.errorMessage = '';
+    if (!this.poNumber) {
+      console.error('PO Number is not available yet');
+      return;
+    }
 
-  this.http
-    .get<DocumentType[]>(
-      `${environment.apiUrl}/v1/document-selection/document/${this.stageNumber}?poNo=${this.poNumber}`,
-      { headers: this.getHeaders() }
-    )
-    .pipe(
-      catchError((error: HttpErrorResponse) => {
-        // Check if it's a 404 error specifically for no document types
-        if (error.status === 404) {
-          // Option 1: Show user-friendly message
-          // this.errorMessage = 'No document type is selected for this stage';
-          // this.documentTypes = []; // Set empty array
-          // this.groupedDocuments = []; // Clear grouped documents
-          // return throwError(() => new Error('No document types found'));
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // Updated API endpoint
+    this.http
+      .get<DocumentsByPoGroupResponse>(
+        `${environment.apiUrl}/v1/document-selection/documents-by-po-Group?poNo=${this.poNumber}`,
+        { headers: this.getHeaders() }
+      )
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            console.log('No documents found (404), setting empty state');
+            this.documentTypes = [];
+            this.groupedDocuments = [];
+            return of({} as DocumentsByPoGroupResponse);
+          }
+          return this.handleError(error);
+        }),
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Fetched documents by PO group:', response);
           
-          // Option 2: Handle silently without error message (uncomment below and comment above)
-          this.documentTypes = [];
-          this.groupedDocuments = [];
-          return of([]); // Return empty array to complete the observable
+          // Extract documents for the current stage
+          const stageKey = this.stageNumber.toString();
+          
+          if (response && response[stageKey] && Array.isArray(response[stageKey])) {
+            this.documentTypes = response[stageKey];
+            console.log(`Documents for stage ${this.stageNumber}:`, this.documentTypes);
+          } else {
+            console.log(`No documents found for stage ${this.stageNumber}`);
+            this.documentTypes = [];
+          }
+          
+          // Initialize expanded state for each document type
+          this.documentTypes.forEach((docType) => {
+            this.expandedGroups[docType.id] = false;
+          });
+          
+          // Fetch uploaded documents
+          this.fetchUploadedDocuments();
+        },
+        error: (error) => {
+          console.error('Error fetching document types:', error);
         }
-        // For other errors, use the existing error handler
-        return this.handleError(error);
-      }),
-      finalize(() => (this.isLoading = false))
-    )
-    .subscribe({
-      next: (documentTypes) => {
-        console.log('Fetched document types:', documentTypes);
-        this.documentTypes = documentTypes;
-        // Initialize expanded state for each document type
-        this.documentTypes.forEach((docType) => {
-          this.expandedGroups[docType.id] = false;
-        });
-        this.fetchUploadedDocuments();
-      },
-      error: (error) => {
-        // Error is already handled in catchError, but we can log it here if needed
-        console.error('Error fetching document types:', error);
-      }
-    });
-}
+      });
+  }
 
+  fetchUploadedDocuments(): void {
+    this.isLoading = true;
+    const payload = {
+      stageId: this.stageNumber,
+      PoId: this.poID
+    };
 
-
-
-
-fetchUploadedDocuments(): void {
-  this.isLoading = true;
-  const payload = {
-    stageId: this.stageNumber,
-    PoId: this.poID  // ✅ Now has correct value
-  };
-
-  this.http
-    .post<UploadedDocument[]>(
-      `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
-      payload,
-      { headers: this.getHeaders() }
-    )
-    .subscribe({
-      next: (uploadedDocs) => {
-        console.log('Fetched uploaded documents:', uploadedDocs);
-        this.uploadedDocuments = uploadedDocs;
-        this.groupDocuments();
-      },
-    });
-}
-
+    this.http
+      .post<UploadedDocument[]>(
+        `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
+        payload,
+        { headers: this.getHeaders() }
+      )
+      .pipe(
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe({
+        next: (uploadedDocs) => {
+          console.log('Fetched uploaded documents:', uploadedDocs);
+          this.uploadedDocuments = uploadedDocs;
+          this.groupDocuments();
+        },
+        error: (error) => {
+          console.error('Error fetching uploaded documents:', error);
+        }
+      });
+  }
 
   private groupDocuments(): void {
-    // Reset grouped documents
     this.groupedDocuments = [];
 
-    // Create a group for each document type
     this.documentTypes.forEach((docType) => {
-      // Filter uploaded documents that match this document type's id
       const matchingDocs = this.uploadedDocuments.filter(
         (doc) => doc.documentTypeId === docType.id
       );
@@ -274,11 +291,10 @@ fetchUploadedDocuments(): void {
       this.isLoading = true;
       this.errorMessage = '';
 
-      const currentUser = localStorage.getItem('userId') || '1'; // Get actual user ID from your auth service
-      const currentUserName = localStorage.getItem('userName') || '1'; // Get actual username
+      const currentUser = localStorage.getItem('userId') || '1';
+      const currentUserName = localStorage.getItem('userName') || '1';
       const currentUserType = localStorage.getItem('userType') || null;
       
-      // Use provided review remark or default based on approval status
       const finalReviewRemark = reviewRemark || (isApproved ? 'Document approved' : 'Document rejected');
       
       const payload: DocumentReviewPayload = {
@@ -304,7 +320,6 @@ fetchUploadedDocuments(): void {
         )
         .toPromise();
 
-      // Update local state
       const updatedDoc = this.uploadedDocuments.find(
         (doc) => doc.id === document.id
       );
@@ -320,7 +335,6 @@ fetchUploadedDocuments(): void {
         });
       }
       this.fetchDocumentTypes();
-      // Refresh the document list
       this.groupDocuments();
     } catch (error) {
       console.error('Error reviewing document:', error);
@@ -375,14 +389,13 @@ fetchUploadedDocuments(): void {
       formData.append('stageId', value1);
       formData.append('poId', value2);
       formData.append('id', '0');
-      formData.append('reviewRemark', reviewRemark); // Add the review remark
+      formData.append('reviewRemark', reviewRemark);
   
       const headers = new HttpHeaders().set(
         'Authorization',
         `Bearer ${localStorage.getItem('authToken')}`
       );
   
-      // Fixed subscription handling
       this.http
         .post(
           `${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`,
@@ -397,9 +410,7 @@ fetchUploadedDocuments(): void {
           }),
           finalize(() => {
             this.isLoading = false;
-            // Reset the selected file
             this.selectedFile = null;
-            // Reset any file input elements
             const fileInputs = document.querySelectorAll('input[type="file"]');
             fileInputs.forEach((input: Element) => {
               (input as HTMLInputElement).value = '';
@@ -473,33 +484,29 @@ fetchUploadedDocuments(): void {
 
   submit(document: UploadedDocument): void {
     console.log('Submitting document:', document);
-    // Implement your submit logic here
   }
 
   viewDocument(documentName: number): void {
     const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentName)}`;
   
     fetch(documentUrl)
-      .then(response => response.blob()) // Convert response to Blob
+      .then(response => response.blob())
       .then(blob => {
-        const blobUrl = URL.createObjectURL(blob); // Create a URL for the blob
-        window.open(blobUrl, '_blank'); // Open the file in a new tab
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
       })
       .catch(error => console.error('Error fetching document:', error));
   }
   
   downloadDocument(documentName: number): void {
-    const documentUrl = `${
-      environment.apiUrl
-    }/v1/UploadedDocument/download/${encodeURIComponent(documentName)}`;
+    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/download/${encodeURIComponent(documentName)}`;
 
-    // Create an invisible anchor element to trigger the download
     const link = document.createElement('a');
     link.href = documentUrl;
-    link.setAttribute('download', `document_${document}`); // Set a generic filename
+    link.setAttribute('download', `document_${document}`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link); // Clean up
+    document.body.removeChild(link);
   }
 
   confirmUpload(documentTypeId: number): void {
@@ -510,15 +517,12 @@ fetchUploadedDocuments(): void {
     
     console.log('confirmUpload called', documentTypeId);
     
-    // We've already checked for null, but let's use safe navigation for TypeScript's sake
     const fileName = this.selectedFile?.name || 'Unknown file';
     const fileSize = this.selectedFile ? this.formatFileSize(this.selectedFile.size) : '0 Bytes';
     
-    // Simple file type detection with null safety
     const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
     let fileIcon = 'file';
     
-    // Basic file type detection
     if (['pdf'].includes(fileExt)) fileIcon = 'file-pdf';
     else if (['doc', 'docx'].includes(fileExt)) fileIcon = 'file-word';
     else if (['xls', 'xlsx'].includes(fileExt)) fileIcon = 'file-excel';
@@ -549,11 +553,9 @@ fetchUploadedDocuments(): void {
     }).then((result) => {
       if (result.isConfirmed) {
         console.log('Confirmation accepted with notes:', result.value);
-        // Ensure selectedFile is still not null before proceeding
         if (this.selectedFile) {
           this.uploadDocument(documentTypeId, result.value || '');
           
-          // Show success message
           Swal.fire({
             icon: 'success',
             title: 'Document Uploaded',
@@ -572,7 +574,6 @@ fetchUploadedDocuments(): void {
       } else {
         console.log('Confirmation rejected');
         this.selectedFile = null;
-        // Reset any file input elements
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach((input: Element) => {
           (input as HTMLInputElement).value = '';
@@ -581,7 +582,6 @@ fetchUploadedDocuments(): void {
     });
   }
   
-  // Helper function to format file size
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -590,12 +590,7 @@ fetchUploadedDocuments(): void {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  /**
- * Check if any document in the group is approved
- * @param group - The document group to check
- * @returns true if any document is approved, false otherwise
- */
-hasApprovedDocument(group: DocumentGroup): boolean {
-  return group.uploadedDocuments.some(doc => doc.isApproved);
-}
+  hasApprovedDocument(group: DocumentGroup): boolean {
+    return group.uploadedDocuments.some(doc => doc.isApproved);
+  }
 }

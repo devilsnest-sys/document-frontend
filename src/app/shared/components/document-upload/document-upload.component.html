@@ -1,1 +1,266 @@
 <app-all-stages-documents></app-all-stages-documents>
+<div class="document-upload-container mt-5">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-spinner text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading documents...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-message alert alert-danger mx-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Title -->
+  <h2 class="text-center mb-4" *ngIf="!isLoading">Upload Documents</h2>
+
+  <!-- Empty State - No Documents Configured -->
+  <div *ngIf="!isLoading && !errorMessage && documentTypes.length === 0" class="empty-state text-center py-5">
+    <div class="mb-3">
+      <i class="fas fa-folder-open fa-4x text-muted"></i>
+    </div>
+    <h4 class="text-muted mb-2">No Document Types Available</h4>
+    <p class="text-muted">No document types have been configured for Stage {{ stageNumber }}.</p>
+    <small class="text-muted">PO Number: {{ poNumber }}</small>
+  </div>
+
+  <!-- Main Content - Document Table -->
+  <div class="data-grid" *ngIf="!isLoading && !errorMessage && documentTypes.length > 0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-hover">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 60px;">Sr No.</th>
+            <th style="width: 200px;">Doc Type</th>
+            <th style="width: 80px;" *appHideForVendorStages="stageNumber">Upload</th>
+            <th style="width: 200px;">Doc Name</th>
+            <th style="width: 100px;">Status</th>
+            <th style="width: 150px;">Uploader</th>
+            <th style="width: 120px;">Uploader Type</th>
+            <th style="width: 150px;">Upload Date</th>
+            <th style="width: 150px;">Reviewer</th>
+            <th style="width: 120px;">Reviewer Type</th>
+            <th style="width: 150px;">Review Date</th>
+            <th style="width: 200px;">Remarks</th>
+            <th style="width: 120px;">Actions</th>
+            <th style="width: 150px;">Approve/Reject</th>       
+          </tr>
+        </thead>
+        
+        <tbody>
+          <ng-container *ngFor="let group of groupedDocuments; let groupIndex = index">
+            <!-- Document Type Header Row -->
+            <tr (click)="toggleGroup(group.documentType.id)" 
+                class="group-header cursor-pointer" 
+                [class.expanded]="isGroupExpanded(group.documentType.id)"
+                style="background-color: #f8f9fa; font-weight: 600;">
+              <td colspan="14" class="py-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas me-2" 
+                     [class.fa-chevron-down]="isGroupExpanded(group.documentType.id)" 
+                     [class.fa-chevron-right]="!isGroupExpanded(group.documentType.id)"
+                     style="transition: transform 0.2s;"></i>
+                  <span class="me-2">{{ group.documentType.documentName }}</span>
+                  <span class="badge bg-secondary" style="font-size: 0.75rem;">
+                    {{ getDocumentCount(group.documentType.id) }} document{{ getDocumentCount(group.documentType.id) !== 1 ? 's' : '' }}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          
+            <!-- Uploaded Documents Rows -->
+            <ng-container *ngIf="group.uploadedDocuments.length > 0">
+              <tr *ngFor="let doc of group.uploadedDocuments; let docIndex = index" 
+                  [hidden]="!isGroupExpanded(group.documentType.id)"
+                  class="document-row">
+                <td class="text-center">{{ docIndex + 1 }}</td>
+                <td>{{ group.documentType.documentName }}</td>
+                
+                <!-- Upload Column -->
+                <td class="text-center" *appHideForVendorStages="stageNumber">
+                  <div class="upload-container">
+                    <input appTrimInput 
+                      #fileInput
+                      type="file" 
+                      [id]="'fileInput-' + group.documentType.id + '-' + docIndex" 
+                      style="display: none;"
+                      (change)="handleFileSelect($event, group.documentType.id)"
+                    />              
+                    <button 
+                      class="btn btn-sm btn-outline-primary" 
+                      (click)="fileInput.click()"
+                      [disabled]="doc.isApproved"
+                      [title]="doc.isApproved ? 'Upload disabled - Document already approved' : 'Upload new document'"
+                    >
+                      <span class="material-icons" style="font-size: 18px;">upload</span>
+                    </button>
+                  </div>
+                </td>
+                
+                <!-- Document Details -->
+                <td>
+                  <span class="text-truncate d-inline-block" style="max-width: 180px;" 
+                        [title]="doc.uploadedDocumentName">
+                    {{ doc.uploadedDocumentName }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="badge" 
+                        [ngClass]="{
+                          'bg-success': doc.status?.toLowerCase() === 'approved',
+                          'bg-danger': doc.status?.toLowerCase() === 'rejected',
+                          'bg-warning text-dark': doc.status?.toLowerCase() === 'pending'
+                        }">
+                    {{ doc.status || 'N/A' }}
+                  </span>
+                </td>
+                <td>{{ doc.userNameAccToUploadDoc || 'N/A' }}</td>
+                <td class="text-center">
+                  <span class="badge bg-info text-dark">{{ doc.docUploadedBy || 'N/A' }}</span>
+                </td>
+                <td>{{ doc.uploadedDate ? (doc.uploadedDate | date:'short') : 'N/A' }}</td>
+                <td>{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</td>
+                <td class="text-center">
+                  <span class="badge bg-info text-dark">{{ doc.docReviewedBy || 'N/A' }}</span>
+                </td> 
+                <td>{{ doc.docReviewDate ? (doc.docReviewDate | date:'short') : 'N/A' }}</td>
+                <td>
+                  <span class="text-truncate d-inline-block" style="max-width: 180px;" 
+                        [title]="doc.reviewRemark">
+                    {{ doc.reviewRemark || 'N/A' }}
+                  </span>
+                </td>
+                
+                <!-- View/Download Actions -->
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-info" 
+                            (click)="viewDocument(doc.id)"
+                            title="View Document">
+                      <span class="material-icons" style="font-size: 18px;">visibility</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" 
+                            (click)="downloadDocument(doc.id)"
+                            title="Download Document">
+                      <span class="material-icons" style="font-size: 18px;">download</span>
+                    </button>
+                  </div>
+                </td>
+                
+                <!-- Approve/Reject Actions -->
+                <td class="text-center">
+                  <ng-container *ngIf="!(doc.isApproved || doc.isRejected)">
+                    <!-- Vendor uploaded, User reviews -->
+                    <ng-container *ngIf="doc.docUploadedBy === 'vendor' && userType === 'user'">
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button 
+                          class="btn btn-success" 
+                          (click)="approveDocument(doc)"
+                          [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                          [title]="doc.isApproved ? 'Already approved' : 'Approve'">
+                          <span class="material-icons" style="font-size: 18px;">check_circle</span>
+                        </button>
+                        
+                        <ng-container *appHideForVendorStages="stageNumber">
+                          <button
+                            class="btn btn-danger"
+                            (click)="rejectDocument(doc)"
+                            [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                            [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
+                            <span class="material-icons" style="font-size: 18px;">cancel</span>
+                          </button>
+                        </ng-container>
+                      </div>
+                    </ng-container>
+
+                    <!-- User uploaded, Vendor reviews -->
+                    <ng-container *ngIf="doc.docUploadedBy === 'user' && userType === 'vendor'">
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button 
+                          class="btn btn-success" 
+                          (click)="approveDocument(doc)"
+                          [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                          [title]="doc.isApproved ? 'Already approved' : 'Approve'">
+                          <span class="material-icons" style="font-size: 18px;">check_circle</span>
+                        </button>
+                        <button 
+                          class="btn btn-danger" 
+                          (click)="rejectDocument(doc)"
+                          [disabled]="doc.isApproved || doc.isRejected || isLoading"
+                          [title]="doc.isRejected ? 'Already rejected' : 'Reject'">
+                          <span class="material-icons" style="font-size: 18px;">cancel</span>
+                        </button>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+                  
+                  <!-- Show status badges when already approved/rejected -->
+                  <ng-container *ngIf="doc.isApproved || doc.isRejected">
+                    <span class="badge" 
+                          [ngClass]="{'bg-success': doc.isApproved, 'bg-danger': doc.isRejected}">
+                      {{ doc.isApproved ? 'Approved' : 'Rejected' }}
+                    </span>
+                  </ng-container>
+                </td>
+              </tr>
+            </ng-container>
+          
+            <!-- Upload Row - Show when no documents exist OR documents are rejected -->
+            <tr *ngIf="isGroupVisible(group) && isGroupExpanded(group.documentType.id)" 
+                class="document-row upload-row"
+                style="background-color: #f8f9fa;">
+              <td class="text-center">-</td>
+              <td>{{ group.documentType.documentName }}</td>
+              <td class="text-center" *appHideForVendorStages="stageNumber">
+                <div class="upload-container">
+                  <input appTrimInput 
+                    #fileInputNew
+                    type="file"
+                    [id]="'fileInputNew-' + group.documentType.id"
+                    style="display: none;"
+                    (change)="handleFileSelect($event, group.documentType.id)"
+                  />
+                  <button 
+                    class="btn btn-sm btn-primary" 
+                    (click)="fileInputNew.click()"
+                    [disabled]="hasApprovedDocument(group)"
+                    [title]="hasApprovedDocument(group) ? 'Upload disabled - Document already approved' : 'Upload new document'"
+                  >
+                    <span class="material-icons" style="font-size: 18px;">upload</span>
+                  </button>
+                </div>
+              </td>
+              <td colspan="11" class="text-muted fst-italic">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ group.uploadedDocuments.length === 0 
+                  ? 'No documents uploaded yet. Click upload to add a document.' 
+                  : 'Previous document was rejected. Upload a new document to continue.' }}
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Summary Info -->
+    <div class="mt-3 px-3">
+      <div class="row">
+        <div class="col-md-6">
+          <small class="text-muted">
+            <strong>Stage:</strong> {{ stageNumber }} | 
+            <strong>PO Number:</strong> {{ poNumber }}
+          </small>
+        </div>
+        <div class="col-md-6 text-end">
+          <small class="text-muted">
+            <strong>Total Document Types:</strong> {{ documentTypes.length }} | 
+            <strong>Total Uploaded:</strong> {{ uploadedDocuments.length }}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
