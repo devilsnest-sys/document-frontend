@@ -16,6 +16,7 @@ export class RegistrationComponent implements OnInit {
   userList: Array<{ username: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
+  generatedPassword: string = ''; // Store generated password to display to user
   
 
   constructor(
@@ -28,14 +29,18 @@ export class RegistrationComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.fetchStages();
+    // Auto-generate username and password on initialization
+    if (!this.isEditMode) {
+      this.generateUserCredentials();
+    }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      username: ['', Validators.required],
+      username: [{ value: '', disabled: true }], // Always disabled, auto-generated
       email: ['', [Validators.required, Validators.email]],
-      HashedPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required, this.matchPasswords.bind(this)]],
+      HashedPassword: [{ value: '', disabled: true }], // Always disabled, auto-generated
+      confirmPassword: [{ value: '', disabled: true }], // Always disabled, auto-generated
       MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
       designation: ['', Validators.required],
@@ -43,6 +48,42 @@ export class RegistrationComponent implements OnInit {
       UserDesignationForstageId: [[], Validators.required],
       userType: 'user',
       salt: ['']
+    });
+  }
+
+  /**
+   * Generate random password
+   */
+  private generateRandomPassword(length: number = 10): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
+  /**
+   * Generate user code
+   */
+  private generateUserCode(): string {
+    const timestamp = Date.now().toString().slice(-6); // take last 6 digits for compactness
+    return `USER00${timestamp}`;
+  }
+
+  /**
+   * Generate username and password for new user
+   */
+  generateUserCredentials(): void {
+    const username = this.generateUserCode();
+    const password = this.generateRandomPassword();
+    
+    this.generatedPassword = password; // Store for display
+    
+    this.registrationForm.patchValue({
+      username: username,
+      HashedPassword: password,
+      confirmPassword: password
     });
   }
 
@@ -80,10 +121,12 @@ export class RegistrationComponent implements OnInit {
       this.fetchUsers(); // Load users when entering edit mode
       this.registrationForm.reset(); // Clear form
       this.initializeForm(); // Reinitialize form
+      this.generatedPassword = ''; // Clear generated password
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
       this.initializeForm(); // Reinitialize form
+      this.generateUserCredentials(); // Generate new credentials for create mode
     }
   }
 
@@ -133,75 +176,77 @@ export class RegistrationComponent implements OnInit {
   }
 
   setFieldsDisabled(): void {
-    // Disable all fields except email and phone
+    // Disable all fields except email, phone, and stages
     this.registrationForm.get('username')?.disable();
     this.registrationForm.get('HashedPassword')?.disable();
     this.registrationForm.get('confirmPassword')?.disable();
     this.registrationForm.get('role')?.disable();
     this.registrationForm.get('designation')?.disable();
     this.registrationForm.get('companyId')?.disable();
-    // this.registrationForm.get('UserDesignationForstageId')?.disable();
     this.registrationForm.get('userType')?.disable();
     this.registrationForm.get('salt')?.disable();
     
-    // Keep email and MobileNo enabled
+    // Keep email, MobileNo, and stages enabled
     this.registrationForm.get('email')?.enable();
     this.registrationForm.get('MobileNo')?.enable();
+    this.registrationForm.get('UserDesignationForstageId')?.enable();
   }
-toggleAllSelection(): void {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  
-  if (this.isAllSelected()) {
-    // Deselect all
-    this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
-  } else {
-    // Select all stages
-    const allStageIds = this.stages.map(stage => stage.id);
-    this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
+
+  toggleAllSelection(): void {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    
+    if (this.isAllSelected()) {
+      // Deselect all
+      this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
+    } else {
+      // Select all stages
+      const allStageIds = this.stages.map(stage => stage.id);
+      this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
+    }
   }
-}
 
-/**
- * Toggle individual stage selection
- */
-togglePerOne(stageId: number): void {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  const index = currentValue.indexOf(stageId);
-  
-  if (index > -1) {
-    // Remove the stage
-    currentValue.splice(index, 1);
-  } else {
-    // Add the stage
-    currentValue.push(stageId);
+  /**
+   * Toggle individual stage selection
+   */
+  togglePerOne(stageId: number): void {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    const index = currentValue.indexOf(stageId);
+    
+    if (index > -1) {
+      // Remove the stage
+      currentValue.splice(index, 1);
+    } else {
+      // Add the stage
+      currentValue.push(stageId);
+    }
+    
+    this.registrationForm.get('UserDesignationForstageId')?.setValue([...currentValue]);
   }
-  
-  this.registrationForm.get('UserDesignationForstageId')?.setValue([...currentValue]);
-}
 
-/**
- * Check if all stages are selected
- */
-isAllSelected(): boolean {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  return currentValue.length === this.stages.length && this.stages.length > 0;
-}
+  /**
+   * Check if all stages are selected
+   */
+  isAllSelected(): boolean {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    return currentValue.length === this.stages.length && this.stages.length > 0;
+  }
 
-/**
- * Check if selection is indeterminate (some but not all selected)
- */
-isIndeterminate(): boolean {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  return currentValue.length > 0 && currentValue.length < this.stages.length;
-}
+  /**
+   * Check if selection is indeterminate (some but not all selected)
+   */
+  isIndeterminate(): boolean {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    return currentValue.length > 0 && currentValue.length < this.stages.length;
+  }
 
-/**
- * Check if a specific stage is selected
- */
-isStageSelected(stageId: number): boolean {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  return currentValue.includes(stageId);
-}
+  /**
+   * Check if a specific stage is selected
+   */
+  isStageSelected(stageId: number): boolean {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    return currentValue.includes(stageId);
+  }
+
   checkEmailExists(email: string, type: string = 'user'): void {
     if (!email || this.isEditMode) return;
   
@@ -219,28 +264,6 @@ isStageSelected(stageId: number): boolean {
 
   get emailControl() {
     return this.registrationForm.get('email');
-  }
-
-  checkUsernameExists(username: string, type: string = 'user'): void {
-    if (!username || this.isEditMode) return;
-  
-    this.registrationService.checkUsernameExists(username, type).subscribe(
-      response => {
-        if (response.exists) {
-          this.registrationForm.controls['username'].setErrors({ usernameTaken: true });
-        }
-      },
-      error => {
-        console.error('Error checking username:', error);
-      }
-    );
-  }
-
-  matchPasswords(control: AbstractControl): { [key: string]: boolean } | null {
-    if (this.registrationForm && control.value !== this.registrationForm.get('HashedPassword')?.value) {
-      return { passwordMismatch: true };
-    }
-    return null;
   }
 
   onSubmit(): void {
@@ -300,12 +323,15 @@ isStageSelected(stageId: number): boolean {
           },
         });
       } else {
-        // Create new user
+        // Create new user - show generated credentials before submitting
+        const message = `User Created!\nUsername: ${payload.username}\nPassword: ${this.generatedPassword}\n\nPlease save these credentials.`;
+        
         this.registrationService.registerUser(payload, token).subscribe({
           next: () => {
-            this.toastservice.showToast('success', 'Registration Successful');
+            this.toastservice.showToast('success', 'Registration Successful', message);
             this.registrationForm.reset();
             this.initializeForm();
+            this.generateUserCredentials(); // Generate new credentials for next user
           },
           error: (err) => {
             console.error(err);
@@ -324,6 +350,6 @@ isStageSelected(stageId: number): boolean {
     const mobileControl = this.registrationForm.get('MobileNo');
     const stagesControl = this.registrationForm.get('UserDesignationForstageId');
     
-    return !!(emailControl?.valid && mobileControl?.valid &&  stagesControl?.valid &&  this.selectedUserId);
+    return !!(emailControl?.valid && mobileControl?.valid && stagesControl?.valid && this.selectedUserId);
   }
 }

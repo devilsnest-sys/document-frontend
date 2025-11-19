@@ -45,114 +45,14 @@
   </div>
 </div>
 
-<!-- Step Bar Visibility -->
-<div class="container mt-5" *ngIf="isStepBarVisible()">
-  <!-- Stage Status Legend -->
-  <!-- <div class="legend-container mb-3">
-    <div class="legend-title">Stage Status Legend:</div>
-    <div class="legend-items">
-      <div class="legend-item">
-        <div class="legend-circle completed-legend"></div>
-        <span>Submitted</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-circle current-legend"></div>
-        <span>Current/In Progress</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-circle pending-legend"></div>
-        <span>Pending</span>
-      </div>
-    </div>
-  </div> -->
-
-  <!-- Stage Names Legend -->
-  <!-- <div class="legend-container mb-4">
-    <div class="legend-title">Stage Names Reference:</div>
-    <div class="stage-names-grid">
-      <div class="stage-name-item">
-        <span class="stage-number">1.</span>
-        <span class="stage-name">OA</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">2.</span>
-        <span class="stage-name">CPBG</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">3.</span>
-        <span class="stage-name">LC</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">4.</span>
-        <span class="stage-name">Advance</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">5.</span>
-        <span class="stage-name">Drawing & QAP</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">6.</span>
-        <span class="stage-name">FF</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">7.</span>
-        <span class="stage-name">Draft Shipping</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">8.</span>
-        <span class="stage-name">Original Shipping</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">9.</span>
-        <span class="stage-name">Bank-LC</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">10.</span>
-        <span class="stage-name">Bank-CAD</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">11.</span>
-        <span class="stage-name">Bank-LSC</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">12.</span>
-        <span class="stage-name">Credit</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">13.</span>
-        <span class="stage-name">Imports Clearance</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">14.</span>
-        <span class="stage-name">Acceptance</span>
-      </div>
-      <div class="stage-name-item">
-        <span class="stage-number">15.</span>
-        <span class="stage-name">Payment</span>
-      </div>
-    </div>
-  </div> -->
-  <!-- <app-document-upload></app-document-upload> -->
-  <div class="step-container">
-    <ul class="step-bar">
-      <li *ngFor="let step of steps; let i = index" 
-          [ngClass]="getStepClass(i)">
-        
-        <div *ngIf="i !== 0" class="progress-line"></div>
-
-        <!-- Clickable link for completed/current steps -->
-        <a *ngIf="getStepClass(i) !== 'pending' || i === 0"
-          [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]">
-          <div class="step-circle">{{ i + 1 }}</div>
-        </a>
-
-        <!-- Non-clickable div for other pending steps -->
-        <a [routerLink]="['/stages', (i + 1), vendorPoForm.get('po')?.value]" *ngIf="getStepClass(i) === 'pending' && i !== 0" class="step-circle non-clickable">
-          {{ i + 1 }}
-        </a>
-        
-        <div class="step-label">Step {{ i + 1 }}</div>
-      </li>
-    </ul>
+<!-- Go Button Section -->
+<div class="container mt-4" *ngIf="isStepBarVisible()">
+  <div class="text-center">
+    <button 
+      class="btn btn-primary btn-lg"
+      [routerLink]="['/stages', 1, vendorPoForm.get('po')?.value]"
+      [disabled]="!vendorPoForm.get('po')?.value">
+      Go
+    </button>
   </div>
 </div>

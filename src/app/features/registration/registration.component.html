@@ -12,7 +12,7 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <div class="col-md-6">
-            <!-- Username - Show dropdown in edit mode, input in create mode -->
+            <!-- Username - Show dropdown in edit mode, auto-generated display in create mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
               <mat-icon matPrefix>person</mat-icon>
@@ -26,18 +26,9 @@
                 </mat-option>
               </mat-select>
 
-              <!-- Input for create mode -->
-              <input appTrimInput *ngIf="!isEditMode" matInput id="username" formControlName="username" required
-                (blur)="checkUsernameExists(registrationForm.get('username')?.value)" />
-
-              <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
-                <small *ngIf="registrationForm.get('username')?.hasError('required')">
-                  Username is required.
-                </small>
-                <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken') && !isEditMode">
-                  This username is already taken.
-                </small>
-              </mat-error>
+              <!-- Auto-generated display for create mode -->
+              <input *ngIf="!isEditMode" matInput id="username" formControlName="username" readonly />
+              <mat-hint *ngIf="!isEditMode" class="text-success"><strong>Auto-generated</strong></mat-hint>
             </mat-form-field>
           </div>
 
@@ -57,40 +48,24 @@
           </div>
 
           <div class="col-md-6">
-            <!-- Password - Disabled in edit mode -->
+            <!-- Password - Auto-generated, read-only in create mode, disabled in edit mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Password</mat-label>
               <mat-icon matPrefix>lock</mat-icon>
-              <input appTrimInput matInput id="HashedPassword" type="password" formControlName="HashedPassword"
-                [required]="!isEditMode" [placeholder]="isEditMode ? 'Password cannot be edited' : ''" />
-              <mat-error
-                *ngIf="registrationForm.get('HashedPassword')?.touched && registrationForm.get('HashedPassword')?.invalid && !isEditMode">
-                <small *ngIf="registrationForm.get('HashedPassword')?.hasError('required')">
-                  Password is required.
-                </small>
-                <small *ngIf="registrationForm.get('HashedPassword')?.hasError('minlength')">
-                  Password must be at least 6 characters.
-                </small>
-              </mat-error>
+              <input matInput id="HashedPassword" type="text" formControlName="HashedPassword" readonly
+                [placeholder]="isEditMode ? 'Password cannot be edited' : 'Auto-generated'" />
+              <mat-hint *ngIf="!isEditMode" class="text-warning"><strong>Auto-generated - Save this!</strong></mat-hint>
             </mat-form-field>
           </div>
 
           <div class="col-md-6">
-            <!-- Confirm Password - Disabled in edit mode -->
+            <!-- Confirm Password - Hidden, auto-filled -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Confirm Password</mat-label>
               <mat-icon matPrefix>lock</mat-icon>
-              <input appTrimInput matInput id="confirmPassword" type="password" formControlName="confirmPassword"
-                [required]="!isEditMode" [placeholder]="isEditMode ? 'Password cannot be edited' : ''" />
-              <mat-error
-                *ngIf="registrationForm.get('confirmPassword')?.touched && registrationForm.get('confirmPassword')?.invalid && !isEditMode">
-                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">
-                  Confirm Password is required.
-                </small>
-                <small *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">
-                  Passwords do not match.
-                </small>
-              </mat-error>
+              <input matInput id="confirmPassword" type="text" formControlName="confirmPassword" readonly
+                [placeholder]="isEditMode ? 'Password cannot be edited' : 'Auto-matched'" />
+              <mat-hint *ngIf="!isEditMode">Automatically matched</mat-hint>
             </mat-form-field>
           </div>
 
@@ -161,19 +136,19 @@
           </div>
 
           <div class="col-md-6">
-            <!-- User Designation For Stage - Now editable in edit mode -->
+            <!-- User Designation For Stage - Editable in both modes -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>User Designation For Stage</mat-label>
               <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
                 [placeholder]="'Select Stages'" [required]="true">
-                <!-- Select All Option - Now enabled in edit mode -->
+                <!-- Select All Option -->
                 <mat-option #allSelected [value]="'selectAll'" (click)="toggleAllSelection()">
                   <mat-checkbox [checked]="isAllSelected()" [indeterminate]="isIndeterminate()">
                   </mat-checkbox>
                   Select All
                 </mat-option>
 
-                <!-- Individual Stage Options - Now enabled in edit mode -->
+                <!-- Individual Stage Options -->
                 <mat-option *ngFor="let stage of stages" [value]="stage.id" (click)="togglePerOne(stage.id)">
                   <mat-checkbox [checked]="isStageSelected(stage.id)">
                   </mat-checkbox>
@@ -186,6 +161,13 @@
               </mat-error>
             </mat-form-field>
           </div>
+        </div>
+
+        <!-- Generated Credentials Display (only in create mode after generation) -->
+        <div *ngIf="!isEditMode && generatedPassword" class="alert alert-info mt-3">
+          <strong>Generated Credentials (Please save these!):</strong><br>
+          <strong>Username:</strong> {{ registrationForm.get('username')?.value }}<br>
+          <strong>Password:</strong> {{ generatedPassword }}
         </div>
 
         <!-- Submit Button -->
