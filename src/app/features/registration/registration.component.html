@@ -48,28 +48,6 @@
           </div>
 
           <div class="col-md-6">
-            <!-- Password - Auto-generated, read-only in create mode, disabled in edit mode -->
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Password</mat-label>
-              <mat-icon matPrefix>lock</mat-icon>
-              <input matInput id="HashedPassword" type="text" formControlName="HashedPassword" readonly
-                [placeholder]="isEditMode ? 'Password cannot be edited' : 'Auto-generated'" />
-              <mat-hint *ngIf="!isEditMode" class="text-warning"><strong>Auto-generated - Save this!</strong></mat-hint>
-            </mat-form-field>
-          </div>
-
-          <div class="col-md-6">
-            <!-- Confirm Password - Hidden, auto-filled -->
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Confirm Password</mat-label>
-              <mat-icon matPrefix>lock</mat-icon>
-              <input matInput id="confirmPassword" type="text" formControlName="confirmPassword" readonly
-                [placeholder]="isEditMode ? 'Password cannot be edited' : 'Auto-matched'" />
-              <mat-hint *ngIf="!isEditMode">Automatically matched</mat-hint>
-            </mat-form-field>
-          </div>
-
-          <div class="col-md-6">
             <!-- Mobile - Always editable -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Mobile</mat-label>
@@ -142,16 +120,15 @@
               <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
                 [placeholder]="'Select Stages'" [required]="true">
                 <!-- Select All Option -->
-                <mat-option #allSelected [value]="'selectAll'" (click)="toggleAllSelection()">
-                  <mat-checkbox [checked]="isAllSelected()" [indeterminate]="isIndeterminate()">
+                <mat-option #allSelected [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()">
+                  <mat-checkbox [checked]="isAllSelected()" [indeterminate]="isIndeterminate()"
+                    (click)="$event.stopPropagation()">
+                    Select All
                   </mat-checkbox>
-                  Select All
                 </mat-option>
 
                 <!-- Individual Stage Options -->
-                <mat-option *ngFor="let stage of stages" [value]="stage.id" (click)="togglePerOne(stage.id)">
-                  <mat-checkbox [checked]="isStageSelected(stage.id)">
-                  </mat-checkbox>
+                <mat-option *ngFor="let stage of stages" [value]="stage.id">
                   {{ stage.stageName }}
                 </mat-option>
               </mat-select>
@@ -161,13 +138,6 @@
               </mat-error>
             </mat-form-field>
           </div>
-        </div>
-
-        <!-- Generated Credentials Display (only in create mode after generation) -->
-        <div *ngIf="!isEditMode && generatedPassword" class="alert alert-info mt-3">
-          <strong>Generated Credentials (Please save these!):</strong><br>
-          <strong>Username:</strong> {{ registrationForm.get('username')?.value }}<br>
-          <strong>Password:</strong> {{ generatedPassword }}
         </div>
 
         <!-- Submit Button -->

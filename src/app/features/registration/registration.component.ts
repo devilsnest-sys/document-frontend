@@ -16,7 +16,7 @@ export class RegistrationComponent implements OnInit {
   userList: Array<{ username: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
-  generatedPassword: string = ''; // Store generated password to display to user
+  generatedPassword: string = ''; // Store generated password internally
   
 
   constructor(
@@ -39,15 +39,15 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm = this.fb.group({
       username: [{ value: '', disabled: true }], // Always disabled, auto-generated
       email: ['', [Validators.required, Validators.email]],
-      HashedPassword: [{ value: '', disabled: true }], // Always disabled, auto-generated
-      confirmPassword: [{ value: '', disabled: true }], // Always disabled, auto-generated
       MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
       designation: ['', Validators.required],
       companyId: ['', Validators.required],
       UserDesignationForstageId: [[], Validators.required],
       userType: 'user',
-      salt: ['']
+      salt: [''],
+      HashedPassword: [''], // Hidden from UI, used internally
+      confirmPassword: [''] // Hidden from UI, used internally
     });
   }
 
@@ -78,7 +78,7 @@ export class RegistrationComponent implements OnInit {
     const username = this.generateUserCode();
     const password = this.generateRandomPassword();
     
-    this.generatedPassword = password; // Store for display
+    this.generatedPassword = password; // Store for internal use only
     
     this.registrationForm.patchValue({
       username: username,
@@ -122,12 +122,24 @@ export class RegistrationComponent implements OnInit {
       this.registrationForm.reset(); // Clear form
       this.initializeForm(); // Reinitialize form
       this.generatedPassword = ''; // Clear generated password
+      this.enableEditModeFields();
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
       this.initializeForm(); // Reinitialize form
       this.generateUserCredentials(); // Generate new credentials for create mode
     }
+  }
+
+  enableEditModeFields(): void {
+    // In edit mode, only username dropdown should be enabled initially
+    this.registrationForm.get('username')?.enable();
+    this.registrationForm.get('email')?.disable();
+    this.registrationForm.get('MobileNo')?.disable();
+    this.registrationForm.get('role')?.disable();
+    this.registrationForm.get('designation')?.disable();
+    this.registrationForm.get('companyId')?.disable();
+    this.registrationForm.get('UserDesignationForstageId')?.disable();
   }
 
   onUsernameSelected(username: string): void {
@@ -178,8 +190,6 @@ export class RegistrationComponent implements OnInit {
   setFieldsDisabled(): void {
     // Disable all fields except email, phone, and stages
     this.registrationForm.get('username')?.disable();
-    this.registrationForm.get('HashedPassword')?.disable();
-    this.registrationForm.get('confirmPassword')?.disable();
     this.registrationForm.get('role')?.disable();
     this.registrationForm.get('designation')?.disable();
     this.registrationForm.get('companyId')?.disable();
@@ -203,24 +213,6 @@ export class RegistrationComponent implements OnInit {
       const allStageIds = this.stages.map(stage => stage.id);
       this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
     }
-  }
-
-  /**
-   * Toggle individual stage selection
-   */
-  togglePerOne(stageId: number): void {
-    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-    const index = currentValue.indexOf(stageId);
-    
-    if (index > -1) {
-      // Remove the stage
-      currentValue.splice(index, 1);
-    } else {
-      // Add the stage
-      currentValue.push(stageId);
-    }
-    
-    this.registrationForm.get('UserDesignationForstageId')?.setValue([...currentValue]);
   }
 
   /**
@@ -293,9 +285,6 @@ export class RegistrationComponent implements OnInit {
 
       if (this.isEditMode && this.selectedUserId) {
         // Update existing user
-        payload.id = this.selectedUserId;
-        
-        // For edit mode, create payload matching API structure
         const editPayload = {
           id: this.selectedUserId,
           username: payload.username,
@@ -304,18 +293,17 @@ export class RegistrationComponent implements OnInit {
           userType: payload.userType,
           email: payload.email,
           mobileNo: payload.mobileNo,
-          createdAt: new Date().toISOString(), // You might want to preserve original createdAt
+          designation: payload.designation,
+          companyId: payload.companyId,
+          createdAt: new Date().toISOString(),
           salt: payload.salt || '',
           userDesignationForstageId: payload.userDesignationForstageId
         };
 
         this.registrationService.updateUser(editPayload, token).subscribe({
           next: () => {
-            this.toastservice.showToast('success', 'User Updated Successfully');
-            this.registrationForm.reset();
-            this.initializeForm();
-            this.isEditMode = false;
-            this.selectedUserId = null;
+            this.toastservice.showToast('success', 'User updated successfully');
+            this.clearFormAndReset();
           },
           error: (err) => {
             console.error(err);
@@ -323,15 +311,11 @@ export class RegistrationComponent implements OnInit {
           },
         });
       } else {
-        // Create new user - show generated credentials before submitting
-        const message = `User Created!\nUsername: ${payload.username}\nPassword: ${this.generatedPassword}\n\nPlease save these credentials.`;
-        
+        // Create new user - don't show credentials in toast
         this.registrationService.registerUser(payload, token).subscribe({
           next: () => {
-            this.toastservice.showToast('success', 'Registration Successful', message);
-            this.registrationForm.reset();
-            this.initializeForm();
-            this.generateUserCredentials(); // Generate new credentials for next user
+            this.toastservice.showToast('success', 'User registered successfully');
+            this.clearFormAndReset();
           },
           error: (err) => {
             console.error(err);
@@ -342,6 +326,18 @@ export class RegistrationComponent implements OnInit {
     } else {
       this.toastservice.showToast('error', 'Form Invalid', 'Please fill all required fields correctly!');
     }
+  }
+
+  /**
+   * Clear form and reset to initial state
+   */
+  clearFormAndReset(): void {
+    this.registrationForm.reset();
+    this.selectedUserId = null;
+    this.generatedPassword = '';
+    this.isEditMode = false;
+    this.initializeForm();
+    this.generateUserCredentials(); // Generate new credentials for next registration
   }
 
   // Helper method to check if edit form is valid (only editable fields)

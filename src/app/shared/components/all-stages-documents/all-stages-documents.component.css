@@ -61,6 +61,10 @@
   overflow: hidden;
 }
 
+.table-responsive {
+  overflow-x: auto;
+}
+
 /* Table Styling */
 .table {
   margin: 0;
@@ -103,7 +107,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #4a4747;
+  color: #fff;
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -111,6 +115,7 @@
 .stage-header-content i.fas {
   transition: transform 0.2s ease;
   font-size: 0.85rem;
+  color: #fff;
 }
 
 .stage-header-row.expanded .stage-header-content i.fa-chevron-down {
@@ -163,19 +168,37 @@
   flex: 1;
 }
 
-/* Document Row */
+/* Document Row - Status Based Color Coding */
 .document-row {
   transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.document-row.row-approved {
+  background-color: #f0fdf4!important;
+  border-left-color: #22c55e!important;
+}
+
+.document-row.row-rejected {
+  background-color: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.document-row.row-pending {
+  background-color: #eff6ff;
+  border-left-color: #3b82f6;
 }
 
 .document-row:hover {
-  background-color: #fafbfc;
+  filter: brightness(0.98);
 }
-
+.table > :not(caption) > * > *{
+  background-color: inherit;
+}
 .document-row td {
   padding: 8px;
   vertical-align: middle;
-  border-color: #e9ecef;
+  /* border-color: #e9ecef; */
   font-size: 0.875rem;
 }
 
@@ -255,7 +278,8 @@
 }
 
 /* Uploader Info */
-.uploader-info {
+.uploader-info,
+.reviewer-info {
   display: flex;
   flex-direction: column;
   gap: 3px;

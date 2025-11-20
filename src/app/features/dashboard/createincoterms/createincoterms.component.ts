@@ -38,9 +38,6 @@ export class CreateincotermsComponent {
         <button class="btn-action edit-btn" title="Edit">
           <span class="material-icons">edit</span>
         </button>
-        <button class="btn-action delete-btn" title="Delete">
-          <span class="material-icons">delete</span>
-        </button>
         `;
       },
       onCellClicked: (params: any) => {
@@ -135,7 +132,7 @@ export class CreateincotermsComponent {
     Swal.fire({
       title: 'Edit Incoterm',
       html: `
-        <input appTrimInput id="incotermId" class="swal2-input" type="text" value="${incoterm.id}" disabled placeholder="Incoterm ID">
+        
         <input appTrimInput id="incoTermsName" class="swal2-input" type="text" value="${incoterm.incoTermsName}" placeholder="Incoterm Name">`,
       focusConfirm: false,
       preConfirm: () => {

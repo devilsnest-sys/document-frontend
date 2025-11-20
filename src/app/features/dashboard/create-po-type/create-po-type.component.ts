@@ -48,9 +48,6 @@ export class CreatePoTypeComponent {
         <button class="btn-action edit-btn" title="Edit">
           <span class="material-icons">edit</span>
         </button>
-        <button class="btn-action delete-btn" title="Delete">
-          <span class="material-icons">delete</span>
-        </button>
         `;
       },
       onCellClicked: (params: any) => {
@@ -146,9 +143,8 @@ export class CreatePoTypeComponent {
 
   openEditPopup(potype: any): void {
     Swal.fire({
-      title: 'Edit potype',
+      title: 'Edit Potype',
       html: `
-        <input appTrimInput id="potypeId" class="swal2-input" type="text" value="${potype.id}" disabled placeholder="potype ID">
         <input appTrimInput id="potypeName" class="swal2-input" type="text" value="${potype.poTypeName}" placeholder="potype Name">`,
       focusConfirm: false,
       preConfirm: () => {

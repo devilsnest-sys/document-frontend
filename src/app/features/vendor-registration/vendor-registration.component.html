@@ -42,69 +42,33 @@
     <div class="card-body">
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
-          <div class="col-lg-4 d-none">
-            <!-- Username - Show dropdown in edit mode, input in create mode -->
+          
+          <!-- Vendor Code Field - Show as dropdown in edit mode -->
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Username</mat-label>
-              <mat-icon matPrefix>person</mat-icon>
+              <mat-label>Vendor Code</mat-label>
+              <mat-icon matPrefix>code</mat-icon>
               
               <!-- Edit Mode: Dropdown -->
               <mat-select 
                 *ngIf="isEditMode" 
-                id="username" 
-                formControlName="username" 
-                required
-                (selectionChange)="onUsernameSelected($event.value)">
-                <mat-option value="" disabled>Select Username</mat-option>
-                <mat-option *ngFor="let vendor of vendorList" [value]="vendor.username">
-                  {{ vendor.username }}
+                formControlName="vendorCode" 
+                (selectionChange)="onVendorCodeSelected($event.value)">
+                <mat-option value="">Select Vendor Code</mat-option>
+                <mat-option *ngFor="let vendor of vendorList" [value]="vendor.vendorCode">
+                  {{ vendor.vendorCode }} - {{ vendor.companyName }}
                 </mat-option>
               </mat-select>
               
-              <!-- Create Mode: Input -->
+              <!-- Create Mode: Read-only Input -->
               <input 
-                appTrimInput 
                 *ngIf="!isEditMode"
-                matInput 
-                id="username" 
-                formControlName="username" 
-                required 
-                (blur)="checkUsernameExists(registrationForm.get('username')?.value)" 
-              />
-              
-              <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
-                <small *ngIf="registrationForm.get('username')?.hasError('required')">
-                  Username is required.
-                </small>
-                <small *ngIf="registrationForm.get('username')?.hasError('usernameTaken') && !isEditMode">
-                  This username is already taken.
-                </small>
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Vendor Code Field -->
-          <div class="col-lg-4">
-            <!-- Vendor Code - Disabled in edit mode -->
-            <!-- <mat-form-field appearance="fill" class="full-width">
-              <mat-icon matPrefix>code</mat-icon>
-              <mat-label>Vendor Code</mat-label>
-              <mat-icon matPrefix>qr_code</mat-icon>
-              <input 
                 appTrimInput 
                 matInput 
                 formControlName="vendorCode" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Vendor Code cannot be edited' : ''" 
+                readonly 
+                placeholder="Auto-generated Vendor Code" 
               />
-              <mat-error *ngIf="registrationForm.get('vendorCode')?.touched && registrationForm.get('vendorCode')?.invalid && !isEditMode">
-                <small>Vendor Code is required.</small>
-              </mat-error>
-            </mat-form-field> -->
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-icon matPrefix>code</mat-icon>
-              <mat-label>Vendor Code</mat-label>
-              <input appTrimInput matInput formControlName="vendorCode" readonly placeholder="Auto-generated Vendor Code" [disabled]="true" />
             </mat-form-field>
           </div>
 
@@ -117,10 +81,9 @@
                 appTrimInput 
                 matInput 
                 formControlName="companyName" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Company Name cannot be edited' : ''" 
+                required
               />
-              <mat-error *ngIf="registrationForm.get('companyName')?.touched && registrationForm.get('companyName')?.invalid && !isEditMode">
+              <mat-error *ngIf="registrationForm.get('companyName')?.touched && registrationForm.get('companyName')?.invalid">
                 <small>Company Name is required.</small>
               </mat-error>
             </mat-form-field>
@@ -135,10 +98,9 @@
                 matInput 
                 formControlName="mailingAddress" 
                 rows="1" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Mailing Address cannot be edited' : ''">
+                required>
               </textarea>
-              <mat-error *ngIf="registrationForm.get('mailingAddress')?.touched && registrationForm.get('mailingAddress')?.invalid && !isEditMode">
+              <mat-error *ngIf="registrationForm.get('mailingAddress')?.touched && registrationForm.get('mailingAddress')?.invalid">
                 <small>Mailing Address is required.</small>
               </mat-error>
             </mat-form-field>
@@ -160,19 +122,6 @@
               </mat-error>
             </mat-form-field>
           </div>
-    
-          <!-- Fax - Always editable -->
-          <!-- <div class="col-lg-4">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Fax</mat-label>
-              <mat-icon matPrefix>print</mat-icon>
-              <input 
-                appTrimInput 
-                matInput 
-                formControlName="fax" 
-              />
-            </mat-form-field>
-          </div> -->
     
           <!-- Email - Always editable -->
           <div class="col-lg-4">
@@ -218,10 +167,9 @@
                 appTrimInput 
                 matInput 
                 formControlName="contactNameTitle" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Contact Name & Title cannot be edited' : ''" 
+                required
               />
-              <mat-error *ngIf="registrationForm.get('contactNameTitle')?.touched && registrationForm.get('contactNameTitle')?.invalid && !isEditMode">
+              <mat-error *ngIf="registrationForm.get('contactNameTitle')?.touched && registrationForm.get('contactNameTitle')?.invalid">
                 <small>Contact Name & Title is required.</small>
               </mat-error>
             </mat-form-field>
@@ -237,16 +185,16 @@
                 matInput 
                 formControlName="contactEmail" 
                 type="email" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Contact Email cannot be edited' : ''" 
+                required
               />
-              <mat-error *ngIf="registrationForm.get('contactEmail')?.touched && registrationForm.get('contactEmail')?.invalid && !isEditMode">
-                <small>Contact Email is required.</small>
+              <mat-error *ngIf="registrationForm.get('contactEmail')?.touched && registrationForm.get('contactEmail')?.invalid">
+                <small *ngIf="registrationForm.get('contactEmail')?.hasError('required')">Contact Email is required.</small>
+                <small *ngIf="registrationForm.get('contactEmail')?.hasError('email')">Enter a valid email.</small>
               </mat-error>
             </mat-form-field>
           </div>
 
-          <!-- Contact Phone 1 Field -->
+          <!-- Contact Phone 1 Field - Now Optional -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Contact Phone 1</mat-label>
@@ -255,44 +203,24 @@
                 appTrimInput 
                 matInput 
                 formControlName="contactPhone1" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Contact Phone 1 cannot be edited' : ''" 
               />
-              <mat-error *ngIf="registrationForm.get('contactPhone1')?.touched && registrationForm.get('contactPhone1')?.invalid && !isEditMode">
-                <small>Contact Phone 1 is required.</small>
-              </mat-error>
             </mat-form-field>
           </div>
-    
-          <!-- Contact Phone 2 - Disabled in edit mode -->
-          <!-- <div class="col-lg-4">
+
+          <!-- Service Type Dropdown -->
+          <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Contact Phone 2</mat-label>
-              <mat-icon matPrefix>smartphone</mat-icon>
-              <input 
-                appTrimInput 
-                matInput 
-                formControlName="contactPhone2" 
-                [placeholder]="isEditMode ? 'Contact Phone 2 cannot be edited' : ''" 
-              />
-            </mat-form-field>
-          </div> -->
-    
-          <!-- Password - Disabled in edit mode -->
-          <div class="col-lg-4 d-none">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Password</mat-label>
-              <mat-icon matPrefix>lock</mat-icon>
-              <input 
-                appTrimInput 
-                matInput 
-                formControlName="HashedPassword" 
-                type="password" 
-                [required]="!isEditMode"
-                [placeholder]="isEditMode ? 'Password cannot be edited' : ''" 
-              />
-              <mat-error *ngIf="registrationForm.get('HashedPassword')?.touched && registrationForm.get('HashedPassword')?.invalid && !isEditMode">
-                <small>Password is required and must be at least 6 characters long.</small>
+              <mat-label>Service Type</mat-label>
+              <mat-icon matPrefix>category</mat-icon>
+              <mat-select formControlName="serviceType" required>
+                <mat-option value="">Select Service Type</mat-option>
+                <mat-option value="Services">Services</mat-option>
+                <mat-option value="Composite Services">Composite Services</mat-option>
+                <mat-option value="Goods">Goods</mat-option>
+                <mat-option value="Works">Works</mat-option>
+              </mat-select>
+              <mat-error *ngIf="registrationForm.get('serviceType')?.touched && registrationForm.get('serviceType')?.invalid">
+                <small>Service Type is required.</small>
               </mat-error>
             </mat-form-field>
           </div>
@@ -305,11 +233,16 @@
               <textarea 
                 matInput 
                 rows="1" 
-                formControlName="generalDetails"
-                [placeholder]="isEditMode ? 'General Details cannot be edited' : ''">
+                formControlName="generalDetails">
               </textarea>
             </mat-form-field>
           </div>
+
+          <!-- Hidden Fields -->
+          <input type="hidden" formControlName="username" />
+          <input type="hidden" formControlName="HashedPassword" />
+          <input type="hidden" formControlName="userType" />
+          <input type="hidden" formControlName="salt" />
         </div>
 
         <!-- Submit Button -->
@@ -318,7 +251,7 @@
             mat-raised-button 
             color="primary" 
             type="submit"
-            [disabled]="(!isEditMode && registrationForm.invalid) || (isEditMode && !isEditFormValid()) || isSubmitting">
+            [disabled]="registrationForm.invalid || isSubmitting">
             {{ isEditMode ? 'Update Vendor' : 'Register' }}
           </button>
         </div>
