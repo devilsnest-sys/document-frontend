@@ -9,7 +9,7 @@ import { catchError, finalize } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 interface DocumentType {
   id: number;
@@ -86,7 +86,8 @@ export class AllStagesDocumentsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toastService: ToastserviceService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -448,112 +449,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-  async reviewDocument(
-    document: UploadedDocument,
-    isApproved: boolean,
-    reviewRemark: string = ''
-  ): Promise<void> {
-    try {
-      this.isLoading = true;
-      this.errorMessage = '';
-
-      const currentUser = localStorage.getItem('userId') || '1';
-      const currentUserType = localStorage.getItem('userType') || null;
-
-      const finalReviewRemark =
-        reviewRemark || (isApproved ? 'Document approved' : 'Document rejected');
-
-      const payload = {
-        id: document.id,
-        isApproved: isApproved,
-        isRejected: !isApproved,
-        reviewedBy: parseInt(currentUser),
-        docReviewedBy: currentUserType!,
-        status: isApproved ? 'Approved' : 'Rejected',
-        reviewRemark: finalReviewRemark,
-        docReviewDate: new Date().toISOString(),
-      };
-
-      await this.http
-        .patch(
-          `${environment.apiUrl}/v1/UploadedDocument/${document.id}`,
-          payload,
-          { headers: this.getHeaders() }
-        )
-        .pipe(
-          catchError(this.handleError.bind(this)),
-          finalize(() => (this.isLoading = false))
-        )
-        .toPromise();
-
-      const updatedDoc = this.uploadedDocuments.find(
-        (doc) => doc.id === document.id
-      );
-      if (updatedDoc) {
-        Object.assign(updatedDoc, {
-          isApproved: payload.isApproved,
-          isRejected: payload.isRejected,
-          status: payload.status,
-          reviewedBy: payload.reviewedBy,
-          docReviewedBy: payload.docReviewedBy,
-          reviewRemark: payload.reviewRemark,
-          docReviewDate: payload.docReviewDate,
-        });
-      }
-
-      this.groupDocumentsByStage();
-    } catch (error) {
-      console.error('Error reviewing document:', error);
-      this.errorMessage = 'Failed to review document. Please try again.';
-    }
-  }
-
-  async approveDocument(document: UploadedDocument): Promise<void> {
-    Swal.fire({
-      title: 'Approve Document',
-      text: `Are you sure you want to approve ${document.uploadedDocumentName}?`,
-      icon: 'question',
-      input: 'text',
-      inputLabel: 'Review Remark',
-      inputPlaceholder: 'Enter your review remark (optional)',
-      showCancelButton: true,
-      confirmButtonText: 'Approve',
-      cancelButtonText: 'Cancel',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        await this.reviewDocument(
-          document,
-          true,
-          result.value || 'Document approved'
-        );
-      }
-    });
-  }
-
-  async rejectDocument(document: UploadedDocument): Promise<void> {
-    Swal.fire({
-      title: 'Reject Document',
-      text: `Are you sure you want to reject ${document.uploadedDocumentName}?`,
-      icon: 'warning',
-      input: 'text',
-      inputLabel: 'Review Remark',
-      inputPlaceholder: 'Enter your reason for rejection',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'You need to provide a reason for rejection!';
-        }
-        return null;
-      },
-      showCancelButton: true,
-      confirmButtonText: 'Reject',
-      cancelButtonText: 'Cancel',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        await this.reviewDocument(document, false, result.value);
-      }
-    });
-  }
-
   viewDocument(documentId: number): void {
     const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
 
@@ -583,5 +478,84 @@ export class AllStagesDocumentsComponent implements OnInit {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // New method to submit stage
+  submitStage(stageId: number): void {
+    Swal.fire({
+      title: 'Submit Stage',
+      text: `Are you sure you want to submit Stage ${stageId}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Submit Stage',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performStageSubmission(stageId, true);
+      }
+    });
+  }
+
+  private performStageSubmission(stageId: number, tncAccepted: boolean): void {
+    if (!this.poID || isNaN(+this.poID) || !stageId || isNaN(stageId)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Input',
+        text: 'Invalid PO Number or Stage Number.',
+      });
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.http.get(
+      `${environment.apiUrl}/v1/StageStatus/validate-submission/${+this.poID}/${stageId}?TncSelected=${tncAccepted}`,
+      { headers: this.getHeaders() }
+    )
+    .pipe(
+      catchError(this.handleError.bind(this)),
+      finalize(() => (this.isLoading = false))
+    )
+    .subscribe({
+      next: (response: any) => {
+        if (response?.canSubmit) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: response.Message || 'Stage submitted successfully.',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            this.fetchAllUploadedDocuments();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Submission Failed',
+            text: response.Message || 'Stage cannot be submitted.',
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Validation error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Error validating the submission. Please try again.',
+        });
+      }
+    });
+  }
+
+  // Check if stage can be submitted (all documents approved)
+  canSubmitStage(stageId: number): boolean {
+    const stage = this.stageGroups.find(s => s.stageId === stageId);
+    if (!stage) return false;
+
+    // Check if all document types have at least one approved document
+    return stage.documents.every(docGroup => 
+      docGroup.uploadedDocuments.some(doc => doc.isApproved)
+    );
   }
 }

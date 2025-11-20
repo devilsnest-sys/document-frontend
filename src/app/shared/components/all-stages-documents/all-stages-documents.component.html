@@ -42,7 +42,7 @@
             <th style="width: 8%;">Review Date</th>
             <th style="width: 10%;">Remarks</th>
             <th style="width: 6%;">Actions</th>
-            <th style="width: 8%;">Review</th>
+            <!-- <th style="width: 8%;">Submit</th> -->
           </tr>
         </thead>
 
@@ -56,16 +56,21 @@
               [class.expanded]="isStageExpanded(stage.stageId)"
             >
               <td colspan="13" class="stage-header-cell">
-                <div class="stage-header-content">
-                  <i
-                    class="fas"
-                    [class.fa-chevron-down]="isStageExpanded(stage.stageId)"
-                    [class.fa-chevron-right]="!isStageExpanded(stage.stageId)"
-                  ></i>
-                  <span class="stage-name">{{ stage.stageName }}</span>
-                  <span class="badge badge-info ml-2">
-                    {{ stage.documents.length }} Document Types
-                  </span>
+                <div class="stage-header-content d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="fas" [class.fa-chevron-down]="isStageExpanded(stage.stageId)"
+                      [class.fa-chevron-right]="!isStageExpanded(stage.stageId)"></i>
+                    <span class="stage-name">{{ stage.stageName }}</span>
+                    <span class="badge badge-info ml-2">
+                      {{ stage.documents.length }} Document Types
+                    </span>
+                  </div>
+              
+                  <!-- ⭐ ADD SUBMIT BUTTON HERE ⭐ -->
+                  <button class="btn btn-sm btn-success" (click)="submitStage(stage.stageId); $event.stopPropagation();"
+                    [disabled]="!canSubmitStage(stage.stageId) || isLoading" title="Submit this stage">
+                    <i class="fas fa-check-circle"></i> Submit
+                  </button>
                 </div>
               </td>
             </tr>
@@ -111,20 +116,12 @@
                   <td>{{ docGroup.documentType.documentName }}</td>
                   <td>
                     <div class="upload-container">
-                      <input
-                        appTrimInput
-                        #fileInput
-                        type="file"
-                        [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex"
-                        style="display: none;"
-                        (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)"
-                      />
-                      <button
-                        class="btn btn-sm btn-outline-primary"
-                        (click)="fileInput.click()"
-                        [disabled]="doc.isApproved"
-                        [title]="doc.isApproved ? 'Upload disabled - Already approved' : 'Upload new document'"
-                      >
+                      <input appTrimInput #fileInput type="file"
+                        [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex" style="display: none;"
+                        (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
+                      <button class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
+                        [disabled]="doc.isApproved || doc.status === 'Pending'"
+                        [title]="doc.isApproved ? 'Upload disabled - Already approved' : doc.status === 'Pending' ? 'Upload disabled - Document is pending' : 'Upload new document'">
                         <i class="fas fa-upload"></i>
                       </button>
                     </div>
@@ -135,11 +132,11 @@
                     </span>
                   </td>
                   <td>
-                    <span
+                    <span 
                       class="badge"
-                      [class.badge-success]="doc.status === 'Approved'"
-                      [class.badge-danger]="doc.status === 'Rejected'"
-                      [class.badge-warning]="doc.status === 'Pending'"
+                      [class.badge-success]="doc.isApproved"
+                      [class.badge-danger]="doc.isRejected"
+                      [class.badge-warning]="!doc.isApproved && !doc.isRejected"
                     >
                       {{ doc.status || 'N/A' }}
                     </span>
@@ -184,54 +181,6 @@
                         <i class="fas fa-download"></i>
                       </button>
                     </div>
-                  </td>
-                  <td>
-                    <ng-container *ngIf="!(doc.isApproved || doc.isRejected)">
-                      <!-- Vendor uploaded, User reviews -->
-                      <ng-container *ngIf="doc.docUploadedBy === 'vendor' && userType === 'user'">
-                        <button
-                          class="btn btn-sm btn-success mr-1"
-                          (click)="approveDocument(doc)"
-                          [disabled]="isLoading"
-                          title="Approve"
-                        >
-                          <i class="fas fa-check"></i>
-                        </button>
-                        <button
-                          class="btn btn-sm btn-danger"
-                          (click)="rejectDocument(doc)"
-                          [disabled]="isLoading"
-                          title="Reject"
-                        >
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </ng-container>
-
-                      <!-- User uploaded, Vendor reviews -->
-                      <ng-container *ngIf="doc.docUploadedBy === 'user' && userType === 'vendor'">
-                        <button
-                          class="btn btn-sm btn-success mr-1"
-                          (click)="approveDocument(doc)"
-                          [disabled]="isLoading"
-                          title="Approve"
-                        >
-                          <i class="fas fa-check"></i>
-                        </button>
-                        <button
-                          class="btn btn-sm btn-danger"
-                          (click)="rejectDocument(doc)"
-                          [disabled]="isLoading"
-                          title="Reject"
-                        >
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </ng-container>
-                    </ng-container>
-
-                    <!-- Already reviewed -->
-                    <ng-container *ngIf="doc.isApproved || doc.isRejected">
-                      <span class="badge badge-secondary">Reviewed</span>
-                    </ng-container>
                   </td>
                 </tr>
 

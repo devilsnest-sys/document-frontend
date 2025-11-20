@@ -117,7 +117,9 @@
   font-size: 0.85rem;
   color: #fff;
 }
-
+.badge{
+  position: unset!important;
+}
 .stage-header-row.expanded .stage-header-content i.fa-chevron-down {
   transform: rotate(0deg);
 }
