@@ -48,9 +48,6 @@ export class MasterdocumentComponent {
         <button class="btn-action edit-btn" title="Edit">
         <span class="material-icons">edit</span>
       </button>
-      <button class="btn-action delete-btn" title="Delete">
-        <span class="material-icons">delete</span>
-      </button>
         `;
       },
       onCellClicked: (params: any) => {

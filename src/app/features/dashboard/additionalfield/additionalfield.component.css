@@ -179,7 +179,10 @@
   margin-top: 4px;
   font-weight: 500;
 }
-
+button.btn-action.edit-btn {
+    border: none;
+    background: none;
+}
 /* Submit Button Styling - Compact */
 button[type="submit"] {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
@@ -273,3 +276,32 @@ button[type="submit"]:disabled {
 * {
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
+
+  ::ng-deep .btn-action:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+  
+  ::ng-deep .edit-btn .material-icons {
+    font-size: 16px;
+    color: #3f51b5;
+  }
+
+  ::ng-deep .delete-btn .material-icons {
+    font-size: 16px;
+    color: #f44336; /* Red for delete */
+  }
+
+  ::ng-deep .btn-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 5px;
+    display: inline-block;
+    /* height: 100%; */
+    /* background: #d4d4d4; */
+    line-height: 0;
+    padding: 10px;
+    border-radius: 100px;
+  }
