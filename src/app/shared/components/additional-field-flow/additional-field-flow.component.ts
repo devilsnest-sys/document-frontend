@@ -36,6 +36,13 @@ interface StageGroup {
   uploadedFields: AdditionalField[];
 }
 
+interface Stage {
+  id: number;
+  sequence: number;
+  stageName: string;
+  stageStatuses: any[];
+}
+
 @Component({
   selector: 'app-additional-field-flow',
   standalone: false,
@@ -60,15 +67,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
   expandedFields: { [key: string]: boolean } = {};
   
   // Stage names mapping
-  stageNames: { [key: number]: string } = {
-    1: 'Stage 1 - Initial Documents',
-    2: 'Stage 2 - Bank Guarantee',
-    3: 'Stage 3 - Certificates',
-    4: 'Stage 4 - Transport Documents',
-    5: 'Stage 5 - Technical Documents',
-    6: 'Stage 6 - Quality Documents',
-    7: 'Stage 7 - Delivery Documents',
-  };
+  stageNames: { [key: number]: string } = {};
 
   constructor(
     private http: HttpClient,
@@ -98,7 +97,7 @@ export class AdditionalFieldFlowComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber');
     this.purchaseid = this.poNumber;
-    
+    this.fetchStageNames();
     await this.fetchDPoNo();
     
     if (this.poNumber) {
@@ -172,6 +171,28 @@ export class AdditionalFieldFlowComponent implements OnInit {
       this.handleError('Authentication error', error);
       this.loading = false;
     }
+  }
+
+   fetchStageNames(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    // Fetch stages 1-10 (adjust range based on your needs)
+    const stageRequests = Array.from({ length: 10 }, (_, i) => i + 1).map(stageId =>
+      this.http.get<Stage>(`${environment.apiUrl}/v1/stages/${stageId}`, { headers })
+        .pipe(catchError(() => of(null)))
+    );
+
+    Promise.all(stageRequests.map(req => req.toPromise())).then((results) => {
+      results.forEach((stage) => {
+        if (stage && stage.id && stage.stageName) {
+          this.stageNames[stage.id] = stage.stageName;
+        }
+      });
+      console.log('Fetched stage names:', this.stageNames);
+    });
   }
 
   async fetchAllUploadedFields(): Promise<void> {

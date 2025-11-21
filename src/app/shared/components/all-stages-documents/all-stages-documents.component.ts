@@ -53,6 +53,13 @@ interface DocumentGroupWithUploads {
   uploadedDocuments: UploadedDocument[];
 }
 
+interface Stage {
+  id: number;
+  sequence: number;
+  stageName: string;
+  stageStatuses: any[];
+}
+
 @Component({
   selector: 'app-all-stages-documents',
   standalone: false,
@@ -72,16 +79,8 @@ export class AllStagesDocumentsComponent implements OnInit {
   poID: string | null = null;
   poNumber: string = '';
   stepStatuses: { [key: number]: string } = {};
-  // Stage names mapping
-  stageNames: { [key: number]: string } = {
-    1: 'Stage 1 - Initial Documents',
-    2: 'Stage 2 - Bank Guarantee',
-    3: 'Stage 3 - Certificates',
-    4: 'Stage 4 - Transport Documents',
-    5: 'Stage 5 - Technical Documents',
-    6: 'Stage 6 - Quality Documents',
-    7: 'Stage 7 - Delivery Documents',
-  };
+  // Dynamic stage names mapping
+  stageNames: { [key: number]: string } = {};
 
   constructor(
     private http: HttpClient,
@@ -94,6 +93,7 @@ export class AllStagesDocumentsComponent implements OnInit {
     this.userType = localStorage.getItem('userType');
     this.poID = this.route.snapshot.paramMap.get('poNumber');
     console.log('PO ID:', this.poID);
+    this.fetchStageNames();
     this.fetchPoDetails();
     this.fetchStepStatuses();
   }
@@ -103,6 +103,28 @@ export class AllStagesDocumentsComponent implements OnInit {
     return new HttpHeaders()
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
+  }
+
+  fetchStageNames(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    // Fetch stages 1-10 (adjust range based on your needs)
+    const stageRequests = Array.from({ length: 10 }, (_, i) => i + 1).map(stageId =>
+      this.http.get<Stage>(`${environment.apiUrl}/v1/stages/${stageId}`, { headers })
+        .pipe(catchError(() => of(null)))
+    );
+
+    Promise.all(stageRequests.map(req => req.toPromise())).then((results) => {
+      results.forEach((stage) => {
+        if (stage && stage.id && stage.stageName) {
+          this.stageNames[stage.id] = stage.stageName;
+        }
+      });
+      console.log('Fetched stage names:', this.stageNames);
+    });
   }
 
   fetchPoDetails(): void {
@@ -549,11 +571,10 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-    private fetchStepStatuses(): void {
+  private fetchStepStatuses(): void {
     const token = localStorage.getItem('authToken');
     if (!token) return;
     const poNumber = this.route.snapshot.paramMap.get('poNumber');
-    //const poNumber=1;
     const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${poNumber}`;
     
     const headers = { Authorization: `Bearer ${token}` };
@@ -571,7 +592,12 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-    getStepClass(i: number): string {
+  // Get stage status
+  getStageStatus(stageId: number): string {
+    return this.stepStatuses[stageId] || 'Pending';
+  }
+
+  getStepClass(i: number): string {
     const stepNumber = i + 1;
     const status = this.stepStatuses[stepNumber];
   

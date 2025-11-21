@@ -50,11 +50,15 @@
           <!-- Loop through each stage -->
           <ng-container *ngFor="let stage of stageGroups; let stageIndex = index">
             <!-- Stage Header Row -->
-            <tr
-              (click)="toggleStage(stage.stageId)"
-              class="stage-header-row"
-              [class.expanded]="isStageExpanded(stage.stageId)"
-            >
+            <!-- Stage Header Row -->
+<tr
+  (click)="toggleStage(stage.stageId)"
+  class="stage-header-row"
+  [class.expanded]="isStageExpanded(stage.stageId)"
+  [class.status-completed]="getStageStatus(stage.stageId) === 'Complete'"
+  [class.status-inprogress]="getStageStatus(stage.stageId) === 'InProgress'"
+  [class.status-pending]="getStageStatus(stage.stageId) === 'Pending' || !getStageStatus(stage.stageId)"
+>
               <td colspan="13" class="stage-header-cell">
                 <div class="stage-header-content d-flex justify-content-between align-items-center">
                   <div>
