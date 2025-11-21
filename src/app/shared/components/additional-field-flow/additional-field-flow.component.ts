@@ -5,7 +5,7 @@ import { environment } from '../../../../environment/environment';
 import { ActivatedRoute } from '@angular/router';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { catchError, finalize } from 'rxjs/operators';
-import { firstValueFrom, throwError } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import Swal from 'sweetalert2';
 
 interface AdditionalField {
@@ -18,6 +18,22 @@ interface AdditionalField {
   initAddFieldCreatedBy: number;
   createdAt: string;
   additionalFieldName: string;
+}
+
+interface AvailableField {
+  id: number;
+  additionalFieldName: string;
+}
+
+interface StageFieldsMap {
+  [stageId: string]: AvailableField[];
+}
+
+interface StageGroup {
+  stageId: number;
+  stageName: string;
+  availableFields: AvailableField[];
+  uploadedFields: AdditionalField[];
 }
 
 @Component({
@@ -34,9 +50,25 @@ export class AdditionalFieldFlowComponent implements OnInit {
   loading = false;
   poNumber: string | null = null;
   editingIndex: number | null = null;
-  additionalFieldIdCounter = 1; // Counter for generating unique additionalFieldId
-  addField: any[] | undefined;
-   purchaseid: any;
+  additionalFieldIdCounter = 1;
+  purchaseid: any;
+  
+  // New properties for grouped structure
+  stageFieldsMap: StageFieldsMap = {};
+  stageGroups: StageGroup[] = [];
+  expandedStages: { [key: number]: boolean } = {};
+  expandedFields: { [key: string]: boolean } = {};
+  
+  // Stage names mapping
+  stageNames: { [key: number]: string } = {
+    1: 'Stage 1 - Initial Documents',
+    2: 'Stage 2 - Bank Guarantee',
+    3: 'Stage 3 - Certificates',
+    4: 'Stage 4 - Transport Documents',
+    5: 'Stage 5 - Technical Documents',
+    6: 'Stage 6 - Quality Documents',
+    7: 'Stage 7 - Delivery Documents',
+  };
 
   constructor(
     private http: HttpClient,
@@ -48,35 +80,32 @@ export class AdditionalFieldFlowComponent implements OnInit {
   }
 
   private initializeForm(data?: Partial<AdditionalField>): void {
-    // Generate dynamic values
     const now = new Date();
     const defaultPoId = data?.poId || '';
     
     this.fieldForm = this.fb.group({
       id: [data?.id || 0],
       poId: [defaultPoId],
-      stageId: [data?.stageId || this.stageNumber?.toString()],
-      additionalFieldId: [data?.additionalFieldId || this.additionalFieldIdCounter.toString()],
+      stageId: [data?.stageId || ''],
+      additionalFieldId: [data?.additionalFieldId || ''],
       initAddFieldValue: [data?.initAddFieldValue || '', [Validators.required]],
       isMandatory: [data?.isMandatory || false],
-      initAddFieldCreatedBy: [1], // You may want to get this from a user service
+      initAddFieldCreatedBy: [1],
       createdAt: [now.toISOString()]
     });
   }
 
-  async ngOnInit(): Promise<void>{
+  async ngOnInit(): Promise<void> {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber');
-    this.purchaseid=this.poNumber;
+    this.purchaseid = this.poNumber;
+    
     await this.fetchDPoNo();
+    
     if (this.poNumber) {
-      this.fetchAdditionalFieldsFlow(this.poNumber);
+      await this.fetchAllStageFields();
     } else {
       this.toastService.showToast('error', 'No PO Number provided');
     }
-
-    console.log('this is stage id', this.stageNumber);
-    this.fetchAdditionalFields();
-   
   }
 
   private getHeaders(): HttpHeaders {
@@ -87,90 +116,57 @@ export class AdditionalFieldFlowComponent implements OnInit {
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
-//     fetchDPoNo(): void {
-//       this.http
-//     .get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poNumber}`, {
-//       headers: this.getHeaders(),
-//     })
-//     .pipe(
-   
-//     )
-//     .subscribe({
-//       next: (response) => {
-//         console.log('Fetched PO details:', response);
-
-//         this.poNumber = response.pO_NO; 
-//         console.log("this is po number", this.poNumber ) // <- extract the PO number from response
-        
-//       },
-//     });
-// }
-async fetchDPoNo(): Promise<void> {
-  try {
-    const response = await firstValueFrom(
-      this.http.get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poNumber}`, {
-        headers: this.getHeaders(),
-      })
-    );
-    console.log('Fetched PO details:', response);
-    this.poNumber = response.pO_NO;
-  } catch (error) {
-    console.error('Error fetching PO:', error);
-    this.toastService.showToast('error', 'Failed to fetch PO Number');
-  }
-}
-  fetchAdditionalFields(): void{
-    this.loading = true;
- debugger;
- //console.log("this is additional field", this.poNumber);
-    try{
-      const headers = this.getHeaders();
-
-      this.http.get<AdditionalField[]>(
-       
-        `${environment.apiUrl}/v1/additional-field-selection/additionalfield/${this.stageNumber}?poNo=${this.poNumber}`,
-        { headers }
-      ).pipe(
-        catchError(error => this.handleHttpError('Failed to fetch additional fields-34', error)),
-        finalize(() => this.loading = false)
-      ).subscribe(data => {
-        this.addField = data || [];
-        console.log("this is additional field", this.addField);
-        if (this.addField.length > 0) {
-          const maxId = Math.max(...this.addField.map(row => parseInt(row.additionalFieldId) || 0));
-          this.additionalFieldIdCounter = maxId + 1;
-        }
-      });
+  async fetchDPoNo(): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<any>(`${environment.apiUrl}/v1/PurchaseOrder/${this.poNumber}`, {
+          headers: this.getHeaders(),
+        })
+      );
+      console.log('Fetched PO details:', response);
+      this.poNumber = response.pO_NO;
     } catch (error) {
-      this.handleError('Authentication error', error);
-      this.loading = false;
+      console.error('Error fetching PO:', error);
+      this.toastService.showToast('error', 'Failed to fetch PO Number');
     }
   }
 
-  fetchAdditionalFieldsFlow(poNumber: string): void {
+  async fetchAllStageFields(): Promise<void> {
     this.loading = true;
-debugger;
+    
     try {
       const headers = this.getHeaders();
 
-      this.http.get<AdditionalField[]>(
-        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${this.stageNumber}/${this.purchaseid}`,
+      // Fetch available fields grouped by stage
+      this.http.get<StageFieldsMap>(
+        `${environment.apiUrl}/v1/additional-field-selection/addfield-by-po-Group?poNo=${this.poNumber}`,
         { headers }
       ).pipe(
-        catchError(error => this.handleHttpError('Failed to fetch additional fields -12', error)),
-        finalize(() => this.loading = false)
-      ).subscribe(data => {
-        this.rowData = data || [];
-        if (this.rowData.length > 0) {
-          // Pre-fill the form with the PO ID from existing data
-          this.fieldForm.patchValue({
-            poId: this.rowData[0].poId,
-          });
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            this.stageFieldsMap = {};
+            this.stageGroups = [];
+            return of({});
+          }
+          return this.handleHttpError('Failed to fetch additional fields', error);
+        }),
+        finalize(() => (this.loading = false))
+      ).subscribe({
+        next: async (stageFieldsMap) => {
+          console.log('Fetched stage fields:', stageFieldsMap);
+          this.stageFieldsMap = stageFieldsMap;
           
-          // Update additionalFieldIdCounter to be higher than any existing ID
-          const maxId = Math.max(...this.rowData.map(row => parseInt(row.additionalFieldId) || 0));
-          this.additionalFieldIdCounter = maxId + 1;
-        }
+          // Initialize expanded states
+          Object.keys(stageFieldsMap).forEach((stageId) => {
+            this.expandedStages[parseInt(stageId)] = false;
+          });
+
+          // Fetch uploaded fields for all stages
+          await this.fetchAllUploadedFields();
+        },
+        error: (error) => {
+          console.error('Error fetching stage fields:', error);
+        },
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -178,40 +174,103 @@ debugger;
     }
   }
 
-  addRow(fieldId: number): void {
+  async fetchAllUploadedFields(): Promise<void> {
+    this.loading = true;
+
+    const stageIds = Object.keys(this.stageFieldsMap).map((id) => parseInt(id));
+
+    const requests = stageIds.map((stageId) => {
+      return this.http.get<AdditionalField[]>(
+        `${environment.apiUrl}/v1/UploadedAdditionalFieldFlow/${stageId}/${this.purchaseid}`,
+        { headers: this.getHeaders() }
+      ).pipe(catchError(() => of([])));
+    });
+
+    Promise.all(requests.map((req) => req.toPromise())).then((results) => {
+      this.rowData = results.flat().filter((field): field is AdditionalField => field !== undefined);
+      console.log('All uploaded fields:', this.rowData);
+      this.groupFieldsByStage();
+      this.loading = false;
+    });
+  }
+
+  private groupFieldsByStage(): void {
+    this.stageGroups = [];
+
+    Object.keys(this.stageFieldsMap).forEach((stageIdStr) => {
+      const stageId = parseInt(stageIdStr);
+      const availableFields = this.stageFieldsMap[stageIdStr];
+
+      const uploadedFields = this.rowData.filter(
+        (field) => parseInt(field.stageId) === stageId
+      );
+
+      this.stageGroups.push({
+        stageId: stageId,
+        stageName: this.stageNames[stageId] || `Stage ${stageId}`,
+        availableFields: availableFields,
+        uploadedFields: uploadedFields,
+      });
+    });
+
+    this.stageGroups.sort((a, b) => a.stageId - b.stageId);
+    console.log('Grouped fields by stage:', this.stageGroups);
+  }
+
+  toggleStage(stageId: number): void {
+    this.expandedStages[stageId] = !this.expandedStages[stageId];
+  }
+
+  isStageExpanded(stageId: number): boolean {
+    return this.expandedStages[stageId] === true;
+  }
+
+  toggleField(stageId: number, fieldId: number): void {
+    const key = `${stageId}-${fieldId}`;
+    this.expandedFields[key] = !this.expandedFields[key];
+  }
+
+  isFieldExpanded(stageId: number, fieldId: number): boolean {
+    const key = `${stageId}-${fieldId}`;
+    return this.expandedFields[key] === true;
+  }
+
+  getFieldCountForStage(stageId: number): number {
+    const stage = this.stageGroups.find((s) => s.stageId === stageId);
+    return stage ? stage.availableFields.length : 0;
+  }
+
+  getUploadedFieldsForField(stageId: number, fieldId: number): AdditionalField[] {
+    return this.rowData.filter(
+      (field) => parseInt(field.stageId) === stageId && parseInt(field.additionalFieldId) === fieldId
+    );
+  }
+
+  isFieldVisible(stageId: number, field: AvailableField): boolean {
+    const uploadedFields = this.getUploadedFieldsForField(stageId, field.id);
+    return uploadedFields.length === 0;
+  }
+
+  addRow(stageId: number, fieldId: number): void {
     if (this.fieldForm.invalid) {
       this.markFormGroupTouched(this.fieldForm);
       this.toastService.showToast('warning', 'Please fill in all required fields correctly');
       return;
     }
 
-    // Ensure poId is set from either existing data or from the route parameter
-    if (!this.fieldForm.get('poId')?.value) {
-      this.fieldForm.patchValue({
-        poId: this.purchaseid
-      });
-    }
-
-    if (!this.fieldForm.get('stageId')?.value && this.stageNumber) {
-      this.fieldForm.patchValue({
-        stageId: this.stageNumber.toString()
-      });
-    }
-
-    // Ensure additionalFieldId is correctly set using the fieldId from the template
-  this.fieldForm.patchValue({
-    additionalFieldId: fieldId.toString()
-  });
+    this.fieldForm.patchValue({
+      poId: this.purchaseid,
+      stageId: stageId.toString(),
+      additionalFieldId: fieldId.toString()
+    });
 
     const newField: AdditionalField = this.fieldForm.value;
     
-    // If we're editing an existing row
     if (this.editingIndex !== null) {
       this.updateRow(this.editingIndex, newField);
       return;
     }
 
-    // Otherwise, add new row
     this.loading = true;
     
     try {
@@ -222,20 +281,15 @@ debugger;
         newField,
         { headers }
       ).pipe(
-        catchError(error => this.handleHttpError('Failed to add row', error)),
+        catchError(error => this.handleHttpError('Failed to add field', error)),
         finalize(() => this.loading = false)
       ).subscribe(response => {
-        // Add the returned ID to our new field
         newField.id = response.id || newField.id;
         this.rowData.push(newField);
         
-        // Increment the additionalFieldId counter for the next new item
-        this.additionalFieldIdCounter++;
-
-        
         this.resetForm();
-        this.toastService.showToast('success', 'Row added successfully');
-        location.reload();
+        this.toastService.showToast('success', 'Field added successfully');
+        this.groupFieldsByStage();
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -243,9 +297,9 @@ debugger;
     }
   }
 
-  startEdit(index: number): void {
+  startEdit(index: number, field: AdditionalField): void {
     this.editingIndex = index;
-    const rowToEdit = { ...this.rowData[index] };
+    const rowToEdit = { ...field };
     this.initializeForm(rowToEdit);
   }
 
@@ -271,9 +325,13 @@ debugger;
           this.editingIndex = null;
         })
       ).subscribe(() => {
-        this.rowData[index] = { ...data };
+        const fieldIndex = this.rowData.findIndex(f => f.id === data.id);
+        if (fieldIndex !== -1) {
+          this.rowData[fieldIndex] = { ...data };
+        }
         this.resetForm();
         this.toastService.showToast('success', 'Field updated successfully');
+        this.groupFieldsByStage();
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -281,7 +339,7 @@ debugger;
     }
   }
 
-  deleteFieldFlow(index: number, id: number): void {
+  deleteFieldFlow(field: AdditionalField): void {
     Swal.fire({
       title: 'Are you sure?',
       text: 'This action cannot be undone',
@@ -291,12 +349,12 @@ debugger;
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.performDelete(index, id);
+        this.performDelete(field.id);
       }
     });
   }
 
-  private performDelete(index: number, id: number): void {
+  private performDelete(id: number): void {
     this.loading = true;
     
     try {
@@ -309,8 +367,12 @@ debugger;
         catchError(error => this.handleHttpError('Failed to delete field', error)),
         finalize(() => this.loading = false)
       ).subscribe(() => {
-        this.rowData.splice(index, 1);
+        const index = this.rowData.findIndex(f => f.id === id);
+        if (index !== -1) {
+          this.rowData.splice(index, 1);
+        }
         this.toastService.showToast('success', 'Field deleted successfully');
+        this.groupFieldsByStage();
       });
     } catch (error) {
       this.handleError('Authentication error', error);
@@ -321,42 +383,13 @@ debugger;
   resetForm(): void {
     this.fieldForm.reset();
     
-    // If we have existing data, pre-fill the PO ID
-    if (this.rowData.length > 0) {
-      this.fieldForm.patchValue({
-        poId: this.rowData[0].poId
-      });
-    } else if (this.poNumber) {
-      this.fieldForm.patchValue({
-        poId: this.poNumber
-      });
-    }
-    
-    // Set the stage ID and additional field ID
     this.fieldForm.patchValue({
-      stageId: this.stageNumber?.toString(),
-      additionalFieldId: this.additionalFieldIdCounter.toString()
+      poId: this.purchaseid
     });
     
     this.editingIndex = null;
   }
 
-  filteredFields() {
-    if (!this.addField) {
-      return []; // Return an empty array if addField is undefined
-    }
-  
-    const usedFieldIds = new Set(
-      (this.rowData || []) // Ensure rowData is also defined
-        .filter(row => row.initAddFieldValue)
-        .map(row => row.additionalFieldId)
-    );
-  
-    return this.addField.filter(field => !usedFieldIds.has(field.id));
-  }
-  
-
-  // Helper to mark all form controls as touched to trigger validation
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
@@ -393,7 +426,6 @@ debugger;
     this.toastService.showToast('error', errorMessage);
   }
 
-  // Validation helpers
   getFieldError(fieldName: string): string {
     const control = this.fieldForm.get(fieldName);
     if (control?.invalid && (control.dirty || control.touched)) {
@@ -401,7 +433,7 @@ debugger;
         return 'This field is required';
       }
       if (control.errors?.['pattern']) {
-        return 'Please enter a valid number';
+        return 'Please enter a valid value';
       }
     }
     return '';

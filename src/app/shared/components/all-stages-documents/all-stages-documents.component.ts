@@ -71,7 +71,7 @@ export class AllStagesDocumentsComponent implements OnInit {
   selectedFile: File | null = null;
   poID: string | null = null;
   poNumber: string = '';
-
+  stepStatuses: { [key: number]: string } = {};
   // Stage names mapping
   stageNames: { [key: number]: string } = {
     1: 'Stage 1 - Initial Documents',
@@ -95,6 +95,7 @@ export class AllStagesDocumentsComponent implements OnInit {
     this.poID = this.route.snapshot.paramMap.get('poNumber');
     console.log('PO ID:', this.poID);
     this.fetchPoDetails();
+    this.fetchStepStatuses();
   }
 
   private getHeaders(): HttpHeaders {
@@ -546,6 +547,41 @@ export class AllStagesDocumentsComponent implements OnInit {
         });
       }
     });
+  }
+
+    private fetchStepStatuses(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    const poNumber = this.route.snapshot.paramMap.get('poNumber');
+    //const poNumber=1;
+    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${poNumber}`;
+    
+    const headers = { Authorization: `Bearer ${token}` };
+
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (response) => {
+        this.stepStatuses = response.reduce((acc: { [x: string]: any; }, stage: { stageId: string | number; status: any; }) => {
+          acc[stage.stageId] = stage.status;
+          return acc;
+        }, {} as { [key: number]: string });
+      },
+      error: (err) => {
+        console.error('Error fetching step statuses:', err);
+      }
+    });
+  }
+
+    getStepClass(i: number): string {
+    const stepNumber = i + 1;
+    const status = this.stepStatuses[stepNumber];
+  
+    if (status === 'Complete') {
+      return 'completed';
+    } else if (status === 'InProgress') {
+      return 'current';
+    } else {
+      return 'pending';
+    }
   }
 
   // Check if stage can be submitted (all documents approved)

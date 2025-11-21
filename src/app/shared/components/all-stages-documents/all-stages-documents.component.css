@@ -1,7 +1,7 @@
 .all-stages-document-container {
   padding: 16px;
   background-color: #fafafa;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 /* Loading Spinner */

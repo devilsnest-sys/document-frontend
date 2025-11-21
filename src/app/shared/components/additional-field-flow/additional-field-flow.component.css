@@ -1,14 +1,356 @@
-.submit-btn {
-    margin-top: 10px;
-    padding: 8px 16px;
-    background-color: #000531;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+.all-stages-fields-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.page-header {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h2 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.page-header h2 i {
+  color: #3498db;
+  margin-right: 10px;
+}
+
+.data-grid {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead.thead-dark th {
+  background-color: #2c3e50;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 15px;
+  text-align: center;
+}
+
+/* Stage Header Row */
+.stage-header-row {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.badge{
+  position: unset!important;
+}
+.stage-header-row:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+  /* transform: translateY(-2px); */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stage-header-row.expanded {
+  background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+}
+
+.stage-header-cell {
+  padding: 15px 20px !important;
+  border: none !important;
+}
+
+.stage-header-content {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.stage-header-content i {
+  margin-right: 10px;
+  transition: transform 0.3s ease;
+}
+
+.stage-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 12px;
+}
+
+.badge-info {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Field Type Header */
+.field-type-header {
+  background-color: #e8f4f8;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.field-type-header:hover {
+  background-color: #d4ebf5;
+}
+
+.field-type-header.expanded {
+  background-color: #d4ebf5;
+}
+
+.field-type-cell {
+  padding: 12px 20px !important;
+  border-left: 4px solid #3498db !important;
+}
+
+.field-type-content {
+  display: flex;
+  align-items: center;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.field-type-content i.toggle-icon {
+  margin-right: 10px;
+  transition: transform 0.3s ease;
+  color: #3498db;
+}
+
+.field-type-content i.fa-chevron-down {
+  transform: rotate(90deg);
+}
+
+.field-name {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+/* Field Rows */
+.field-row {
+  transition: background-color 0.2s ease;
+}
+
+.field-row:hover {
+  background-color: #f8f9fa;
+}
+
+.field-row td {
+  padding: 12px 15px;
+  vertical-align: middle;
+}
+
+/* Upload Row */
+.upload-row {
+  background-color: #fff9e6;
+}
+
+.upload-row td {
+  padding: 15px;
+}
+
+.upload-row .text-muted {
+  font-style: italic;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-primary {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.btn-outline-primary:hover {
+  background-color: #3498db;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.btn-outline-danger {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.btn-outline-danger:hover {
+  background-color: #e74c3c;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+}
+
+.btn-primary {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  border-color: #95a5a6;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+  border-color: #7f8c8d;
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 4px;
+  border: 1px solid #dce4ec;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-control:disabled {
+  background-color: #f5f7fa;
+  cursor: not-allowed;
+}
+
+.form-control.is-invalid {
+  border-color: #e74c3c;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 60px 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+.empty-state i {
+  opacity: 0.5;
+}
+
+/* Badge Styles */
+.badge-primary {
+  background-color: #3498db;
+}
+
+.badge-secondary {
+  background-color: #95a5a6;
+}
+
+.badge-light {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .all-stages-fields-container {
+    padding: 10px;
   }
-  
-  .submit-btn:hover {
-    background-color: #002b64;
+
+  .page-header {
+    padding: 20px;
   }
-  
+
+  .table {
+    font-size: 12px;
+  }
+
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+.table > :not(caption) > * > *{
+  background-color: initial;
+}
+/* Animation */
+/* @keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} */
+
+.field-row,
+.upload-row {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+}
+
+/* Scrollbar Styles */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
