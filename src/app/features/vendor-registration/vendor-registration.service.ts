@@ -72,4 +72,16 @@ export class VendorService {
       'Content-Type': 'application/json'
     });
   }
+
+  generateNextVendorCode(token: string): Observable<any> {
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  return this.http.get<any>(
+    `${this.registrationUrl}/generate-next-vendor-code`,
+    { headers }
+  );
+}
 }

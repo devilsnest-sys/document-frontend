@@ -41,8 +41,7 @@
             <th style="width: 8%;">Reviewed By</th>
             <th style="width: 8%;">Review Date</th>
             <th style="width: 10%;">Remarks</th>
-            <th style="width: 6%;">Actions</th>
-            <!-- <th style="width: 8%;">Submit</th> -->
+            <th style="width: 11%;">Actions</th>
           </tr>
         </thead>
 
@@ -50,15 +49,10 @@
           <!-- Loop through each stage -->
           <ng-container *ngFor="let stage of stageGroups; let stageIndex = index">
             <!-- Stage Header Row -->
-            <!-- Stage Header Row -->
-<tr
-  (click)="toggleStage(stage.stageId)"
-  class="stage-header-row"
-  [class.expanded]="isStageExpanded(stage.stageId)"
-  [class.status-completed]="getStageStatus(stage.stageId) === 'Complete'"
-  [class.status-inprogress]="getStageStatus(stage.stageId) === 'InProgress'"
-  [class.status-pending]="getStageStatus(stage.stageId) === 'Pending' || !getStageStatus(stage.stageId)"
->
+            <tr (click)="toggleStage(stage.stageId)" class="stage-header-row" [class.expanded]="isStageExpanded(stage.stageId)"
+              [class.status-completed]="getStageStatus(stage.stageId) === 'Complete'"
+              [class.status-inprogress]="getStageStatus(stage.stageId) === 'InProgress'"
+              [class.status-pending]="getStageStatus(stage.stageId) === 'Pending' || !getStageStatus(stage.stageId)">
               <td colspan="13" class="stage-header-cell">
                 <div class="stage-header-content d-flex justify-content-between align-items-center">
                   <div>
@@ -69,32 +63,27 @@
                       {{ stage.documents.length }} Document Types
                     </span>
                   </div>
-              
-                  <!-- ⭐ ADD SUBMIT BUTTON HERE ⭐ -->
-                  <button class="btn btn-sm btn-success" (click)="submitStage(stage.stageId); $event.stopPropagation();"
-                    [disabled]="!canSubmitStage(stage.stageId) || isLoading" title="Submit this stage">
+        
+                  <!-- Submit Stage Button -->
+                  <button class="btn btn-sm btn-success" (click)="submitStage(stage.stageId); $event.stopPropagation();" *appUserRole="['user']"
+                    [disabled]="!canSubmitStage(stage.stageId)  || isLoading" title="Submit this stage">
                     <i class="fas fa-check-circle"></i> Submit
                   </button>
                 </div>
               </td>
             </tr>
-
+        
             <!-- Document Type Groups within Stage -->
             <ng-container *ngIf="isStageExpanded(stage.stageId)">
               <ng-container *ngFor="let docGroup of stage.documents; let docGroupIndex = index">
                 <!-- Document Type Header -->
-                <tr
-                  (click)="toggleDocument(stage.stageId, docGroup.documentType.id)"
-                  class="document-type-header"
-                  [class.expanded]="isDocumentExpanded(stage.stageId, docGroup.documentType.id)"
-                >
+                <tr (click)="toggleDocument(stage.stageId, docGroup.documentType.id)" class="document-type-header"
+                  [class.expanded]="isDocumentExpanded(stage.stageId, docGroup.documentType.id)">
                   <td></td>
                   <td colspan="12" class="document-type-cell">
                     <div class="document-type-content">
-                      <i
-                        class="fas fa-chevron-right toggle-icon"
-                        [class.fa-chevron-down]="isDocumentExpanded(stage.stageId, docGroup.documentType.id)"
-                      ></i>
+                      <i class="fas fa-chevron-right toggle-icon"
+                        [class.fa-chevron-down]="isDocumentExpanded(stage.stageId, docGroup.documentType.id)"></i>
                       <i class="fas fa-file-alt mr-2"></i>
                       <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
                       <span class="badge badge-secondary ml-2">
@@ -103,16 +92,12 @@
                     </div>
                   </td>
                 </tr>
-
+        
                 <!-- Uploaded Documents -->
-                <tr
-                  *ngFor="let doc of docGroup.uploadedDocuments; let docIndex = index"
-                  [hidden]="!isDocumentExpanded(stage.stageId, docGroup.documentType.id)"
-                  class="document-row"
-                  [class.row-approved]="doc.isApproved"
-                  [class.row-rejected]="doc.isRejected"
-                  [class.row-pending]="!doc.isApproved && !doc.isRejected"
-                >
+                <tr *ngFor="let doc of docGroup.uploadedDocuments; let docIndex = index"
+                  [hidden]="!isDocumentExpanded(stage.stageId, docGroup.documentType.id)" class="document-row"
+                  [class.row-approved]="doc.isApproved" [class.row-rejected]="doc.isRejected"
+                  [class.row-pending]="!doc.isApproved && !doc.isRejected">
                   <td>{{ docIndex + 1 }}</td>
                   <td>
                     <span class="badge badge-primary">Stage {{ stage.stageId }}</span>
@@ -121,8 +106,8 @@
                   <td>
                     <div class="upload-container">
                       <input appTrimInput #fileInput type="file"
-                        [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex" style="display: none;"
-                        (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
+                        [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex"
+                        style="display: none;" (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
                       <button class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
                         [disabled]="doc.isApproved || doc.status === 'Pending'"
                         [title]="doc.isApproved ? 'Upload disabled - Already approved' : doc.status === 'Pending' ? 'Upload disabled - Document is pending' : 'Upload new document'">
@@ -136,12 +121,8 @@
                     </span>
                   </td>
                   <td>
-                    <span 
-                      class="badge"
-                      [class.badge-success]="doc.isApproved"
-                      [class.badge-danger]="doc.isRejected"
-                      [class.badge-warning]="!doc.isApproved && !doc.isRejected"
-                    >
+                    <span class="badge" [class.badge-success]="doc.isApproved" [class.badge-danger]="doc.isRejected"
+                      [class.badge-warning]="!doc.isApproved && !doc.isRejected">
                       {{ doc.status || 'N/A' }}
                     </span>
                   </td>
@@ -169,31 +150,35 @@
                     </span>
                   </td>
                   <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-info mr-1"
-                        (click)="viewDocument(doc.id)"
-                        title="View"
-                      >
+                    <!-- ⭐ UPDATED: Action buttons with Approve/Reject -->
+                    <div class="action-buttons d-flex flex-wrap gap-1">
+                      <button class="btn btn-sm btn-info" (click)="viewDocument(doc.id)" title="View">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <button
-                        class="btn btn-sm btn-secondary"
-                        (click)="downloadDocument(doc.id)"
-                        title="Download"
-                      >
+                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(doc.id)" title="Download">
                         <i class="fas fa-download"></i>
+                      </button>
+                      <!-- Approve Button -->
+                      <button class="btn btn-sm btn-success" 
+                              (click)="approveDocument(doc)" 
+                              [disabled]="doc.isApproved || doc.isRejected || userType !== 'vendor'"
+                              [title]="doc.isApproved ? 'Already approved' : doc.isRejected ? 'Document was rejected' : userType !== 'Vendor' ? 'Only vendors can approve' : 'Approve document'">
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <!-- Reject Button -->
+                      <button class="btn btn-sm btn-danger" 
+                              (click)="rejectDocument(doc)" 
+                              [disabled]="doc.isApproved || doc.isRejected || userType !== 'vendor'"
+                              [title]="doc.isRejected ? 'Already rejected' : doc.isApproved ? 'Document was approved' : userType !== 'Vendor' ? 'Only vendors can reject' : 'Reject document'">
+                        <i class="fas fa-times"></i>
                       </button>
                     </div>
                   </td>
                 </tr>
-
+        
                 <!-- No Documents or Rejected - Show Upload Row -->
-                <tr
-                  *ngIf="isGroupVisible(stage.stageId, docGroup)"
-                  [hidden]="!isDocumentExpanded(stage.stageId, docGroup.documentType.id)"
-                  class="upload-row"
-                >
+                <tr *ngIf="isGroupVisible(stage.stageId, docGroup)"
+                  [hidden]="!isDocumentExpanded(stage.stageId, docGroup.documentType.id)" class="upload-row">
                   <td></td>
                   <td>
                     <span class="badge badge-primary">Stage {{ stage.stageId }}</span>
@@ -201,20 +186,12 @@
                   <td>{{ docGroup.documentType.documentName }}</td>
                   <td>
                     <div class="upload-container">
-                      <input
-                        appTrimInput
-                        #fileInputNew
-                        type="file"
-                        [id]="'fileInputNew-' + stage.stageId + '-' + docGroup.documentType.id"
-                        style="display: none;"
-                        (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)"
-                      />
-                      <button
-                        class="btn btn-sm btn-primary"
-                        (click)="fileInputNew.click()"
+                      <input appTrimInput #fileInputNew type="file"
+                        [id]="'fileInputNew-' + stage.stageId + '-' + docGroup.documentType.id" style="display: none;"
+                        (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
+                      <button class="btn btn-sm btn-primary" (click)="fileInputNew.click()"
                         [disabled]="hasApprovedDocument(docGroup)"
-                        [title]="hasApprovedDocument(docGroup) ? 'Document already approved' : 'Upload document'"
-                      >
+                        [title]="hasApprovedDocument(docGroup) ? 'Document already approved' : 'Upload document'">
                         <i class="fas fa-upload"></i> Upload
                       </button>
                     </div>

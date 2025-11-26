@@ -60,6 +60,17 @@ interface Stage {
   stageStatuses: any[];
 }
 
+interface DocumentReviewPayload {
+  id: number;
+  isApproved: boolean;
+  isRejected: boolean;
+  reviewedBy: number;
+  docReviewedBy: string;
+  status: string;
+  reviewRemark: string;
+  docReviewDate: string;
+}
+
 @Component({
   selector: 'app-all-stages-documents',
   standalone: false,
@@ -79,7 +90,6 @@ export class AllStagesDocumentsComponent implements OnInit {
   poID: string | null = null;
   poNumber: string = '';
   stepStatuses: { [key: number]: string } = {};
-  // Dynamic stage names mapping
   stageNames: { [key: number]: string } = {};
 
   constructor(
@@ -96,6 +106,9 @@ export class AllStagesDocumentsComponent implements OnInit {
     this.fetchStageNames();
     this.fetchPoDetails();
     this.fetchStepStatuses();
+
+    console.log('User Type from localStorage:', this.userType);
+    console.log('User Type comparison with Vendor:', this.userType === 'vendor');
   }
 
   private getHeaders(): HttpHeaders {
@@ -111,7 +124,6 @@ export class AllStagesDocumentsComponent implements OnInit {
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    // Fetch stages 1-10 (adjust range based on your needs)
     const stageRequests = Array.from({ length: 10 }, (_, i) => i + 1).map(stageId =>
       this.http.get<Stage>(`${environment.apiUrl}/v1/stages/${stageId}`, { headers })
         .pipe(catchError(() => of(null)))
@@ -174,7 +186,6 @@ export class AllStagesDocumentsComponent implements OnInit {
           console.log('Fetched stage documents:', stageDocuments);
           this.stageDocuments = stageDocuments;
           
-          // Initialize expanded states
           Object.keys(stageDocuments).forEach((stageId) => {
             this.expandedStages[parseInt(stageId)] = false;
           });
@@ -190,10 +201,8 @@ export class AllStagesDocumentsComponent implements OnInit {
   fetchAllUploadedDocuments(): void {
     this.isLoading = true;
 
-    // Create an array of all stage IDs
     const stageIds = Object.keys(this.stageDocuments).map((id) => parseInt(id));
 
-    // Fetch uploaded documents for all stages
     const requests = stageIds.map((stageId) => {
       const payload = {
         stageId: stageId,
@@ -209,9 +218,7 @@ export class AllStagesDocumentsComponent implements OnInit {
         .pipe(catchError(() => of([])));
     });
 
-    // Wait for all requests to complete
     Promise.all(requests.map((req) => req.toPromise())).then((results) => {
-      // Flatten all uploaded documents
       this.uploadedDocuments = results.flat().filter((doc): doc is UploadedDocument => doc !== undefined);
       console.log('All uploaded documents:', this.uploadedDocuments);
       this.groupDocumentsByStage();
@@ -247,7 +254,6 @@ export class AllStagesDocumentsComponent implements OnInit {
       });
     });
 
-    // Sort by stage ID
     this.stageGroups.sort((a, b) => a.stageId - b.stageId);
     console.log('Grouped documents by stage:', this.stageGroups);
   }
@@ -472,6 +478,124 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
+  // ⭐ NEW: Review Document API Method
+  async reviewDocument(
+    document: UploadedDocument,
+    isApproved: boolean,
+    reviewRemark: string = ''
+  ): Promise<void> {
+    try {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      const currentUser = localStorage.getItem('userId') || '1';
+      const currentUserType = localStorage.getItem('userType') || null;
+      
+      const finalReviewRemark = reviewRemark || (isApproved ? 'Document approved' : 'Document rejected');
+      
+      const payload: DocumentReviewPayload = {
+        id: document.id,
+        isApproved: isApproved,
+        isRejected: !isApproved,
+        reviewedBy: parseInt(currentUser),
+        docReviewedBy: currentUserType!,
+        status: isApproved ? 'Approved' : 'Rejected',
+        reviewRemark: finalReviewRemark,
+        docReviewDate: new Date().toISOString(),
+      };
+
+      await this.http
+        .patch(
+          `${environment.apiUrl}/v1/UploadedDocument/${document.id}`,
+          payload,
+          { headers: this.getHeaders() }
+        )
+        .pipe(
+          catchError(this.handleError.bind(this)),
+          finalize(() => (this.isLoading = false))
+        )
+        .toPromise();
+
+      // Update local document object
+      const updatedDoc = this.uploadedDocuments.find(
+        (doc) => doc.id === document.id
+      );
+      if (updatedDoc) {
+        Object.assign(updatedDoc, {
+          isApproved: payload.isApproved,
+          isRejected: payload.isRejected,
+          status: payload.status,
+          reviewedBy: payload.reviewedBy,
+          docReviewedBy: payload.docReviewedBy,
+          reviewRemark: payload.reviewRemark,
+          docReviewDate: payload.docReviewDate,
+        });
+      }
+
+      // Refresh the document list
+      this.fetchAllUploadedDocuments();
+      
+      // Show success message
+      this.toastService.showToast(
+        'success', 
+        isApproved ? 'Document Approved Successfully' : 'Document Rejected'
+      );
+
+    } catch (error) {
+      console.error('Error reviewing document:', error);
+      this.errorMessage = 'Failed to review document. Please try again.';
+      this.toastService.showToast('error', 'Failed to review document');
+    }
+  }
+
+  // ⭐ NEW: Approve Document with Confirmation
+  async approveDocument(document: UploadedDocument): Promise<void> {
+    Swal.fire({
+      title: 'Approve Document',
+      text: `Are you sure you want to approve "${document.uploadedDocumentName}"?`,
+      icon: 'question',
+      input: 'text',
+      inputLabel: 'Review Remark',
+      inputPlaceholder: 'Enter your review remark (optional)',
+      showCancelButton: true,
+      confirmButtonText: 'Approve',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await this.reviewDocument(document, true, result.value || 'Document approved');
+      }
+    });
+  }
+
+  // ⭐ NEW: Reject Document with Confirmation
+  async rejectDocument(document: UploadedDocument): Promise<void> {
+    Swal.fire({
+      title: 'Reject Document',
+      text: `Are you sure you want to reject "${document.uploadedDocumentName}"?`,
+      icon: 'warning',
+      input: 'textarea',
+      inputLabel: 'Rejection Reason (Required)',
+      inputPlaceholder: 'Enter your reason for rejection...',
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return 'You must provide a reason for rejection!';
+        }
+        return null;
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Reject',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await this.reviewDocument(document, false, result.value);
+      }
+    });
+  }
+
   viewDocument(documentId: number): void {
     const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
 
@@ -503,7 +627,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  // New method to submit stage
   submitStage(stageId: number): void {
     Swal.fire({
       title: 'Submit Stage',
@@ -583,6 +706,7 @@ export class AllStagesDocumentsComponent implements OnInit {
       next: (response) => {
         this.stepStatuses = response.reduce((acc: { [x: string]: any; }, stage: { stageId: string | number; status: any; }) => {
           acc[stage.stageId] = stage.status;
+          console.log("Stage status color:", acc);
           return acc;
         }, {} as { [key: number]: string });
       },
@@ -592,7 +716,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-  // Get stage status
   getStageStatus(stageId: number): string {
     return this.stepStatuses[stageId] || 'Pending';
   }
@@ -610,12 +733,10 @@ export class AllStagesDocumentsComponent implements OnInit {
     }
   }
 
-  // Check if stage can be submitted (all documents approved)
   canSubmitStage(stageId: number): boolean {
     const stage = this.stageGroups.find(s => s.stageId === stageId);
     if (!stage) return false;
 
-    // Check if all document types have at least one approved document
     return stage.documents.every(docGroup => 
       docGroup.uploadedDocuments.some(doc => doc.isApproved)
     );

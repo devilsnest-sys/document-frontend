@@ -80,6 +80,8 @@ import { TrimInputDirective } from './shared/directives/trim-input.directive';
 import { ReportsComponent } from './features/reports/reports.component';
 import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po.component';
 import { AllStagesDocumentsComponent } from './shared/components/all-stages-documents/all-stages-documents.component';
+import { ErrorNotFoundComponent } from './shared/error-not-found/error-not-found.component';
+import { ErrorInterceptor } from './core/services/error.interceptor';
 
 
 
@@ -129,7 +131,8 @@ import { AllStagesDocumentsComponent } from './shared/components/all-stages-docu
     TrimInputDirective,
     ReportsComponent,
     StaggerdPoComponent,
-    AllStagesDocumentsComponent
+    AllStagesDocumentsComponent,
+    ErrorNotFoundComponent
     
   ],
   imports: [
@@ -160,9 +163,13 @@ import { AllStagesDocumentsComponent } from './shared/components/all-stages-docu
     MatSnackBarModule,
     MatTabsModule
   ],
-  providers: [
+ providers: [
     provideAnimationsAsync(),
-    { provide: HTTP_INTERCEPTORS, useClass: HttpRequestInterceptor, multi: true },SessionTimeoutService
+    SessionTimeoutService,
+    // Your existing interceptor
+    { provide: HTTP_INTERCEPTORS, useClass: HttpRequestInterceptor, multi: true },
+    // Add the Error Interceptor for automatic error handling
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })

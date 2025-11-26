@@ -64,7 +64,43 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Generate user code
+   * Fetch user code from API
+   */
+  private fetchUserCodeFromAPI(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      this.toastservice.showToast('error', 'Authentication token not found');
+      return;
+    }
+
+    const apiUrl = 'https://localhost:44347/api/v1/users/generate-next-user-code';
+    
+    this.http.get<string>(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      responseType: 'text' as 'json' // Handle plain text response
+    }).subscribe({
+      next: (userCode) => {
+        this.registrationForm.patchValue({
+          username: userCode
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching user code:', err);
+        this.toastservice.showToast('error', 'Failed to generate username');
+        // Fallback to local generation if API fails
+        const fallbackUsername = this.generateUserCode();
+        this.registrationForm.patchValue({
+          username: fallbackUsername
+        });
+      }
+    });
+  }
+
+  /**
+   * Fallback: Generate user code locally (if API fails)
    */
   private generateUserCode(): string {
     const timestamp = Date.now().toString().slice(-6); // take last 6 digits for compactness
@@ -75,13 +111,15 @@ export class RegistrationComponent implements OnInit {
    * Generate username and password for new user
    */
   generateUserCredentials(): void {
-    const username = this.generateUserCode();
+    // Fetch username from API
+    this.fetchUserCodeFromAPI();
+    
+    // Generate password
     const password = this.generateRandomPassword();
     
     this.generatedPassword = password; // Store for internal use only
     
     this.registrationForm.patchValue({
-      username: username,
       HashedPassword: password,
       confirmPassword: password
     });

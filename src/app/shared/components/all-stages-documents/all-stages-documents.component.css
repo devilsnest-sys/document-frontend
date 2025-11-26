@@ -178,17 +178,17 @@
 }
 
 .document-row.row-approved {
-  background-color: #f0fdf4!important;
+  background-color: #9ecdac!important;
   border-left-color: #22c55e!important;
 }
 
 .document-row.row-rejected {
-  background-color: #fef2f2;
+  background-color: #d5b9b9;
   border-left-color: #ef4444;
 }
 
 .document-row.row-pending {
-  background-color: #eff6ff;
+  background-color: #b4cdee;
   border-left-color: #3b82f6;
 }
 
@@ -509,13 +509,13 @@
 }
 
 /* Stage Header Color Coding based on Status */
-/* .stage-header-row.status-completed {
+.stage-header-row.status-completed {
   background-color: #d4edda !important;
   border-left: 4px solid #28a745;
 }
 
 .stage-header-row.status-completed .stage-header-cell {
-  background-color: #d4edda !important;
+  background-color: #259840 !important;
 }
 
 .stage-header-row.status-completed:hover {
@@ -528,7 +528,7 @@
 }
 
 .stage-header-row.status-inprogress .stage-header-cell {
-  background-color: #d1ecf1 !important;
+  background-color: #429bab !important;
 }
 
 .stage-header-row.status-inprogress:hover {
@@ -546,10 +546,10 @@
 
 .stage-header-row.status-pending:hover {
   background-color: #d6d8db !important;
-} */
+}
 
 /* Optional: Add status badge styling */
-/* .stage-status-badge {
+.stage-status-badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -570,4 +570,4 @@
 .stage-status-badge.status-pending {
   background-color: #6c757d;
   color: white;
-} */
+}

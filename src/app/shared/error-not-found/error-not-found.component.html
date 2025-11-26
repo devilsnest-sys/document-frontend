@@ -1,0 +1,38 @@
+<div class="relative min-h-screen w-full bg-black text-white flex items-center justify-center">
+  <!-- Background Image -->
+  <div class="absolute inset-0 bg-space"></div>
+
+  <!-- Falling Stars -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div *ngFor="let star of stars" 
+         [ngClass]="{
+           'animate-fall-topLeft': star.direction === 'topLeft',
+           'animate-fall-topRight': star.direction === 'topRight'
+         }"
+         [ngStyle]="{
+           top: star.top,
+           left: star.left,
+           width: star.size + 'px',
+           height: star.size + 'px',
+           animationDuration: star.duration + 's',
+           animationDelay: star.delay + 's'
+         }">
+      <div class="h-full w-full rounded-full bg-white opacity-80"></div>
+    </div>
+  </div>
+
+  <!-- UFO -->
+  <div class="ufo">
+    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8794272-p5k6GdbD8O2RIat5GWtUGJGkDgXoxf.png" 
+         alt="UFO" width="300" height="150">
+  </div>
+
+  <!-- Content -->
+  <div class="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+    <h1 class="mb-2 text-7xl font-bold text-white">404</h1>
+    <p class="mb-8 text-xl text-gray-300">Oops! Looks like this page got lost in space</p>
+    <a href="/" class="px-6 py-3 text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+      Return Home
+    </a>
+  </div>
+</div>

@@ -27,8 +27,7 @@ export class VendorRegistrationComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     if (!this.isEditMode) {
-      const vendorCode = this.generateVendorCode();
-      this.registrationForm.patchValue({ vendorCode });
+      this.fetchAndSetVendorCode();
     }
   }
 
@@ -42,8 +41,8 @@ export class VendorRegistrationComponent implements OnInit {
       website: [''],
       contactNameTitle: ['', Validators.required],
       contactEmail: ['', [Validators.required, Validators.email]],
-      contactPhone1: [''], // Now optional
-      serviceType: ['', Validators.required], // New field
+      contactPhone1: [''],
+      serviceType: ['', Validators.required],
       generalDetails: [''],
       username: [''],
       HashedPassword: [''],
@@ -52,21 +51,44 @@ export class VendorRegistrationComponent implements OnInit {
     });
   }
 
+  // New method to fetch vendor code from API
+  fetchAndSetVendorCode(): void {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
+      return;
+    }
+
+    this.vendorService.generateNextVendorCode(token).subscribe({
+      next: (response) => {
+        // Assuming the API returns { vendorCode: "VEN001234" } or similar
+        const vendorCode = response.vendorCode || response;
+        this.registrationForm.patchValue({ vendorCode });
+      },
+      error: (error) => {
+        console.error('Error generating vendor code:', error);
+        this.toastservice.showToast('error', 'Failed to generate vendor code');
+        // Fallback to local generation if API fails
+        const fallbackCode = this.generateVendorCode();
+        this.registrationForm.patchValue({ vendorCode: fallbackCode });
+      }
+    });
+  }
+
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
 
     if (this.isEditMode) {
-      this.fetchVendors(); // Load vendors when entering edit mode
-      this.registrationForm.reset(); // Clear form
-      this.initializeForm(); // Reinitialize form
-      // Enable vendorCode field for selection
+      this.fetchVendors();
+      this.registrationForm.reset();
+      this.initializeForm();
       this.registrationForm.get('vendorCode')?.enable();
     } else {
-      this.registrationForm.reset(); // Reset form when exiting edit mode
+      this.registrationForm.reset();
       this.selectedVendorId = null;
-      this.initializeForm(); // Reinitialize form
-      const vendorCode = this.generateVendorCode();
-      this.registrationForm.patchValue({ vendorCode });
+      this.initializeForm();
+      this.fetchAndSetVendorCode();
     }
   }
 
@@ -85,13 +107,11 @@ export class VendorRegistrationComponent implements OnInit {
   onVendorCodeSelected(vendorCode: string): void {
     if (!vendorCode) return;
 
-    // Find the selected vendor
     const selectedVendor = this.vendorList.find(vendor => vendor.vendorCode === vendorCode);
 
     if (selectedVendor && selectedVendor.id) {
       this.selectedVendorId = selectedVendor.id;
 
-      // Get vendor details by ID and populate form
       this.vendorService.getVendorById(selectedVendor.id).subscribe({
         next: (vendorData) => {
           this.populateForm(vendorData);
@@ -118,7 +138,7 @@ export class VendorRegistrationComponent implements OnInit {
       serviceType: vendorData.serviceType || '',
       generalDetails: vendorData.generalDetails || '',
       username: vendorData.username,
-      HashedPassword: '', // Don't populate password for security
+      HashedPassword: '',
       userType: vendorData.userType || 'vendor',
       salt: vendorData.salt || ''
     });
@@ -138,7 +158,6 @@ export class VendorRegistrationComponent implements OnInit {
       const payload = { ...this.registrationForm.getRawValue() };
 
       if (this.isEditMode && this.selectedVendorId) {
-        // Update existing vendor
         payload.id = this.selectedVendorId;
 
         this.vendorService.updateVendor(payload, token).subscribe({
@@ -153,9 +172,8 @@ export class VendorRegistrationComponent implements OnInit {
           }
         });
       } else {
-        // Create new vendor
         const generatedPassword = this.generateRandomPassword(10);
-        const vendorCode = this.generateVendorCode();
+        const vendorCode = this.registrationForm.get('vendorCode')?.value;
         payload.HashedPassword = generatedPassword;
         payload.vendorCode = vendorCode;
         payload.username = vendorCode;
@@ -196,6 +214,7 @@ export class VendorRegistrationComponent implements OnInit {
     return password;
   }
 
+  // Keeping this as fallback
   private generateVendorCode(): string {
     const timestamp = Date.now().toString().slice(-6);
     return `VEN00${timestamp}`;
@@ -207,8 +226,7 @@ export class VendorRegistrationComponent implements OnInit {
     this.initializeForm();
     
     if (!this.isEditMode) {
-      const vendorCode = this.generateVendorCode();
-      this.registrationForm.patchValue({ vendorCode });
+      this.fetchAndSetVendorCode();
     }
     
     this.isEditMode = false;
