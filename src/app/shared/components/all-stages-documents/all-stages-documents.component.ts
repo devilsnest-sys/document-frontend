@@ -103,12 +103,11 @@ export class AllStagesDocumentsComponent implements OnInit {
     this.userType = localStorage.getItem('userType');
     this.poID = this.route.snapshot.paramMap.get('poNumber');
     console.log('PO ID:', this.poID);
+    console.log('User Type from localStorage:', this.userType);
+    
     this.fetchStageNames();
     this.fetchPoDetails();
     this.fetchStepStatuses();
-
-    console.log('User Type from localStorage:', this.userType);
-    console.log('User Type comparison with Vendor:', this.userType === 'vendor');
   }
 
   private getHeaders(): HttpHeaders {
@@ -478,7 +477,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-  // ⭐ NEW: Review Document API Method
   async reviewDocument(
     document: UploadedDocument,
     isApproved: boolean,
@@ -489,7 +487,7 @@ export class AllStagesDocumentsComponent implements OnInit {
       this.errorMessage = '';
 
       const currentUser = localStorage.getItem('userId') || '1';
-      const currentUserType = localStorage.getItem('userType') || null;
+      const currentUserType = localStorage.getItem('userType') || '';
       
       const finalReviewRemark = reviewRemark || (isApproved ? 'Document approved' : 'Document rejected');
       
@@ -498,7 +496,7 @@ export class AllStagesDocumentsComponent implements OnInit {
         isApproved: isApproved,
         isRejected: !isApproved,
         reviewedBy: parseInt(currentUser),
-        docReviewedBy: currentUserType!,
+        docReviewedBy: currentUserType,
         status: isApproved ? 'Approved' : 'Rejected',
         reviewRemark: finalReviewRemark,
         docReviewDate: new Date().toISOString(),
@@ -516,7 +514,6 @@ export class AllStagesDocumentsComponent implements OnInit {
         )
         .toPromise();
 
-      // Update local document object
       const updatedDoc = this.uploadedDocuments.find(
         (doc) => doc.id === document.id
       );
@@ -532,10 +529,8 @@ export class AllStagesDocumentsComponent implements OnInit {
         });
       }
 
-      // Refresh the document list
       this.fetchAllUploadedDocuments();
       
-      // Show success message
       this.toastService.showToast(
         'success', 
         isApproved ? 'Document Approved Successfully' : 'Document Rejected'
@@ -548,7 +543,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     }
   }
 
-  // ⭐ NEW: Approve Document with Confirmation
   async approveDocument(document: UploadedDocument): Promise<void> {
     Swal.fire({
       title: 'Approve Document',
@@ -569,7 +563,6 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-  // ⭐ NEW: Reject Document with Confirmation
   async rejectDocument(document: UploadedDocument): Promise<void> {
     Swal.fire({
       title: 'Reject Document',
@@ -628,6 +621,26 @@ export class AllStagesDocumentsComponent implements OnInit {
   }
 
   submitStage(stageId: number): void {
+    // BUG FIX: Check if user is allowed to submit
+    if (this.userType?.toLowerCase() !== 'user') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'Only users with "user" role can submit stages.',
+      });
+      return;
+    }
+
+    // BUG FIX: Check if stage is already complete
+    if (this.getStageStatus(stageId) === 'Complete') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Already Submitted',
+        text: 'This stage has already been submitted.',
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Submit Stage',
       text: `Are you sure you want to submit Stage ${stageId}?`,
@@ -673,6 +686,8 @@ export class AllStagesDocumentsComponent implements OnInit {
             text: response.Message || 'Stage submitted successfully.',
             confirmButtonText: 'OK'
           }).then(() => {
+            // BUG FIX: Refresh stage statuses after submission
+            this.fetchStepStatuses();
             this.fetchAllUploadedDocuments();
           });
         } else {
@@ -706,9 +721,9 @@ export class AllStagesDocumentsComponent implements OnInit {
       next: (response) => {
         this.stepStatuses = response.reduce((acc: { [x: string]: any; }, stage: { stageId: string | number; status: any; }) => {
           acc[stage.stageId] = stage.status;
-          console.log("Stage status color:", acc);
           return acc;
         }, {} as { [key: number]: string });
+        console.log("Stage statuses:", this.stepStatuses);
       },
       error: (err) => {
         console.error('Error fetching step statuses:', err);
@@ -737,8 +752,34 @@ export class AllStagesDocumentsComponent implements OnInit {
     const stage = this.stageGroups.find(s => s.stageId === stageId);
     if (!stage) return false;
 
+    // BUG FIX: Check if stage has documents
+    if (stage.documents.length === 0) return false;
+
+    // BUG FIX: All document types must have at least one approved document
     return stage.documents.every(docGroup => 
       docGroup.uploadedDocuments.some(doc => doc.isApproved)
     );
+  }
+
+  // BUG FIX: Helper method to determine submit button text
+  getSubmitButtonText(stageId: number): string {
+    const status = this.getStageStatus(stageId);
+    return status === 'Complete' ? 'Submitted' : 'Submit';
+  }
+
+  // BUG FIX: Helper method to determine if submit button should be disabled
+  isSubmitDisabled(stageId: number): boolean {
+    const status = this.getStageStatus(stageId);
+    return status === 'Complete' || !this.canSubmitStage(stageId) || this.isLoading;
+  }
+
+  // BUG FIX: Check if user can perform vendor actions
+  isVendor(): boolean {
+    return this.userType?.toLowerCase() === 'vendor';
+  }
+
+  // BUG FIX: Check if user can perform user actions
+  isUser(): boolean {
+    return this.userType?.toLowerCase() === 'user';
   }
 }

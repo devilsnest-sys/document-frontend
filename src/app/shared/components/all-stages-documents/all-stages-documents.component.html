@@ -1,17 +1,5 @@
 <div class="all-stages-document-container m-0">
   <!-- Loading State -->
-
-
-  <!-- Header -->
-  <div class="page-header mb-4">
-    <h2 class="text-center">
-      <i class="fas fa-folder-open"></i>
-      All Stages Document Management
-    </h2>
-    <p class="text-center text-muted">
-      View and manage documents across all stages for PO: {{ poNumber }}
-    </p>
-  </div>
   <div *ngIf="isLoading" class="loading-spinner">
     <div class="spinner-border text-primary" role="status">
       <span class="sr-only">Loading...</span>
@@ -24,6 +12,18 @@
     <i class="fas fa-exclamation-triangle"></i>
     {{ errorMessage }}
   </div>
+
+  <!-- Header -->
+  <div class="page-header mb-4">
+    <h2 class="text-center">
+      <i class="fas fa-folder-open"></i>
+      All Stages Document Management
+    </h2>
+    <p class="text-center text-muted">
+      View and manage documents across all stages for PO: {{ poNumber }}
+    </p>
+  </div>
+
   <!-- Main Content -->
   <div class="data-grid" *ngIf="!isLoading && !errorMessage">
     <div class="table-responsive">
@@ -62,12 +62,28 @@
                     <span class="badge badge-info ml-2">
                       {{ stage.documents.length }} Document Types
                     </span>
+                    <!-- BUG FIX: Show stage status badge -->
+                    <span class="badge ml-2" 
+                          [class.badge-success]="getStageStatus(stage.stageId) === 'Complete'"
+                          [class.badge-warning]="getStageStatus(stage.stageId) === 'InProgress'"
+                          [class.badge-secondary]="getStageStatus(stage.stageId) === 'Pending'">
+                      {{ getStageStatus(stage.stageId) }}
+                    </span>
                   </div>
         
-                  <!-- Submit Stage Button -->
-                  <button class="btn btn-sm btn-success" (click)="submitStage(stage.stageId); $event.stopPropagation();" *appUserRole="['user']"
-                    [disabled]="!canSubmitStage(stage.stageId)  || isLoading" title="Submit this stage">
-                    <i class="fas fa-check-circle"></i> Submit
+                  <!-- BUG FIX: Submit Stage Button - Only for 'user' role -->
+                  <button class="btn btn-sm" 
+                          [class.btn-success]="getStageStatus(stage.stageId) !== 'Complete'"
+                          [class.btn-secondary]="getStageStatus(stage.stageId) === 'Complete'"
+                          (click)="submitStage(stage.stageId); $event.stopPropagation();" 
+                          *ngIf="isUser()"
+                          [disabled]="isSubmitDisabled(stage.stageId)"
+                          [title]="getStageStatus(stage.stageId) === 'Complete' ? 'Stage already submitted' : 
+                                   !canSubmitStage(stage.stageId) ? 'All documents must be approved before submission' : 
+                                   'Submit this stage'">
+                    <i class="fas" [class.fa-check-circle]="getStageStatus(stage.stageId) !== 'Complete'"
+                                   [class.fa-check-double]="getStageStatus(stage.stageId) === 'Complete'"></i> 
+                    {{ getSubmitButtonText(stage.stageId) }}
                   </button>
                 </div>
               </td>
@@ -104,15 +120,22 @@
                   </td>
                   <td>{{ docGroup.documentType.documentName }}</td>
                   <td>
-                    <div class="upload-container">
+                    <!-- BUG FIX: Upload button only for user role and appropriate conditions -->
+                    <div class="upload-container" *ngIf="isUser()">
                       <input appTrimInput #fileInput type="file"
                         [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex"
                         style="display: none;" (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
                       <button class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
-                        [disabled]="doc.isApproved || doc.status === 'Pending'"
-                        [title]="doc.isApproved ? 'Upload disabled - Already approved' : doc.status === 'Pending' ? 'Upload disabled - Document is pending' : 'Upload new document'">
+                        [disabled]="doc.isApproved || doc.status === 'Pending' || getStageStatus(stage.stageId) === 'Complete'"
+                        [title]="doc.isApproved ? 'Upload disabled - Already approved' : 
+                                 doc.status === 'Pending' ? 'Upload disabled - Document is pending' : 
+                                 getStageStatus(stage.stageId) === 'Complete' ? 'Upload disabled - Stage completed' : 
+                                 'Upload new document'">
                         <i class="fas fa-upload"></i>
                       </button>
+                    </div>
+                    <div *ngIf="!isUser()" class="text-muted">
+                      <small>N/A</small>
                     </div>
                   </td>
                   <td>
@@ -150,34 +173,43 @@
                     </span>
                   </td>
                   <td>
-                    <!-- ⭐ UPDATED: Action buttons with Approve/Reject -->
+                    <!-- BUG FIX: Action buttons with proper role checks -->
                     <div class="action-buttons d-flex flex-wrap gap-1">
+                      <!-- View and Download available to all -->
                       <button class="btn btn-sm btn-info" (click)="viewDocument(doc.id)" title="View">
                         <i class="fas fa-eye"></i>
                       </button>
                       <button class="btn btn-sm btn-secondary" (click)="downloadDocument(doc.id)" title="Download">
                         <i class="fas fa-download"></i>
                       </button>
-                      <!-- Approve Button -->
+                      
+                      <!-- BUG FIX: Approve Button - Only for vendor role -->
                       <button class="btn btn-sm btn-success" 
                               (click)="approveDocument(doc)" 
-                              [disabled]="doc.isApproved || doc.isRejected || userType !== 'vendor'"
-                              [title]="doc.isApproved ? 'Already approved' : doc.isRejected ? 'Document was rejected' : userType !== 'Vendor' ? 'Only vendors can approve' : 'Approve document'">
+                              *ngIf="isVendor()"
+                              [disabled]="doc.isApproved || doc.isRejected"
+                              [title]="doc.isApproved ? 'Already approved' : 
+                                       doc.isRejected ? 'Document was rejected' : 
+                                       'Approve document'">
                         <i class="fas fa-check"></i>
                       </button>
-                      <!-- Reject Button -->
+                      
+                      <!-- BUG FIX: Reject Button - Only for vendor role -->
                       <button class="btn btn-sm btn-danger" 
                               (click)="rejectDocument(doc)" 
-                              [disabled]="doc.isApproved || doc.isRejected || userType !== 'vendor'"
-                              [title]="doc.isRejected ? 'Already rejected' : doc.isApproved ? 'Document was approved' : userType !== 'Vendor' ? 'Only vendors can reject' : 'Reject document'">
+                              *ngIf="isVendor()"
+                              [disabled]="doc.isApproved || doc.isRejected"
+                              [title]="doc.isRejected ? 'Already rejected' : 
+                                       doc.isApproved ? 'Document was approved' : 
+                                       'Reject document'">
                         <i class="fas fa-times"></i>
                       </button>
                     </div>
                   </td>
                 </tr>
         
-                <!-- No Documents or Rejected - Show Upload Row -->
-                <tr *ngIf="isGroupVisible(stage.stageId, docGroup)"
+                <!-- BUG FIX: No Documents or Rejected - Show Upload Row (Only for user role) -->
+                <tr *ngIf="isGroupVisible(stage.stageId, docGroup) && isUser()"
                   [hidden]="!isDocumentExpanded(stage.stageId, docGroup.documentType.id)" class="upload-row">
                   <td></td>
                   <td>
@@ -190,8 +222,10 @@
                         [id]="'fileInputNew-' + stage.stageId + '-' + docGroup.documentType.id" style="display: none;"
                         (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
                       <button class="btn btn-sm btn-primary" (click)="fileInputNew.click()"
-                        [disabled]="hasApprovedDocument(docGroup)"
-                        [title]="hasApprovedDocument(docGroup) ? 'Document already approved' : 'Upload document'">
+                        [disabled]="hasApprovedDocument(docGroup) || getStageStatus(stage.stageId) === 'Complete'"
+                        [title]="hasApprovedDocument(docGroup) ? 'Document already approved' : 
+                                 getStageStatus(stage.stageId) === 'Complete' ? 'Stage already completed' : 
+                                 'Upload document'">
                         <i class="fas fa-upload"></i> Upload
                       </button>
                     </div>
