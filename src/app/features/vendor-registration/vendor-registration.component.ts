@@ -52,29 +52,27 @@ export class VendorRegistrationComponent implements OnInit {
   }
 
   // New method to fetch vendor code from API
-  fetchAndSetVendorCode(): void {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
-      return;
-    }
+fetchAndSetVendorCode(): void {
+  const token = localStorage.getItem('authToken');
 
-    this.vendorService.generateNextVendorCode(token).subscribe({
-      next: (response) => {
-        // Assuming the API returns { vendorCode: "VEN001234" } or similar
-        const vendorCode = response.vendorCode || response;
-        this.registrationForm.patchValue({ vendorCode });
-      },
-      error: (error) => {
-        console.error('Error generating vendor code:', error);
-        this.toastservice.showToast('error', 'Failed to generate vendor code');
-        // Fallback to local generation if API fails
-        const fallbackCode = this.generateVendorCode();
-        this.registrationForm.patchValue({ vendorCode: fallbackCode });
-      }
-    });
+  if (!token) {
+    this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
+    return;
   }
+
+  this.vendorService.generateNextVendorCode(token).subscribe({
+    next: (response) => {
+      const vendorCode = response.vendorCode || response;
+      this.registrationForm.patchValue({ vendorCode });  // <-- binds to HTML
+    },
+    error: (error) => {
+      console.error('Error generating vendor code:', error);
+      const fallbackCode = this.generateVendorCode();
+      this.registrationForm.patchValue({ vendorCode: fallbackCode });
+    }
+  });
+}
+
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;

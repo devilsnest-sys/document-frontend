@@ -400,7 +400,9 @@
     min-height: calc(100vh - 70px);
     padding-bottom: 50px;
 }
-
+.container{
+    max-width: 100%!important;
+}
 .content-wrapper {
     max-width: 100%;
     margin: 0 auto;

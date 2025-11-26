@@ -1,5 +1,17 @@
-<div class="all-stages-document-container mt-5">
+<div class="all-stages-document-container m-0">
   <!-- Loading State -->
+
+
+  <!-- Header -->
+  <div class="page-header mb-4">
+    <h2 class="text-center">
+      <i class="fas fa-folder-open"></i>
+      All Stages Document Management
+    </h2>
+    <p class="text-center text-muted">
+      View and manage documents across all stages for PO: {{ poNumber }}
+    </p>
+  </div>
   <div *ngIf="isLoading" class="loading-spinner">
     <div class="spinner-border text-primary" role="status">
       <span class="sr-only">Loading...</span>
@@ -12,18 +24,6 @@
     <i class="fas fa-exclamation-triangle"></i>
     {{ errorMessage }}
   </div>
-
-  <!-- Header -->
-  <div class="page-header mb-4">
-    <h2 class="text-center">
-      <i class="fas fa-folder-open"></i>
-      All Stages Document Management
-    </h2>
-    <p class="text-center text-muted">
-      View and manage documents across all stages for PO: {{ poNumber }}
-    </p>
-  </div>
-
   <!-- Main Content -->
   <div class="data-grid" *ngIf="!isLoading && !errorMessage">
     <div class="table-responsive">

@@ -1,4 +1,4 @@
-<div class="all-stages-fields-container mt-5">
+<div class="all-stages-fields-container m-0">
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-spinner">
     <div class="spinner-border text-primary" role="status">
@@ -8,7 +8,7 @@
   </div>
 
   <!-- Header -->
-  <div class="page-header mb-4">
+  <!-- <div class="page-header mb-4">
     <h2 class="text-center">
       <i class="fas fa-list-alt"></i>
       All Stages Additional Fields Management
@@ -16,8 +16,13 @@
     <p class="text-center text-muted">
       View and manage additional fields across all stages for PO: {{ poNumber }}
     </p>
+  </div> -->
+  <div class="card">
+     <h2 class="text-center">
+      <i class="fas fa-list-alt"></i>
+      All Stages Additional Fields Management
+    </h2>
   </div>
-
   <!-- Main Content -->
   <div class="data-grid" *ngIf="!loading">
     <div class="table-responsive">

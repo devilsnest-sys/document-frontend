@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
 import { RegistrationService } from './registration.service';
 import { ToastserviceService } from '../../core/services/toastservice.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environment/environment';
 
 @Component({
   selector: 'app-registration',
@@ -73,7 +74,8 @@ export class RegistrationComponent implements OnInit {
       return;
     }
 
-    const apiUrl = 'https://localhost:44347/api/v1/users/generate-next-user-code';
+
+    const apiUrl = `${environment.apiUrl}/v1/users/generate-next-user-code`
     
     this.http.get<string>(apiUrl, {
       headers: {

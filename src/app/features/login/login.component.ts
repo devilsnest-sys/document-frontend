@@ -16,7 +16,8 @@ export class LoginComponent implements OnInit {
     { value: 'vendor', label: 'Vendor' },
     { value: 'user', label: 'User' },
   ];
-
+hidePassword = true;
+isLoading = false;
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,

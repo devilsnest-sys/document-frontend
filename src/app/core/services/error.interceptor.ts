@@ -45,20 +45,20 @@ export class ErrorInterceptor implements HttpInterceptor {
               errorMessage = 'No Internet Connection';
               errorCode = 'Network Error';
               break;
-            case 400:
-              errorMessage = 'Bad Request';
-              break;
+            // case 400:
+            //   errorMessage = 'Bad Request';
+            //   break;
             case 401:
               errorMessage = 'Unauthorized - Please login again';
               // Optionally redirect to login
               // this.router.navigate(['/login']);
               break;
-            case 403:
-              errorMessage = 'Access Forbidden';
-              break;
-            case 404:
-              errorMessage = 'Resource Not Found';
-              break;
+            // case 403:
+            //   errorMessage = 'Access Forbidden';
+            //   break;
+            // case 404:
+            //   errorMessage = 'Resource Not Found';
+            //   break;
             case 500:
               errorMessage = 'Internal Server Error';
               break;

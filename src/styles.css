@@ -14,7 +14,9 @@
     z-index: 99;
     top: 25px;
 }
-
+.container{
+    max-width: 100%!important;
+}
 .badge {
   position: absolute;
   top: -5px;
