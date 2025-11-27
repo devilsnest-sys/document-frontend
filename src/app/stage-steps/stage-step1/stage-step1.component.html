@@ -7,7 +7,7 @@
 <div class="container mx-auto p-4">
   <div class="po-container">
     <!-- Compact Single Box with Status Legend and PO Details -->
-    <div class="unified-card" *ngIf="poData.length > 0">
+    <div class="unified-card mb-3" *ngIf="poData.length > 0">
       <!-- Status Legend Section -->
       <div class="status-legend">
         <h3 class="legend-title">Status Guide</h3>
@@ -32,6 +32,11 @@
         <div class="po-header-inline">
           <h2 class="po-title">Purchase Order</h2>
           <div class="po-badge">{{ poData[0]?.pO_NO || 'N/A' }}</div>
+          <div class="action-buttons">
+            <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
+              [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
+            <button class="btn-icon btn-primary" (click)="viewPoFile(poData[0]?.id)" title="View">👁</button>
+          </div>
         </div>
 
         <!-- Compact Info Grid -->
@@ -75,14 +80,10 @@
         </div>
 
         <!-- Document Actions - Inline -->
-        <div class="document-actions-inline">
+        <!-- <div class="document-actions-inline">
           <span class="file-name">{{ poData[0]?.poFilePath?.split('\\').pop() || 'No file' }}</span>
-          <div class="action-buttons">
-            <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
-              [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
-            <button class="btn-icon btn-primary" (click)="viewPoFile(poData[0]?.id)" title="View">👁</button>
-          </div>
-        </div>
+          
+        </div> -->
       </div>
     </div>
 

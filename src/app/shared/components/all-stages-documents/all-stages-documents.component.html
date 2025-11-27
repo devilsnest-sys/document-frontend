@@ -14,15 +14,18 @@
   </div>
 
   <!-- Header -->
-  <div class="page-header mb-4">
-    <h2 class="text-center">
+   <div class="card p-1 mb-2">
+     <h5 class="text-center">
       <i class="fas fa-folder-open"></i>
       All Stages Document Management
-    </h2>
+    </h5>
+   </div>
+  <!-- <div class="card mb-4">
+   
     <p class="text-center text-muted">
       View and manage documents across all stages for PO: {{ poNumber }}
     </p>
-  </div>
+  </div> -->
 
   <!-- Main Content -->
   <div class="data-grid" *ngIf="!isLoading && !errorMessage">
