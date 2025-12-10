@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ViewChild, ElementRef } from '@angular/core';
 
 interface Vendor {
+companyName: any;
   id: number;
   vendorCode: string;
 }
@@ -583,7 +584,7 @@ export class OrderacknowledgementComponent {
 
   viewDocument(documentId: number): void {
     const token = localStorage.getItem('authToken');
-    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
   
     fetch(documentUrl, {
       headers: {

@@ -18,6 +18,8 @@ export class RegistrationComponent implements OnInit {
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
   generatedPassword: string = ''; // Store generated password internally
+  userCodeSuffix: string = ''; // Store the API-generated code suffix
+  generatedUsername: string = ''; // Store the full generated username
   
 
   constructor(
@@ -30,15 +32,17 @@ export class RegistrationComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.fetchStages();
-    // Auto-generate username and password on initialization
+    // Fetch user code suffix on initialization
     if (!this.isEditMode) {
-      this.generateUserCredentials();
+      this.fetchUserCodeFromAPI();
+      this.generatePassword();
     }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      username: [{ value: '', disabled: true }], // Always disabled, auto-generated
+      username: [{ value: '', disabled: true }], // Hidden, will store final username
+      usernamePrefix: ['', Validators.required], // User-entered prefix (only in create mode)
       email: ['', [Validators.required, Validators.email]],
       MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
@@ -65,7 +69,20 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Fetch user code from API
+   * Generate password only
+   */
+  generatePassword(): void {
+    const password = this.generateRandomPassword();
+    this.generatedPassword = password;
+    
+    this.registrationForm.patchValue({
+      HashedPassword: password,
+      confirmPassword: password
+    });
+  }
+
+  /**
+   * Fetch user code suffix from API
    */
   private fetchUserCodeFromAPI(): void {
     const token = localStorage.getItem('authToken');
@@ -74,8 +91,7 @@ export class RegistrationComponent implements OnInit {
       return;
     }
 
-
-    const apiUrl = `${environment.apiUrl}/v1/users/generate-next-user-code`
+    const apiUrl = `${environment.apiUrl}/v1/users/generate-next-user-code`;
     
     this.http.get<string>(apiUrl, {
       headers: {
@@ -85,18 +101,15 @@ export class RegistrationComponent implements OnInit {
       responseType: 'text' as 'json' // Handle plain text response
     }).subscribe({
       next: (userCode) => {
-        this.registrationForm.patchValue({
-          username: userCode
-        });
+        this.userCodeSuffix = userCode;
+        this.updateGeneratedUsername();
       },
       error: (err) => {
         console.error('Error fetching user code:', err);
-        this.toastservice.showToast('error', 'Failed to generate username');
+        this.toastservice.showToast('error', 'Failed to generate username code');
         // Fallback to local generation if API fails
-        const fallbackUsername = this.generateUserCode();
-        this.registrationForm.patchValue({
-          username: fallbackUsername
-        });
+        this.userCodeSuffix = this.generateUserCodeFallback();
+        this.updateGeneratedUsername();
       }
     });
   }
@@ -104,27 +117,39 @@ export class RegistrationComponent implements OnInit {
   /**
    * Fallback: Generate user code locally (if API fails)
    */
-  private generateUserCode(): string {
-    const timestamp = Date.now().toString().slice(-6); // take last 6 digits for compactness
+  private generateUserCodeFallback(): string {
+    const timestamp = Date.now().toString().slice(-6);
     return `USER00${timestamp}`;
   }
 
   /**
-   * Generate username and password for new user
+   * Handle username prefix change
    */
-  generateUserCredentials(): void {
-    // Fetch username from API
-    this.fetchUserCodeFromAPI();
+  onUsernamePrefixChange(): void {
+    this.updateGeneratedUsername();
+  }
+
+  /**
+   * Update the generated username based on prefix + suffix
+   */
+  private updateGeneratedUsername(): void {
+    const prefix = this.registrationForm.get('usernamePrefix')?.value || '';
     
-    // Generate password
-    const password = this.generateRandomPassword();
+    // Sanitize prefix: remove spaces and special characters, convert to lowercase
+    const sanitizedPrefix = prefix.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     
-    this.generatedPassword = password; // Store for internal use only
-    
+    if (sanitizedPrefix && this.userCodeSuffix) {
+      this.generatedUsername = `${sanitizedPrefix}${this.userCodeSuffix}`;
+    } else if (this.userCodeSuffix) {
+      this.generatedUsername = this.userCodeSuffix;
+    } else {
+      this.generatedUsername = '';
+    }
+
+    // Update the hidden username field
     this.registrationForm.patchValue({
-      HashedPassword: password,
-      confirmPassword: password
-    });
+      username: this.generatedUsername
+    }, { emitEvent: false });
   }
 
   fetchStages(): void {
@@ -161,19 +186,23 @@ export class RegistrationComponent implements OnInit {
       this.fetchUsers(); // Load users when entering edit mode
       this.registrationForm.reset(); // Clear form
       this.initializeForm(); // Reinitialize form
-      this.generatedPassword = ''; // Clear generated password
+      this.generatedPassword = '';
+      this.userCodeSuffix = '';
+      this.generatedUsername = '';
       this.enableEditModeFields();
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
       this.initializeForm(); // Reinitialize form
-      this.generateUserCredentials(); // Generate new credentials for create mode
+      this.fetchUserCodeFromAPI(); // Fetch new user code
+      this.generatePassword(); // Generate new password
     }
   }
 
   enableEditModeFields(): void {
     // In edit mode, only username dropdown should be enabled initially
     this.registrationForm.get('username')?.enable();
+    this.registrationForm.get('usernamePrefix')?.disable();
     this.registrationForm.get('email')?.disable();
     this.registrationForm.get('MobileNo')?.disable();
     this.registrationForm.get('role')?.disable();
@@ -217,7 +246,7 @@ export class RegistrationComponent implements OnInit {
       email: userData.email,
       HashedPassword: '', // Don't populate password for security
       confirmPassword: '',
-      MobileNo: userData.mobileNo, // Updated field name to match API
+      MobileNo: userData.mobileNo,
       role: userData.role,
       designation: userData.designation,
       companyId: userData.companyId,
@@ -230,6 +259,7 @@ export class RegistrationComponent implements OnInit {
   setFieldsDisabled(): void {
     // Disable all fields except email, phone, and stages
     this.registrationForm.get('username')?.disable();
+    this.registrationForm.get('usernamePrefix')?.disable();
     this.registrationForm.get('role')?.disable();
     this.registrationForm.get('designation')?.disable();
     this.registrationForm.get('companyId')?.disable();
@@ -245,11 +275,14 @@ export class RegistrationComponent implements OnInit {
   toggleAllSelection(): void {
     const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
     
-    if (this.isAllSelected()) {
+    // Filter out 'selectAll' if it exists in the array
+    const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
+    
+    if (actualStages.length === this.stages.length) {
       // Deselect all
       this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
     } else {
-      // Select all stages
+      // Select all stages (without 'selectAll' value)
       const allStageIds = this.stages.map(stage => stage.id);
       this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
     }
@@ -322,6 +355,7 @@ export class RegistrationComponent implements OnInit {
       delete payload.HashedPassword;
       delete payload.confirmPassword;
       delete payload.UserDesignationForstageId;
+      delete payload.usernamePrefix; // Remove the prefix field
 
       if (this.isEditMode && this.selectedUserId) {
         // Update existing user
@@ -351,7 +385,7 @@ export class RegistrationComponent implements OnInit {
           },
         });
       } else {
-        // Create new user - don't show credentials in toast
+        // Create new user
         this.registrationService.registerUser(payload, token).subscribe({
           next: () => {
             this.toastservice.showToast('success', 'User registered successfully');
@@ -375,9 +409,12 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.reset();
     this.selectedUserId = null;
     this.generatedPassword = '';
+    this.userCodeSuffix = '';
+    this.generatedUsername = '';
     this.isEditMode = false;
     this.initializeForm();
-    this.generateUserCredentials(); // Generate new credentials for next registration
+    this.fetchUserCodeFromAPI(); // Fetch new user code
+    this.generatePassword(); // Generate new password
   }
 
   // Helper method to check if edit form is valid (only editable fields)

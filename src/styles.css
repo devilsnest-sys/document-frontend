@@ -5,7 +5,7 @@
     width: 100%;
   }
   .card-header.bg-dark {
-    background-color: rgb(30 58 138) !important;
+    background: linear-gradient(      135deg,      #667eea 0%,      #764ba2 100%) !important;
   }
   
   .notification-bell {

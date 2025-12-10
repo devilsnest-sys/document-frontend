@@ -60,7 +60,7 @@
                     <mat-label>Vendor Code</mat-label>
                     <mat-select formControlName="vendorCode" (selectionChange)="onVendorSelect($event.value)">
                       <mat-option *ngFor="let vendor of vendors" [value]="vendor.vendorCode">
-                        {{ vendor.vendorCode }}
+                        {{ vendor.vendorCode }} - {{vendor.companyName}}
                       </mat-option>
                     </mat-select>
                     <mat-error *ngIf="poForm.get('vendorCode')?.touched && poForm.get('vendorCode')?.invalid">
@@ -181,7 +181,7 @@
                 <div class="col-lg-6">
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Order Value</mat-label>
-                    <mat-icon matPrefix>attach_money</mat-icon>
+                    <mat-icon matPrefix>payments</mat-icon>
                     <input appTrimInput matInput formControlName="orderValue" required />
                     <mat-error *ngIf="poForm.get('orderValue')?.touched && poForm.get('orderValue')?.invalid">
                       <span *ngIf="poForm.get('orderValue')?.hasError('required')">Order Value is required.</span>

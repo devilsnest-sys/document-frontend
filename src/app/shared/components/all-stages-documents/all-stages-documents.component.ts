@@ -589,20 +589,50 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
-  viewDocument(documentId: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
-
-    fetch(documentUrl)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, '_blank');
-      })
-      .catch((error) => console.error('Error fetching document:', error));
+viewDocument(documentId: number): void {
+  const token = localStorage.getItem('authToken');
+  
+  if (!token) {
+    alert('Please log in to view documents.');
+    return;
   }
 
+  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+
+  fetch(documentUrl, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      const newWindow = window.open(blobUrl, '_blank');
+      
+      if (!newWindow) {
+        alert('Please allow popups to view the document.');
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+      
+      // Revoke the blob URL after the new window loads
+      newWindow.addEventListener('load', () => {
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      });
+    })
+    .catch(error => {
+      console.error('Error viewing document:', error);
+      alert('Error viewing document. Please try again.');
+    });
+}
+
   downloadDocument(documentId: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/download/${encodeURIComponent(documentId)}`;
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentId)}`;
 
     const link = document.createElement('a');
     link.href = documentUrl;

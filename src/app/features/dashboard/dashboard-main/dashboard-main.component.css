@@ -67,7 +67,7 @@
   letter-spacing: -0.025em;
 }
 
-.card-header h3::after {
+/* .card-header h3::after {
   content: '';
   position: absolute;
   bottom: -8px;
@@ -78,7 +78,7 @@
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border-radius: 2px;
   opacity: 0.8;
-}
+} */
 
 /* Card Body Styles */
 .card-body {

@@ -12,7 +12,7 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <div class="col-md-6">
-            <!-- Username - Show dropdown in edit mode, auto-generated display in create mode -->
+            <!-- Username - Show dropdown in edit mode, input + preview in create mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
               <mat-icon matPrefix>person</mat-icon>
@@ -26,9 +26,15 @@
                 </mat-option>
               </mat-select>
 
-              <!-- Auto-generated display for create mode -->
-              <input *ngIf="!isEditMode" matInput id="username" formControlName="username" readonly />
-              <mat-hint *ngIf="!isEditMode" class="text-success"><strong>Auto-generated</strong></mat-hint>
+              <!-- Input field for username prefix in create mode -->
+              <input *ngIf="!isEditMode" matInput id="usernamePrefix" formControlName="usernamePrefix" 
+                placeholder="Enter username prefix (e.g., Johm)" 
+                (input)="onUsernamePrefixChange()" />
+              
+              <!-- Show generated full username as hint -->
+              <mat-hint *ngIf="!isEditMode && generatedUsername" class="text-success">
+                <strong>Full Username: {{ generatedUsername }}</strong>
+              </mat-hint>
             </mat-form-field>
           </div>
 
@@ -119,14 +125,12 @@
               <mat-label>User Designation For Stage</mat-label>
               <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
                 [placeholder]="'Select Stages'" [required]="true">
-                <!-- Select All Option -->
+          
+                <!-- Select All Option - WITHOUT mat-checkbox -->
                 <mat-option #allSelected [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()">
-                  <mat-checkbox [checked]="isAllSelected()" [indeterminate]="isIndeterminate()"
-                    (click)="$event.stopPropagation()">
-                    Select All
-                  </mat-checkbox>
+                  Select All
                 </mat-option>
-
+          
                 <!-- Individual Stage Options -->
                 <mat-option *ngFor="let stage of stages" [value]="stage.id">
                   {{ stage.stageName }}
