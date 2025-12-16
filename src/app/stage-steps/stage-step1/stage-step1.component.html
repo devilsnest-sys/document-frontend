@@ -23,6 +23,8 @@
             <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
               [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
             <button class="btn-icon btn-primary" (click)="viewPoFile(poData[0]?.id)" title="View">👁</button>
+            <button class="btn-icon btn-success" (click)="downloadAllDocuments(poData[0]?.id)" 
+              [disabled]="downloadingAll" title="Download All Documents">📦</button>
           </div>
                   <div class="legend-items">
           <div class="legend-item">

@@ -37,6 +37,7 @@ export class StageStep1Component implements OnInit {
   selectedStageId: any;
   loading = false;
   error: string | null = null;
+  downloadingAll = false;
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private toastservice: ToastserviceService) { }
 
@@ -153,6 +154,40 @@ export class StageStep1Component implements OnInit {
       this.toastservice.showToast('error','Failed to download PO file');
     },
   });
+  }
+
+  downloadAllDocuments(poId: number): void {
+    this.downloadingAll = true;
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: '*/*',
+    });
+
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/download-all-by-po/${poId}`;
+
+    this.http.get(url, { headers, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+
+        // The API likely returns a zip file with all documents
+        const filename = `PO_${this.poData[0]?.pO_NO || poId}_AllDocuments.zip`;
+        a.download = filename;
+
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+        
+        this.downloadingAll = false;
+        this.toastservice.showToast('success', 'All documents downloaded successfully');
+      },
+      error: (err) => {
+        console.error('Error downloading all documents:', err);
+        this.downloadingAll = false;
+        this.toastservice.showToast('error', 'Failed to download all documents');
+      },
+    });
   }
 
 }
