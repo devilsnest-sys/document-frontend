@@ -82,6 +82,7 @@ import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po
 import { AllStagesDocumentsComponent } from './shared/components/all-stages-documents/all-stages-documents.component';
 import { ErrorNotFoundComponent } from './shared/error-not-found/error-not-found.component';
 import { ErrorInterceptor } from './core/services/error.interceptor';
+import { OtherDocUploadComponent } from './shared/components/other-doc-upload/other-doc-upload.component';
 
 
 
@@ -132,7 +133,8 @@ import { ErrorInterceptor } from './core/services/error.interceptor';
     ReportsComponent,
     StaggerdPoComponent,
     AllStagesDocumentsComponent,
-    ErrorNotFoundComponent
+    ErrorNotFoundComponent,
+    OtherDocUploadComponent
     
   ],
   imports: [

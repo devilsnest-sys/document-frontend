@@ -106,6 +106,9 @@
 <app-additional-field-flow [stageNumber]="1"></app-additional-field-flow>
 <app-staggerd-po *ngIf="!loading && poData[0]?.staggeredOrder === true" [poId]="selectedPoId"
   [stageId]="1"></app-staggerd-po>
-
+      <app-other-doc-upload 
+        [poId]="selectedPoId" 
+        [stageId]="16">
+      </app-other-doc-upload>
 <!-- <app-stage-submit *appUserRole="['user']" [stageNumber]="1"></app-stage-submit> -->
 <!-- <app-document-upload></app-document-upload> -->
