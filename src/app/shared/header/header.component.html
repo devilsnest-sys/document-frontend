@@ -107,7 +107,7 @@
         </div>
         <div class="user-info">
           <span class="user-name">{{ userName || 'User' }}</span>
-          <span class="user-role">Admin</span>
+          <span class="user-role">{{userType}}</span>
         </div>
       </div>
       <button (click)="logout()" class="logout-btn" title="Logout">

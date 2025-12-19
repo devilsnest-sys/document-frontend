@@ -14,11 +14,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   headerTitle!: string;
   isLoggedIn: boolean = false;
   userName: string | null = null;
+  userType: string | null = null;
   isMobileMenuOpen: boolean = false;
   isMobileMastersOpen: boolean = false;
 
   private loginStateSubscription!: Subscription;
   private userNameSubscription!: Subscription;
+  private userTypeSubscription!: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -42,6 +44,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userName = name;
       }
     );
+
+    this.userTypeSubscription = this.authService.getUserTypeState().subscribe(
+      (type) => {
+        this.userType = type;
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -50,6 +58,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     if (this.userNameSubscription) {
       this.userNameSubscription.unsubscribe();
+    }
+    if (this.userTypeSubscription) {
+      this.userTypeSubscription.unsubscribe();
     }
   }
 

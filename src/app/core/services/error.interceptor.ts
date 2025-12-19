@@ -71,14 +71,14 @@ export class ErrorInterceptor implements HttpInterceptor {
         }
 
         // For critical errors, navigate to error page
-        if (error.status === 404 || error.status === 500 || error.status === 0) {
-          this.router.navigate(['/error'], {
-            state: { 
-              message: errorMessage,
-              code: errorCode 
-            }
-          });
-        }
+        // if (error.status === 404 || error.status === 500 || error.status === 0) {
+        //   this.router.navigate(['/error'], {
+        //     state: { 
+        //       message: errorMessage,
+        //       code: errorCode 
+        //     }
+        //   });
+        // }
 
         console.error('HTTP Error:', errorMessage);
         return throwError(() => error);
