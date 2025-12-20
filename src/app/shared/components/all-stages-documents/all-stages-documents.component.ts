@@ -589,15 +589,65 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
+// viewDocument(documentId: number): void {
+//   const token = localStorage.getItem('authToken');
+  
+//   if (!token) {
+//     alert('Please log in to view documents.');
+//     return;
+//   }
+
+//   const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+
+//   fetch(documentUrl, {
+//     headers: {
+//       'Authorization': `Bearer ${token}`
+//     }
+//   })
+//     .then(response => {
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
+//       return response.blob();
+//     })
+//     .then(blob => {
+//       const blobUrl = URL.createObjectURL(blob);
+//       const newWindow = window.open(blobUrl, '_blank');
+      
+//       if (!newWindow) {
+//         alert('Please allow popups to view the document.');
+//         URL.revokeObjectURL(blobUrl);
+//         return;
+//       }
+      
+//       // Revoke the blob URL after the new window loads
+//       newWindow.addEventListener('load', () => {
+//         setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+//       });
+//     })
+//     .catch(error => {
+//       console.error('Error viewing document:', error);
+//       alert('Error viewing document. Please try again.');
+//     });
+// }
 viewDocument(documentId: number): void {
   const token = localStorage.getItem('authToken');
-  
+
   if (!token) {
     alert('Please log in to view documents.');
     return;
   }
 
-  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+  // ✅ OPEN WINDOW FIRST (sync → popup allowed)
+  const newWindow = window.open('', '_blank');
+
+  if (!newWindow) {
+    alert('Please allow popups to view the document.');
+    return;
+  }
+
+  const documentUrl =
+    `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
 
   fetch(documentUrl, {
     headers: {
@@ -612,21 +662,18 @@ viewDocument(documentId: number): void {
     })
     .then(blob => {
       const blobUrl = URL.createObjectURL(blob);
-      const newWindow = window.open(blobUrl, '_blank');
-      
-      if (!newWindow) {
-        alert('Please allow popups to view the document.');
-        URL.revokeObjectURL(blobUrl);
-        return;
-      }
-      
-      // Revoke the blob URL after the new window loads
+
+      // ✅ Navigate already-opened window
+      newWindow.location.href = blobUrl;
+
+      // cleanup
       newWindow.addEventListener('load', () => {
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
       });
     })
     .catch(error => {
       console.error('Error viewing document:', error);
+      newWindow.close();
       alert('Error viewing document. Please try again.');
     });
 }
