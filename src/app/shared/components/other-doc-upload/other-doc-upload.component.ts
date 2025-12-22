@@ -49,7 +49,6 @@ export class OtherDocUploadComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   userType: string | null = '';
-// document: any;
 
   constructor(
     private http: HttpClient,
@@ -59,6 +58,7 @@ export class OtherDocUploadComponent implements OnInit {
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
     console.log('OtherDocUpload initialized with PO ID:', this.poId, 'Stage ID:', this.stageId);
+    console.log('Current User Type:', this.userType);
     
     if (this.poId) {
       this.fetchUploadedDocuments();
@@ -267,7 +267,7 @@ export class OtherDocUploadComponent implements OnInit {
     return this.documentRows.reduce((sum, row) => sum + row.files.length, 0);
   }
 
-  // Fetch uploaded documents
+  // Fetch uploaded documents with role-based filtering
   fetchUploadedDocuments(): void {
     if (!this.poId) return;
 
@@ -293,14 +293,73 @@ export class OtherDocUploadComponent implements OnInit {
       )
       .subscribe({
         next: (documents) => {
-          this.uploadedDocuments = documents;
-          console.log('Fetched uploaded documents:', documents);
+          // Apply role-based filtering
+          this.uploadedDocuments = this.filterDocumentsByRole(documents);
+          console.log('Fetched and filtered documents:', this.uploadedDocuments);
         },
         error: (error) => {
           console.error('Error:', error);
           this.toastService.showToast('error', 'Failed to fetch documents');
         },
       });
+  }
+
+  // Filter documents based on user role
+  private filterDocumentsByRole(documents: UploadedDocument[]): UploadedDocument[] {
+    const currentUserType = this.userType?.toLowerCase();
+    
+    if (!currentUserType) {
+      return documents;
+    }
+
+    return documents.filter(doc => {
+      const uploadedByType = doc.docUploadedBy?.toLowerCase();
+      
+      // If current user is 'user' (admin/user)
+      if (currentUserType === 'user' || currentUserType === 'admin') {
+        return true; // Users can see all documents
+      }
+      
+      // If current user is 'vendor'
+      if (currentUserType === 'vendor') {
+        // Vendors can only see documents uploaded by vendors
+        // Documents uploaded by 'user' should be hidden from vendors
+        return uploadedByType === 'vendor';
+      }
+      
+      return true; // Default: show all
+    });
+  }
+
+  // Optional: Add a method to check if document should be visible
+  canViewDocument(doc: UploadedDocument): boolean {
+    const currentUserType = this.userType?.toLowerCase();
+    const uploadedByType = doc.docUploadedBy?.toLowerCase();
+    
+    // Users can see everything
+    if (currentUserType === 'user' || currentUserType === 'admin') {
+      return true;
+    }
+    
+    // Vendors can only see vendor-uploaded documents
+    if (currentUserType === 'vendor') {
+      return uploadedByType === 'vendor';
+    }
+    
+    return true;
+  }
+
+  // Get document visibility label for UI
+  getDocumentVisibilityLabel(doc: UploadedDocument): string {
+    const uploadedByType = doc.docUploadedBy?.toLowerCase();
+    
+    if (uploadedByType === 'user' || uploadedByType === 'admin') {
+      return 'Internal Document';
+    } else if (uploadedByType === 'vendor') {
+      return 'Vendor Document';
+    }
+    
+    return 'Document';
   }
 
   // View document
@@ -374,10 +433,10 @@ export class OtherDocUploadComponent implements OnInit {
   }
 
   // Delete uploaded document
-  deleteDocument(document: UploadedDocument): void {
+  deleteDocument(doc: UploadedDocument): void {
     Swal.fire({
       title: 'Delete Document',
-      text: `Are you sure you want to delete "${document.uploadedDocumentName}"?`,
+      text: `Are you sure you want to delete "${doc.uploadedDocumentName}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, Delete',

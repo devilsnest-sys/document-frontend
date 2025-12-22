@@ -1,216 +1,204 @@
-<div class="other-doc-upload-container">
-  <!-- Header Section -->
-  <div class="header-section">
-    <h3 class="section-title">
-      <i class="fas fa-file-upload"></i>
-      Other Documents Upload (Stage {{ stageId }})
-    </h3>
-    <button 
-      class="btn btn-primary add-doc-btn" 
-      (click)="addNewDocumentRow()"
-      [disabled]="isLoading">
-      <i class="fas fa-plus"></i> Add New Document
-    </button>
-  </div>
+<!-- Document Upload Section -->
+<div class="container-fluid p-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-upload me-2"></i>
+        Other Document Upload
+      </h5>
+    </div>
+    
+    <div class="card-body">
+      <!-- Add New Document Row Button -->
+      <div class="mb-3">
+        <button 
+          class="btn btn-success" 
+          (click)="addNewDocumentRow()"
+          [disabled]="!poId">
+          <i class="fas fa-plus me-2"></i>
+          Add Document Row
+        </button>
+        
+        <button 
+          class="btn btn-primary ms-2" 
+          (click)="uploadAllDocuments()"
+          [disabled]="documentRows.length === 0 || isLoading">
+          <i class="fas fa-cloud-upload-alt me-2"></i>
+          Upload All Documents
+        </button>
+      </div>
 
-  <!-- Document Rows Table -->
-  <div class="document-table-section" *ngIf="documentRows.length > 0">
-    <div class="table-responsive">
-      <table class="doc-upload-table">
-        <thead>
-          <tr>
-            <th style="width: 5%;">#</th>
-            <th style="width: 25%;">Document Name</th>
-            <th style="width: 40%;">Files</th>
-            <th style="width: 20%;">Status</th>
-            <th style="width: 10%;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of documentRows; let i = index" [class.uploading-row]="row.isUploading">
-            <td class="row-number">{{ i + 1 }}</td>
-            
-            <!-- Document Name -->
-            <td>
-              <input 
-                type="text" 
-                class="form-control doc-name-input" 
-                [(ngModel)]="row.documentName"
-                placeholder="Enter document name"
-                [disabled]="row.isUploading">
-            </td>
-            
-            <!-- Files Column -->
-            <td>
-              <div class="files-section">
-                <!-- File Input -->
-                <div class="file-input-wrapper">
-  <input 
-    #fileInput
-    type="file" 
-    (change)="onFilesSelected($event, row.id)"
-    multiple
-    [disabled]="row.isUploading"
-    style="display: none;">
-  <button 
-    class="btn btn-sm btn-outline-primary" 
-    (click)="fileInput.click()"
-    [disabled]="row.isUploading">
-    <i class="fas fa-paperclip"></i> Add Files
-  </button>
-  <span class="file-count" *ngIf="row.files.length > 0">
-    {{ row.files.length }} file(s) selected
-  </span>
-</div>
+      <!-- Document Rows -->
+      <div *ngIf="documentRows.length > 0" class="document-rows-container">
+        <div 
+          *ngFor="let row of documentRows; let i = index" 
+          class="document-row card mb-3">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <!-- Document Name Input -->
+              <div class="col-md-4">
+                <label class="form-label">Document Name</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="row.documentName"
+                  placeholder="Enter document name"
+                  [disabled]="row.isUploading">
+              </div>
 
-                <!-- Selected Files List -->
-                <div class="selected-files-list" *ngIf="row.files.length > 0">
-                  <div class="file-item" *ngFor="let file of row.files; let fileIdx = index">
-                    <div class="file-info">
-                      <i class="fas fa-file" [class.fa-file-pdf]="file.name.endsWith('.pdf')"
-                         [class.fa-file-word]="file.name.endsWith('.doc') || file.name.endsWith('.docx')"
-                         [class.fa-file-excel]="file.name.endsWith('.xls') || file.name.endsWith('.xlsx')"
-                         [class.fa-file-image]="file.name.endsWith('.jpg') || file.name.endsWith('.png')"></i>
-                      <span class="file-name" [title]="file.name">{{ file.name }}</span>
-                      <span class="file-size">{{ formatFileSize(file.size) }}</span>
-                    </div>
-                    <button 
-                      class="btn-remove-file" 
-                      (click)="removeFile(row.id, fileIdx)"
-                      [disabled]="row.isUploading"
-                      title="Remove file">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
+              <!-- File Selection -->
+              <div class="col-md-4">
+                <label class="form-label">Select Files</label>
+                <input 
+                  type="file" 
+                  class="form-control" 
+                  multiple
+                  (change)="onFilesSelected($event, row.id)"
+                  [disabled]="row.isUploading"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+              </div>
+
+              <!-- Actions -->
+              <div class="col-md-4 d-flex align-items-end">
+                <button 
+                  class="btn btn-danger"
+                  (click)="removeDocumentRow(row.id)"
+                  [disabled]="row.isUploading">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Selected Files Display -->
+            <div *ngIf="row.files.length > 0" class="mt-3">
+              <label class="form-label">Selected Files ({{ row.files.length }})</label>
+              <div class="files-list">
+                <div 
+                  *ngFor="let file of row.files; let fileIndex = index" 
+                  class="file-item d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                  <span>
+                    <i class="fas fa-file me-2"></i>
+                    {{ file.name }} ({{ formatFileSize(file.size) }})
+                  </span>
+                  <button 
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeFile(row.id, fileIndex)"
+                    [disabled]="row.isUploading">
+                    <i class="fas fa-times"></i>
+                  </button>
                 </div>
               </div>
-            </td>
-            
-            <!-- Status Column -->
-            <td>
-              <div class="status-indicator">
-                <span class="badge badge-secondary" *ngIf="!row.isUploading && row.uploadProgress === 0">
-                  Ready
-                </span>
-                <span class="badge badge-info" *ngIf="row.isUploading">
-                  <i class="fas fa-spinner fa-spin"></i> Uploading...
-                </span>
-                <span class="badge badge-success" *ngIf="row.uploadProgress === 100">
-                  <i class="fas fa-check"></i> Uploaded
-                </span>
+            </div>
+
+            <!-- Upload Progress -->
+            <div *ngIf="row.isUploading" class="mt-3">
+              <div class="progress">
+                <div 
+                  class="progress-bar progress-bar-striped progress-bar-animated" 
+                  [style.width.%]="row.uploadProgress">
+                  {{ row.uploadProgress }}%
+                </div>
               </div>
-            </td>
-            
-            <!-- Actions Column -->
-            <td>
-              <button 
-                class="btn btn-sm btn-danger" 
-                (click)="removeDocumentRow(row.id)"
-                [disabled]="row.isUploading"
-                title="Remove row">
-                <i class="fas fa-trash"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- Submit Button -->
-    <div class="submit-section">
-      <button 
-        class="btn btn-success btn-lg submit-btn" 
-        (click)="uploadAllDocuments()"
-        [disabled]="isLoading || documentRows.length === 0">
-        <i class="fas fa-cloud-upload-alt"></i>
-        Submit All Documents
-        <span class="badge badge-light ml-2">{{ getTotalFilesCount() }} file(s)</span>
-      </button>
+      <!-- Empty State -->
+      <div *ngIf="documentRows.length === 0" class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        No documents added yet. Click "Add Document Row" to start uploading.
+      </div>
     </div>
-  </div>
-
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="documentRows.length === 0 && !isLoading">
-    <i class="fas fa-inbox empty-icon"></i>
-    <p class="empty-text">No documents to upload</p>
-    <p class="empty-subtext">Click "Add New Document" to start uploading</p>
-  </div>
-
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" *ngIf="isLoading">
-    <div class="spinner-border text-primary" role="status">
-      <span class="sr-only">Loading...</span>
-    </div>
-    <p class="loading-text">Processing documents...</p>
   </div>
 
   <!-- Uploaded Documents Section -->
-  <div class="uploaded-documents-section" *ngIf="uploadedDocuments.length > 0">
-    <h4 class="section-subtitle">
-      <i class="fas fa-file-archive"></i>
-      Uploaded Documents ({{ uploadedDocuments.length }})
-    </h4>
+  <div class="card shadow-sm mt-4" *ngIf="poId">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-file-alt me-2"></i>
+        Uploaded Documents
+      </h5>
+    </div>
+    
+    <div class="card-body">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center p-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading documents...</p>
+      </div>
 
-    <div class="table-responsive">
-      <table class="uploaded-docs-table">
-        <thead>
-          <tr>
-            <th style="width: 5%;">#</th>
-            <th style="width: 30%;">Document Name</th>
-            <th style="width: 15%;">Uploaded By</th>
-            <th style="width: 15%;">Upload Date</th>
-            <th style="width: 12%;">Status</th>
-            <th style="width: 23%;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let doc of uploadedDocuments; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="doc-name-cell">
-                <i class="fas fa-file-alt"></i>
-                {{ doc.uploadedDocumentName }}
-              </div>
-            </td>
-            <td>{{ doc.docUploadedBy || 'N/A' }}</td>
-            <td>{{ formatDate(doc.uploadedDate) }}</td>
-            <td>
-              <span class="badge" [ngClass]="getStatusBadgeClass(doc.status)">
-                {{ doc.status }}
-              </span>
-            </td>
-            <td>
-              <div class="action-buttons">
+      <!-- Documents Table -->
+      <div *ngIf="!isLoading && uploadedDocuments.length > 0" class="table-responsive">
+        <table class="table table-hover table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Document Name</th>
+              <th>Uploaded By</th>
+              <th>Upload Date</th>
+              <th>Status</th>
+              <th>Document Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let doc of uploadedDocuments">
+              <td>{{ doc.uploadedDocumentName }}</td>
+              <td>{{ doc.docUploadedBy || 'N/A' }}</td>
+              <td>{{ formatDate(doc.uploadedDate) }}</td>
+              <td>
+                <span 
+                  class="badge"
+                  [ngClass]="getStatusBadgeClass(doc.status)">
+                  {{ doc.status }}
+                </span>
+              </td>
+              <td>
+                <span 
+                  class="badge"
+                  [ngClass]="doc.docUploadedBy?.toLowerCase() === 'vendor' ? 'badge-info' : 'badge-primary'">
+                  {{ getDocumentVisibilityLabel(doc) }}
+                </span>
+              </td>
+              <td>
                 <button 
-                  class="btn btn-sm btn-info" 
+                  class="btn btn-sm btn-outline-primary me-1"
                   (click)="viewDocument(doc.id)"
                   title="View Document">
                   <i class="fas fa-eye"></i>
                 </button>
                 <button 
-                  class="btn btn-sm btn-primary" 
+                  class="btn btn-sm btn-outline-success me-1"
                   (click)="downloadDocument(doc.id, doc.uploadedDocumentName)"
                   title="Download Document">
                   <i class="fas fa-download"></i>
                 </button>
                 <button 
-                  class="btn btn-sm btn-danger" 
+                  class="btn btn-sm btn-outline-danger"
                   (click)="deleteDocument(doc)"
                   title="Delete Document"
-                  *ngIf="doc.status === 'Pending'">
+                  *ngIf="userType === 'user' || userType === 'admin'">
                   <i class="fas fa-trash"></i>
                 </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && uploadedDocuments.length === 0" class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No documents uploaded yet.
+      </div>
     </div>
   </div>
 
-  <!-- No Uploaded Documents -->
-  <div class="no-documents" *ngIf="uploadedDocuments.length === 0 && !isLoading">
-    <i class="fas fa-folder-open"></i>
-    <p>No documents uploaded yet</p>
+  <!-- No PO Selected Message -->
+  <div *ngIf="!poId" class="alert alert-info mt-4">
+    <i class="fas fa-info-circle me-2"></i>
+    Please select a Purchase Order to upload and view documents.
   </div>
 </div>
