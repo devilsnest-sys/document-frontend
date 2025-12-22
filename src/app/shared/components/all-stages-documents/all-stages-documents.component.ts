@@ -678,16 +678,40 @@ viewDocument(documentId: number): void {
     });
 }
 
-  downloadDocument(documentId: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${encodeURIComponent(documentId)}`;
+downloadDocument(documentId: number): void {
+  const token = localStorage.getItem('authToken');
 
-    const link = document.createElement('a');
-    link.href = documentUrl;
-    link.setAttribute('download', `document_${documentId}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  if (!token) {
+    alert('Please log in to view documents.');
+    return;
   }
+
+  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${documentId}`;
+
+  this.http.get(documentUrl, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    }),
+    responseType: 'blob' // <--- important
+  })
+  .subscribe({
+    next: (fileBlob) => {
+      const blobUrl = window.URL.createObjectURL(fileBlob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `document_${documentId}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    },
+    error: (err) => {
+      console.error('Download failed:', err);
+      alert('Error downloading document');
+    }
+  });
+}
+
 
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
