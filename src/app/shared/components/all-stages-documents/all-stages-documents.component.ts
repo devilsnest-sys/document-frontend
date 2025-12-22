@@ -647,7 +647,7 @@ viewDocument(documentId: number): void {
   }
 
   const documentUrl =
-    `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
+    `${environment.apiUrl}/v1/PurchaseOrder/view-uploaded-document/${encodeURIComponent(documentId)}`;
 
   fetch(documentUrl, {
     headers: {
@@ -679,7 +679,7 @@ viewDocument(documentId: number): void {
 }
 
   downloadDocument(documentId: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentId)}`;
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${encodeURIComponent(documentId)}`;
 
     const link = document.createElement('a');
     link.href = documentUrl;
