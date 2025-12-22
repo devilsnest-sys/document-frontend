@@ -11,6 +11,12 @@
   margin-bottom: 20px;
 }
 
+
+::ng-deep .dashboard-main{
+  background: url(../../../../public/assets/images/bg-new-login.jpg)!important;
+  background-size: contain;
+  height: 100%;
+}
 .title {
   text-align: center;
   margin-bottom: 20px;
