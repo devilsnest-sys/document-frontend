@@ -35,6 +35,7 @@ export class StageStep1Component implements OnInit {
   selectedPoId: any;
   selectedDocumentId: any;
   selectedStageId: any;
+  selectedVendor: any;
   loading = false;
   error: string | null = null;
   downloadingAll = false;
@@ -70,42 +71,66 @@ export class StageStep1Component implements OnInit {
   }
 
   fetchPurchaseOrderData(poNumber: string | null): void {
-    if (!poNumber) {
-      console.error('PO Number is missing!');
-      return;
-    }
-
-    const token = localStorage.getItem('authToken');
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/${poNumber}`;
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      Accept: 'text/plain',
-    };
-
-    this.http.get<any>(url, { headers }).subscribe({
-      next: (response) => {
-        // console.log('API Response:', response);
-
-        if (
-          response &&
-          typeof response === 'object' &&
-          !Array.isArray(response)
-        ) {
-          this.poData = [response];
-          this.selectedPoId = response.id;
-        } else if (Array.isArray(response)) {
-          this.poData = response;
-        } else {
-          console.error('Unexpected API response format:', response);
-          this.poData = [];
-        }
-      },
-      error: (err) => {
-        console.error('Error fetching PO data:', err);
-        this.poData = [];
-      },
-    });
+  if (!poNumber) {
+    console.error('PO Number is missing!');
+    return;
   }
+
+  const token = localStorage.getItem('authToken');
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/${poNumber}`;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'text/plain',
+  };
+
+  this.http.get<any>(url, { headers }).subscribe({
+    next: (response) => {
+      console.log('API Response:', response);
+
+      if (response && typeof response === 'object' && !Array.isArray(response)) {
+        this.poData = [response];
+        this.selectedPoId = response.id;
+        
+        // Extract vendor info from PO response
+        if (response.vendorCode) {
+          this.fetchVendorByCode(response.vendorCode);
+        }
+      } else if (Array.isArray(response)) {
+        this.poData = response;
+        if (response[0]?.vendorCode) {
+          this.fetchVendorByCode(response[0].vendorCode);
+        }
+      } else {
+        console.error('Unexpected API response format:', response);
+        this.poData = [];
+      }
+    },
+    error: (err) => {
+      console.error('Error fetching PO data:', err);
+      this.poData = [];
+    },
+  });
+}
+
+// Add this method
+fetchVendorByCode(vendorCode: string): void {
+  const token = localStorage.getItem('authToken');
+  const url = `${environment.apiUrl}/v1/vendors`;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/json',
+  };
+
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (vendors) => {
+      this.selectedVendor = vendors.find(v => v.vendorCode === vendorCode);
+      console.log('Selected Vendor:', this.selectedVendor);
+    },
+    error: (err) => {
+      console.error('Error fetching vendor:', err);
+    },
+  });
+}
 
   viewPoFile(poId: number): void {
   const token = localStorage.getItem('authToken');

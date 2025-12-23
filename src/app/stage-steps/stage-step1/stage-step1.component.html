@@ -18,7 +18,10 @@
       <div class="po-details">
         <div class="po-header-inline">
           <h2 class="po-title">Purchase Order</h2>
+          
           <div class="po-badge">{{ poData[0]?.pO_NO || 'N/A' }}</div>
+          <h2 class="po-title">Vendor</h2>
+          <div class="po-badge">{{ selectedVendor?.companyName || 'No Vendor Selected' }}</div>
           <div class="action-buttons">
             <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
               [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
