@@ -26,14 +26,15 @@ export class VendorRegistrationComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-    if (!this.isEditMode) {
-      this.fetchAndSetVendorCode();
-    }
+    // Removed auto-generation call
+    // if (!this.isEditMode) {
+    //   this.fetchAndSetVendorCode();
+    // }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      vendorCode: [''],
+      vendorCode: ['', Validators.required], // Now required for user input
       companyName: ['', Validators.required],
       mailingAddress: ['', Validators.required],
       telephone: ['', Validators.required],
@@ -51,28 +52,27 @@ export class VendorRegistrationComponent implements OnInit {
     });
   }
 
-  // New method to fetch vendor code from API
-fetchAndSetVendorCode(): void {
-  const token = localStorage.getItem('authToken');
+  // Commented out - vendor code will be user input
+  // fetchAndSetVendorCode(): void {
+  //   const token = localStorage.getItem('authToken');
 
-  if (!token) {
-    this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
-    return;
-  }
+  //   if (!token) {
+  //     this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
+  //     return;
+  //   }
 
-  this.vendorService.generateNextVendorCode(token).subscribe({
-    next: (response) => {
-      const vendorCode = response.vendorCode || response;
-      this.registrationForm.patchValue({ vendorCode });  // <-- binds to HTML
-    },
-    error: (error) => {
-      console.error('Error generating vendor code:', error);
-      const fallbackCode = this.generateVendorCode();
-      this.registrationForm.patchValue({ vendorCode: fallbackCode });
-    }
-  });
-}
-
+  //   this.vendorService.generateNextVendorCode(token).subscribe({
+  //     next: (response) => {
+  //       const vendorCode = response.vendorCode || response;
+  //       this.registrationForm.patchValue({ vendorCode });
+  //     },
+  //     error: (error) => {
+  //       console.error('Error generating vendor code:', error);
+  //       const fallbackCode = this.generateVendorCode();
+  //       this.registrationForm.patchValue({ vendorCode: fallbackCode });
+  //     }
+  //   });
+  // }
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
@@ -86,7 +86,8 @@ fetchAndSetVendorCode(): void {
       this.registrationForm.reset();
       this.selectedVendorId = null;
       this.initializeForm();
-      this.fetchAndSetVendorCode();
+      // Removed auto-generation call
+      // this.fetchAndSetVendorCode();
     }
   }
 
@@ -212,20 +213,21 @@ fetchAndSetVendorCode(): void {
     return password;
   }
 
-  // Keeping this as fallback
-  private generateVendorCode(): string {
-    const timestamp = Date.now().toString().slice(-6);
-    return `VEN00${timestamp}`;
-  }
+  // Commented out - no longer needed as fallback
+  // private generateVendorCode(): string {
+  //   const timestamp = Date.now().toString().slice(-6);
+  //   return `VEN00${timestamp}`;
+  // }
 
   private resetFormState(): void {
     this.isSubmitting = false;
     this.registrationForm.reset();
     this.initializeForm();
     
-    if (!this.isEditMode) {
-      this.fetchAndSetVendorCode();
-    }
+    // Removed auto-generation call
+    // if (!this.isEditMode) {
+    //   this.fetchAndSetVendorCode();
+    // }
     
     this.isEditMode = false;
     this.selectedVendorId = null;

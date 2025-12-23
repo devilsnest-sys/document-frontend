@@ -18,9 +18,6 @@ export class RegistrationComponent implements OnInit {
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
   generatedPassword: string = ''; // Store generated password internally
-  userCodeSuffix: string = ''; // Store the API-generated code suffix
-  generatedUsername: string = ''; // Store the full generated username
-  
 
   constructor(
     private fb: FormBuilder,
@@ -32,17 +29,14 @@ export class RegistrationComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.fetchStages();
-    // Fetch user code suffix on initialization
     if (!this.isEditMode) {
-      this.fetchUserCodeFromAPI();
       this.generatePassword();
     }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      username: [{ value: '', disabled: true }], // Hidden, will store final username
-      usernamePrefix: ['', Validators.required], // User-entered prefix (only in create mode)
+      username: ['', Validators.required], // Simple username input
       email: ['', [Validators.required, Validators.email]],
       MobileNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       role: ['', Validators.required],
@@ -81,77 +75,6 @@ export class RegistrationComponent implements OnInit {
     });
   }
 
-  /**
-   * Fetch user code suffix from API
-   */
-  private fetchUserCodeFromAPI(): void {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      this.toastservice.showToast('error', 'Authentication token not found');
-      return;
-    }
-
-    const apiUrl = `${environment.apiUrl}/v1/users/generate-next-user-code`;
-    
-    this.http.get<string>(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      responseType: 'text' as 'json' // Handle plain text response
-    }).subscribe({
-      next: (userCode) => {
-        this.userCodeSuffix = userCode;
-        this.updateGeneratedUsername();
-      },
-      error: (err) => {
-        console.error('Error fetching user code:', err);
-        this.toastservice.showToast('error', 'Failed to generate username code');
-        // Fallback to local generation if API fails
-        this.userCodeSuffix = this.generateUserCodeFallback();
-        this.updateGeneratedUsername();
-      }
-    });
-  }
-
-  /**
-   * Fallback: Generate user code locally (if API fails)
-   */
-  private generateUserCodeFallback(): string {
-    const timestamp = Date.now().toString().slice(-6);
-    return `USER00${timestamp}`;
-  }
-
-  /**
-   * Handle username prefix change
-   */
-  onUsernamePrefixChange(): void {
-    this.updateGeneratedUsername();
-  }
-
-  /**
-   * Update the generated username based on prefix + suffix
-   */
-  private updateGeneratedUsername(): void {
-    const prefix = this.registrationForm.get('usernamePrefix')?.value || '';
-    
-    // Sanitize prefix: remove spaces and special characters, convert to lowercase
-    const sanitizedPrefix = prefix.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    if (sanitizedPrefix && this.userCodeSuffix) {
-      this.generatedUsername = `${sanitizedPrefix}${this.userCodeSuffix}`;
-    } else if (this.userCodeSuffix) {
-      this.generatedUsername = this.userCodeSuffix;
-    } else {
-      this.generatedUsername = '';
-    }
-
-    // Update the hidden username field
-    this.registrationForm.patchValue({
-      username: this.generatedUsername
-    }, { emitEvent: false });
-  }
-
   fetchStages(): void {
     this.registrationService.getStages().subscribe({
       next: (data) => {
@@ -187,14 +110,11 @@ export class RegistrationComponent implements OnInit {
       this.registrationForm.reset(); // Clear form
       this.initializeForm(); // Reinitialize form
       this.generatedPassword = '';
-      this.userCodeSuffix = '';
-      this.generatedUsername = '';
       this.enableEditModeFields();
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
       this.initializeForm(); // Reinitialize form
-      this.fetchUserCodeFromAPI(); // Fetch new user code
       this.generatePassword(); // Generate new password
     }
   }
@@ -202,7 +122,6 @@ export class RegistrationComponent implements OnInit {
   enableEditModeFields(): void {
     // In edit mode, only username dropdown should be enabled initially
     this.registrationForm.get('username')?.enable();
-    this.registrationForm.get('usernamePrefix')?.disable();
     this.registrationForm.get('email')?.disable();
     this.registrationForm.get('MobileNo')?.disable();
     this.registrationForm.get('role')?.disable();
@@ -259,7 +178,6 @@ export class RegistrationComponent implements OnInit {
   setFieldsDisabled(): void {
     // Disable all fields except email, phone, and stages
     this.registrationForm.get('username')?.disable();
-    this.registrationForm.get('usernamePrefix')?.disable();
     this.registrationForm.get('role')?.disable();
     this.registrationForm.get('designation')?.disable();
     this.registrationForm.get('companyId')?.disable();
@@ -272,29 +190,32 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.get('UserDesignationForstageId')?.enable();
   }
 
-  toggleAllSelection(): void {
-    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-    
-    // Filter out 'selectAll' if it exists in the array
-    const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
-    
-    if (actualStages.length === this.stages.length) {
-      // Deselect all
-      this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
-    } else {
-      // Select all stages (without 'selectAll' value)
-      const allStageIds = this.stages.map(stage => stage.id);
-      this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
-    }
+toggleAllSelection(): void {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  
+  // Filter out 'selectAll' if it exists in the array
+  const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
+  
+  if (actualStages.length === this.stages.length) {
+    // Deselect all
+    this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
+  } else {
+    // Select all stages (without 'selectAll' value)
+    const allStageIds = this.stages.map(stage => stage.id);
+    this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
   }
-
+  
+  // Trigger change detection
+  this.registrationForm.get('UserDesignationForstageId')?.updateValueAndValidity();
+}
   /**
    * Check if all stages are selected
    */
-  isAllSelected(): boolean {
-    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-    return currentValue.length === this.stages.length && this.stages.length > 0;
-  }
+isAllSelected(): boolean {
+  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+  const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
+  return actualStages.length === this.stages.length && this.stages.length > 0;
+}
 
   /**
    * Check if selection is indeterminate (some but not all selected)
@@ -355,7 +276,6 @@ export class RegistrationComponent implements OnInit {
       delete payload.HashedPassword;
       delete payload.confirmPassword;
       delete payload.UserDesignationForstageId;
-      delete payload.usernamePrefix; // Remove the prefix field
 
       if (this.isEditMode && this.selectedUserId) {
         // Update existing user
@@ -409,11 +329,8 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.reset();
     this.selectedUserId = null;
     this.generatedPassword = '';
-    this.userCodeSuffix = '';
-    this.generatedUsername = '';
     this.isEditMode = false;
     this.initializeForm();
-    this.fetchUserCodeFromAPI(); // Fetch new user code
     this.generatePassword(); // Generate new password
   }
 

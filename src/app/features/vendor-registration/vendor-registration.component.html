@@ -43,7 +43,7 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           
-          <!-- Vendor Code Field - Show as dropdown in edit mode -->
+          <!-- Vendor Code Field - Dropdown in edit mode, Input in create mode -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Vendor Code</mat-label>
@@ -60,15 +60,19 @@
                 </mat-option>
               </mat-select>
               
-              <!-- Create Mode: Read-only Input -->
+              <!-- Create Mode: User Input Field -->
               <input 
                 *ngIf="!isEditMode"
                 appTrimInput 
                 matInput 
                 formControlName="vendorCode" 
-                readonly 
-                placeholder="Auto-generated Vendor Code" 
+               
+                required
               />
+              
+              <mat-error *ngIf="registrationForm.get('vendorCode')?.touched && registrationForm.get('vendorCode')?.invalid">
+                <small>Vendor Code is required.</small>
+              </mat-error>
             </mat-form-field>
           </div>
 
@@ -224,19 +228,6 @@
               </mat-error>
             </mat-form-field>
           </div>
-
-          <!-- General Details Field -->
-          <!-- <div class="col-lg-8">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>General Details of Services/Goods/Works</mat-label>
-              <mat-icon matPrefix>description</mat-icon>
-              <textarea 
-                matInput 
-                rows="1" 
-                formControlName="generalDetails">
-              </textarea>
-            </mat-form-field>
-          </div> -->
 
           <!-- Hidden Fields -->
           <input type="hidden" formControlName="username" />

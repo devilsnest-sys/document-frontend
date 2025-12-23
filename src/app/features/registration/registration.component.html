@@ -12,7 +12,7 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <div class="col-md-6">
-            <!-- Username - Show dropdown in edit mode, input + preview in create mode -->
+            <!-- Username - Simple input in create mode, dropdown in edit mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
               <mat-icon matPrefix>person</mat-icon>
@@ -26,15 +26,13 @@
                 </mat-option>
               </mat-select>
 
-              <!-- Input field for username prefix in create mode -->
-              <input *ngIf="!isEditMode" matInput id="usernamePrefix" formControlName="usernamePrefix" 
-                
-                (input)="onUsernamePrefixChange()" />
+              <!-- Simple input field in create mode -->
+              <input *ngIf="!isEditMode" appTrimInput matInput id="username" formControlName="username" 
+                placeholder="Enter username" required />
               
-              <!-- Show generated full username as hint -->
-              <mat-hint *ngIf="!isEditMode && generatedUsername" class="text-success">
-                <strong>Full Username: {{ generatedUsername }}</strong>
-              </mat-hint>
+              <mat-error *ngIf="registrationForm.get('username')?.touched && registrationForm.get('username')?.invalid">
+                <small>Username is required.</small>
+              </mat-error>
             </mat-form-field>
           </div>
 
@@ -122,25 +120,26 @@
           <div class="col-md-6">
             <!-- User Designation For Stage - Editable in both modes -->
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>User Designation For Stage</mat-label>
-              <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
-                [placeholder]="'Select Stages'" [required]="true">
-          
-                <!-- Select All Option - WITHOUT mat-checkbox -->
-                <mat-option #allSelected [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()">
-                  Select All
-                </mat-option>
-          
-                <!-- Individual Stage Options -->
-                <mat-option *ngFor="let stage of stages" [value]="stage.id">
-                  {{ stage.stageName }}
-                </mat-option>
-              </mat-select>
-              <mat-error
-                *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid">
-                <small>User Designation For Stage is required.</small>
-              </mat-error>
-            </mat-form-field>
+  <mat-label>User Designation For Stage</mat-label>
+  <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
+    [placeholder]="'Select Stages'" [required]="true">
+
+    <!-- Select All Option with proper checked state -->
+    <mat-option [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()"
+      [class.mat-selected]="isAllSelected()">
+      Select All
+    </mat-option>
+
+    <!-- Individual Stage Options -->
+    <mat-option *ngFor="let stage of stages" [value]="stage.id">
+      {{ stage.stageName }}
+    </mat-option>
+  </mat-select>
+  <mat-error
+    *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid">
+    <small>User Designation For Stage is required.</small>
+  </mat-error>
+</mat-form-field>
           </div>
         </div>
 

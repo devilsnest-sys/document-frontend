@@ -9,9 +9,14 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ViewChild, ElementRef } from '@angular/core';
 
 interface Vendor {
-companyName: any;
+  companyName: any;
   id: number;
   vendorCode: string;
+  contactNameTitle?: string;
+  contactEmail?: string;
+  email?: string;
+  contactPhone1?: string;
+  telephone?: string;
 }
 
 interface StaggeredData {
@@ -357,6 +362,14 @@ export class OrderacknowledgementComponent {
   onVendorSelect(selectedCode: string): void {
     const selectedVendor = this.vendors.find(vendor => vendor.vendorCode === selectedCode);
     this.selectedVendorId = selectedVendor ? selectedVendor.id : null;
+
+       if (selectedVendor) {
+      this.poForm.patchValue({
+        contactPersonName: selectedVendor.contactNameTitle || '',
+        contactPersonEmailId: selectedVendor.contactEmail || selectedVendor.email || '',
+        contactNumber: selectedVendor.contactPhone1 || selectedVendor.telephone || ''
+      });
+    }
   }
 
   onFileSelected(event: Event) {
