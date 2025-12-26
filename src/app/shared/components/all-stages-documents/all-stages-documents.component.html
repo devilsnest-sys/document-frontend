@@ -188,26 +188,27 @@
                       </button>
                       
                       <!-- BUG FIX: Approve Button - Only for vendor role -->
-                      <button class="btn btn-sm btn-success" 
-                              (click)="approveDocument(doc)" 
-                              *ngIf="isVendor()"
-                              [disabled]="doc.isApproved || doc.isRejected"
-                              [title]="doc.isApproved ? 'Already approved' : 
-                                       doc.isRejected ? 'Document was rejected' : 
-                                       'Approve document'">
-                        <i class="fas fa-check"></i>
-                      </button>
-                      
-                      <!-- BUG FIX: Reject Button - Only for vendor role -->
-                      <button class="btn btn-sm btn-danger" 
-                              (click)="rejectDocument(doc)" 
-                              *ngIf="isVendor()"
-                              [disabled]="doc.isApproved || doc.isRejected"
-                              [title]="doc.isRejected ? 'Already rejected' : 
-                                       doc.isApproved ? 'Document was approved' : 
-                                       'Reject document'">
-                        <i class="fas fa-times"></i>
-                      </button>
+                      <!-- Approve Button - Show based on who can review -->
+<button class="btn btn-sm btn-success" 
+        (click)="approveDocument(doc)" 
+        *ngIf="canReviewDocument(doc)"
+        [disabled]="doc.isApproved || doc.isRejected"
+        [title]="doc.isApproved ? 'Already approved' : 
+                 doc.isRejected ? 'Document was rejected' : 
+                 'Approve document'">
+  <i class="fas fa-check"></i>
+</button>
+
+<!-- Reject Button - Show based on who can review -->
+<button class="btn btn-sm btn-danger" 
+        (click)="rejectDocument(doc)" 
+        *ngIf="canReviewDocument(doc)"
+        [disabled]="doc.isApproved || doc.isRejected"
+        [title]="doc.isRejected ? 'Already rejected' : 
+                 doc.isApproved ? 'Document was approved' : 
+                 'Reject document'">
+  <i class="fas fa-times"></i>
+</button>
                     </div>
                   </td>
                 </tr>

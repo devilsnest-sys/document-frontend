@@ -883,4 +883,22 @@ downloadDocument(documentId: number): void {
   isUser(): boolean {
     return this.userType?.toLowerCase() === 'user';
   }
+
+  // Add this method to your component
+canReviewDocument(doc: UploadedDocument): boolean {
+  const currentUserType = this.userType?.toLowerCase();
+  const uploaderType = doc.docUploadedBy?.toLowerCase();
+  
+  // Users can review vendor-uploaded documents
+  if (currentUserType === 'user' && uploaderType === 'vendor') {
+    return true;
+  }
+  
+  // Vendors can review user-uploaded documents
+  if (currentUserType === 'vendor' && uploaderType === 'user') {
+    return true;
+  }
+  
+  return false;
+}
 }
