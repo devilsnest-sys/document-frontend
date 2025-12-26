@@ -36,6 +36,7 @@ import { StaggerdPoComponent } from './shared/components/staggerd-po/staggerd-po
 import { AuthGuard } from './core/guards/auth.guard';
 import { AllStagesDocumentsComponent } from './shared/components/all-stages-documents/all-stages-documents.component';
 import { ErrorNotFoundComponent } from './shared/error-not-found/error-not-found.component';
+import { ChangePasswordComponent } from './features/change-password/change-password.component';
 
 const routes: Routes = [
   // { path: '**', component: ErrorNotFoundComponent },
@@ -73,6 +74,7 @@ const routes: Routes = [
   {path: 'reports', component: ReportsComponent},
   {path: 'staggered', component: StaggerdPoComponent},
   { path: 'error', component: ErrorNotFoundComponent },
+  { path: 'changepassword', component: ChangePasswordComponent },
   {
   path: 'all-documents/:poNumber',
   component: AllStagesDocumentsComponent

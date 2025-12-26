@@ -83,6 +83,7 @@ import { AllStagesDocumentsComponent } from './shared/components/all-stages-docu
 import { ErrorNotFoundComponent } from './shared/error-not-found/error-not-found.component';
 import { ErrorInterceptor } from './core/services/error.interceptor';
 import { OtherDocUploadComponent } from './shared/components/other-doc-upload/other-doc-upload.component';
+import { ChangePasswordComponent } from './features/change-password/change-password.component';
 
 
 
@@ -134,7 +135,8 @@ import { OtherDocUploadComponent } from './shared/components/other-doc-upload/ot
     StaggerdPoComponent,
     AllStagesDocumentsComponent,
     ErrorNotFoundComponent,
-    OtherDocUploadComponent
+    OtherDocUploadComponent,
+    ChangePasswordComponent
     
   ],
   imports: [

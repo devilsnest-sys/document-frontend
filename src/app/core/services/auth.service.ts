@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environment/environment';
 
@@ -53,6 +53,7 @@ export class AuthService {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userType');
     this.isLoggedInSubject.next(false);
     this.userNameSubject.next(null);
     this.userTypeSubject.next(null);
@@ -71,7 +72,7 @@ export class AuthService {
   }
 
   requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/v1/users/request-reset`, { email },{ responseType: 'text' });
+    return this.http.post(`${environment.apiUrl}/v1/users/request-reset`, { email }, { responseType: 'text' });
   }
 
   resetPassword(email: string, otp: string, newPassword: string): Observable<any> {
@@ -79,7 +80,27 @@ export class AuthService {
       email,
       otp,
       newPassword
-    },{ responseType: 'text' });
+    }, { responseType: 'text' });
   }
 
+  // ADD THIS NEW METHOD
+  changePassword(currentPassword: string, newPassword: string, confirmPassword: string, userType: string): Observable<any> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const payload = {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    };
+
+    const endpoint = userType === 'vendor' 
+      ? `${environment.apiUrl}/v1/Vendor/change-password`
+      : `${environment.apiUrl}/v1/Users/change-password`;
+
+    return this.http.post(endpoint, payload, { headers, responseType: 'text' });
+  }
 }

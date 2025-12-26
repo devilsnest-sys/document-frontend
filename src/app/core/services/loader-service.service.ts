@@ -10,7 +10,7 @@ export class LoaderService {
 
   showLoader() {
     this.loadingSubject.next(true);
-    console.log("test success");
+    // console.log("test success");
   }
 
   hideLoader() {

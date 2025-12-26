@@ -66,7 +66,7 @@ stages = [
     // Fetch step statuses when PO changes
     this.vendorPoForm.get('po')?.valueChanges.subscribe((poValue) => {
       this.selectedPoNumber = poValue; // Update the selected PO number
-      console.log('Selected PO Number:', this.selectedPoNumber); // Log it
+      // console.log('Selected PO Number:', this.selectedPoNumber); // Log it
       this.fetchStepStatuses();
     });
   }

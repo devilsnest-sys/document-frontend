@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
     // Subscribe to loader service for API requests
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
-      console.log('isLoading status:', loading);
+      // console.log('isLoading status:', loading);
     });
 
     // Subscribe to router events
