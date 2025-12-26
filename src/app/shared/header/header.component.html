@@ -100,20 +100,34 @@
     </nav>
 
     <!-- User Profile Section -->
-    <div class="user-section">
-      <div class="user-profile">
-        <div class="avatar-circle">
-          <span>{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
-        </div>
-        <div class="user-info">
-          <span class="user-name">{{ userName || 'User' }}</span>
-          <span class="user-role">{{userType}}</span>
-        </div>
-      </div>
-      <button (click)="logout()" class="logout-btn" title="Logout">
-        <mat-icon>logout</mat-icon>
-      </button>
+<!-- User Profile Dropdown -->
+<div class="user-section" (click)="toggleUserMenu()" tabindex="0">
+
+  <div class="user-profile">
+    <div class="avatar-circle">
+      <span>{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
     </div>
+    <div class="user-info">
+      <span class="user-name">{{ userName || 'User' }}</span>
+      <span class="user-role">{{ userType }}</span>
+    </div>
+    <mat-icon class="dropdown-arrow">expand_more</mat-icon>
+  </div>
+
+  <!-- Dropdown -->
+  <div class="user-dropdown" *ngIf="isUserMenuOpen">
+    <button class="dropdown-item" routerLink="/changepassword">
+      <mat-icon>lock</mat-icon>
+      Change Password
+    </button>
+
+    <button class="dropdown-item logout" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Logout
+    </button>
+  </div>
+</div>
+
 
     <!-- Mobile Menu Toggle -->
     <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
@@ -154,6 +168,13 @@
           <span>Reports</span>
         </a>
       </li>
+      <li>
+  <a routerLink="/changepassword" (click)="closeMobileMenu()" class="mobile-link">
+    <mat-icon>lock</mat-icon>
+    <span>Change Password</span>
+  </a>
+</li>
+
       <li class="mobile-dropdown" *appUserRole="['user']">
         <button (click)="toggleMobileMasters()" class="mobile-link">
           <mat-icon>admin_panel_settings</mat-icon>

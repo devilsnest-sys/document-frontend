@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Subscription } from 'rxjs';
@@ -17,6 +17,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userType: string | null = null;
   isMobileMenuOpen: boolean = false;
   isMobileMastersOpen: boolean = false;
+  isUserMenuOpen = false;
 
   private loginStateSubscription!: Subscription;
   private userNameSubscription!: Subscription;
@@ -51,6 +52,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     );
   }
+
+  toggleUserMenu() {
+  this.isUserMenuOpen = !this.isUserMenuOpen;
+}
+@HostListener('document:click', ['$event'])
+closeMenu(event: Event) {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.user-section')) {
+    this.isUserMenuOpen = false;
+  }
+}
 
   ngOnDestroy(): void {
     if (this.loginStateSubscription) {
