@@ -216,14 +216,14 @@
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Service Type</mat-label>
               <mat-icon matPrefix>category</mat-icon>
-              <mat-select formControlName="serviceType" required>
+              <mat-select formControlName="generalDetails" required>
                 <mat-option value="">Select Service Type</mat-option>
                 <mat-option value="Services">Services</mat-option>
                 <mat-option value="Composite Services">Composite Services</mat-option>
                 <mat-option value="Goods">Goods</mat-option>
                 <mat-option value="Works">Works</mat-option>
               </mat-select>
-              <mat-error *ngIf="registrationForm.get('serviceType')?.touched && registrationForm.get('serviceType')?.invalid">
+              <mat-error *ngIf="registrationForm.get('generalDetails')?.touched && registrationForm.get('generalDetails')?.invalid">
                 <small>Service Type is required.</small>
               </mat-error>
             </mat-form-field>

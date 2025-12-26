@@ -43,8 +43,8 @@ export class VendorRegistrationComponent implements OnInit {
       contactNameTitle: ['', Validators.required],
       contactEmail: ['', [Validators.required, Validators.email]],
       contactPhone1: [''],
-      serviceType: ['', Validators.required],
-      generalDetails: [''],
+      generalDetails: ['', Validators.required],
+      // generalDetails: [''],
       username: [''],
       HashedPassword: [''],
       userType: ['vendor'],
@@ -124,6 +124,8 @@ export class VendorRegistrationComponent implements OnInit {
   }
 
   populateForm(vendorData: any): void {
+    const normalizedServiceType = this.mapServiceType(vendorData.serviceType);
+    
     this.registrationForm.patchValue({
       vendorCode: vendorData.vendorCode,
       companyName: vendorData.companyName,
@@ -134,7 +136,7 @@ export class VendorRegistrationComponent implements OnInit {
       contactNameTitle: vendorData.contactNameTitle,
       contactEmail: vendorData.contactEmail,
       contactPhone1: vendorData.contactPhone1 || '',
-      serviceType: vendorData.serviceType || '',
+      serviceType: normalizedServiceType || '',
       generalDetails: vendorData.generalDetails || '',
       username: vendorData.username,
       HashedPassword: '',
@@ -142,6 +144,20 @@ export class VendorRegistrationComponent implements OnInit {
       salt: vendorData.salt || ''
     });
   }
+
+  private mapServiceType(value: string): string {
+  if (!value) return '';
+
+  const val = value.toLowerCase().replace(/\s|_/g, '');
+
+  if (val.includes('composite')) return 'Composite Services';
+  if (val.includes('service')) return 'Services';
+  if (val.includes('goods')) return 'Goods';
+  if (val.includes('work')) return 'Works';
+
+  return '';
+}
+
 
   onSubmit(): void {
     if (this.registrationForm.valid) {
