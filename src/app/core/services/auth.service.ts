@@ -94,7 +94,8 @@ export class AuthService {
     const payload = {
       currentPassword,
       newPassword,
-      confirmPassword
+      confirmPassword,
+      userType   
     };
 
     const endpoint = userType === 'vendor' 
