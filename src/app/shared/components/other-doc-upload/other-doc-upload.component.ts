@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
@@ -59,11 +59,15 @@ export class OtherDocUploadComponent implements OnInit {
     this.userType = localStorage.getItem('userType');
     console.log('OtherDocUpload initialized with PO ID:', this.poId, 'Stage ID:', this.stageId);
     console.log('Current User Type:', this.userType);
-    
-    if (this.poId) {
-      this.fetchUploadedDocuments();
-    }
+
   }
+
+  ngOnChanges(changes: SimpleChanges): void {
+  if (changes['poId'] && changes['poId'].currentValue) {
+    this.fetchUploadedDocuments();
+  }
+}
+
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
