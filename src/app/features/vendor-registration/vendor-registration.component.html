@@ -1,6 +1,6 @@
 <div class="container m-0">
   <!-- File Upload Section - Only visible in CREATE mode -->
-  <div class="file-upload-container" *ngIf="!isEditMode">
+  <!-- <div class="file-upload-container" *ngIf="!isEditMode">
     <label for="file-input" class="custom-file-label">
       <mat-icon>cloud_upload</mat-icon>
       Choose File For Bulk Vendor Registration
@@ -20,7 +20,7 @@
       <mat-icon>upload</mat-icon>
       Upload
     </button>
-  </div>
+  </div> -->
 
   <!-- Registration Form Card -->
   <div class="card">
@@ -66,7 +66,6 @@
                 appTrimInput 
                 matInput 
                 formControlName="vendorCode" 
-               
                 required
               />
               
@@ -127,7 +126,7 @@
             </mat-form-field>
           </div>
     
-          <!-- Email - Always editable -->
+          <!-- Email - Always editable, validation logic changes based on mode -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Email</mat-label>
@@ -138,13 +137,15 @@
                 id="email" 
                 type="email" 
                 formControlName="email" 
-                (blur)="!isEditMode && checkEmailExists(registrationForm.get('email')?.value, 'vendor')"
+                (blur)="checkEmailExists(registrationForm.get('email')?.value, 'vendor')"
                 required 
               />
               <mat-error *ngIf="registrationForm.get('email')?.touched && registrationForm.get('email')?.invalid">
                 <small *ngIf="registrationForm.get('email')?.hasError('required')">Email is required.</small>
                 <small *ngIf="registrationForm.get('email')?.hasError('email')">Enter a valid email.</small>
-                <small *ngIf="registrationForm.get('email')?.hasError('emailTaken') && !isEditMode">This email is already taken.</small>
+                <small *ngIf="registrationForm.get('email')?.hasError('emailTaken')">
+                  {{ isEditMode ? 'This email is already used by another vendor.' : 'This email is already taken.' }}
+                </small>
               </mat-error>
             </mat-form-field>
           </div>
