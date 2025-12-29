@@ -1,3 +1,5 @@
+// vendor-registration.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -33,6 +35,30 @@ export class VendorService {
   checkEmailExists(email: string, type: string): Observable<{ exists: boolean }> {
     return this.http.get<{ exists: boolean }>(
       `${environment.apiUrl}/v1/users/check-email?email=${encodeURIComponent(email)}&type=${type}`
+    );
+  }
+
+  /**
+   * NEW METHOD - Validates email for EDIT mode
+   * Checks if email is duplicate for other vendors (excludes current vendor being edited)
+   * @param id - The vendor ID being edited
+   * @param userType - Type of user (vendor)
+   * @param email - Email to validate
+   * @returns Observable with { isDuplicate: boolean, message: string }
+   */
+  validateEmail(id: number, userType: string, email: string): Observable<{ isDuplicate: boolean; message: string }> {
+    const headers = this.getAuthHeaders();
+    
+    const payload = {
+      id: id,
+      userType: userType,
+      email: email
+    };
+
+    return this.http.post<{ isDuplicate: boolean; message: string }>(
+      `${environment.apiUrl}/v1/users/validate`,
+      payload,
+      { headers }
     );
   }
 
@@ -74,14 +100,14 @@ export class VendorService {
   }
 
   generateNextVendorCode(token: string): Observable<any> {
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  });
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
 
-  return this.http.get<any>(
-    `${this.registrationUrl}/generate-next-vendor-code`,
-    { headers }
-  );
-}
+    return this.http.get<any>(
+      `${this.registrationUrl}/generate-next-vendor-code`,
+      { headers }
+    );
+  }
 }

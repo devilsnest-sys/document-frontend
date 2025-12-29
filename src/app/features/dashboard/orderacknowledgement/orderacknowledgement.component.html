@@ -106,7 +106,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contractual Delivery Date</mat-label>
                     <mat-icon matPrefix>calendar_today</mat-icon>
-                    <input appTrimInput matInput [matDatepicker]="contractualDatePicker" formControlName="contractualDeliveryDate" required />
+                    <input appTrimInput matInput [min]="today" [matDatepicker] ="contractualDatePicker" formControlName="contractualDeliveryDate" required />
                     <mat-datepicker-toggle matSuffix [for]="contractualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #contractualDatePicker></mat-datepicker>
                     <mat-error *ngIf="poForm.get('contractualDeliveryDate')?.touched && poForm.get('contractualDeliveryDate')?.invalid">
@@ -120,7 +120,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Actual Delivery Date</mat-label>
                     <mat-icon matPrefix>receipt</mat-icon>
-                    <input appTrimInput matInput [matDatepicker]="actualDatePicker" formControlName="actualDeliveryDate" />
+                    <input appTrimInput matInput [min]="today" [matDatepicker] ="actualDatePicker" formControlName="actualDeliveryDate" />
                     <mat-datepicker-toggle matSuffix [for]="actualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #actualDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="poForm.get('actualDeliveryDate')?.touched && poForm.get('actualDeliveryDate')?.invalid">
@@ -194,7 +194,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Shipping Date</mat-label>
                     <mat-icon matPrefix>local_shipping</mat-icon>
-                    <input appTrimInput matInput [matDatepicker]="shippingDatePicker" formControlName="shippingDate" />
+                    <input appTrimInput matInput [min]="today" [matDatepicker] ="shippingDatePicker" formControlName="shippingDate" />
                     <mat-datepicker-toggle matSuffix [for]="shippingDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #shippingDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="poForm.get('shippingDate')?.touched && poForm.get('shippingDate')?.invalid">
@@ -208,7 +208,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>CPBG Due Date</mat-label>
                     <mat-icon matPrefix>event</mat-icon>
-                    <input appTrimInput matInput [matDatepicker]="cpbgDueDatePicker" formControlName="cpbgDueDate" />
+                    <input appTrimInput matInput [min]="today" [matDatepicker] ="cpbgDueDatePicker" formControlName="cpbgDueDate" />
                     <mat-datepicker-toggle matSuffix [for]="cpbgDueDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #cpbgDueDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="poForm.get('cpbgDueDate')?.touched && poForm.get('cpbgDueDate')?.invalid">
@@ -222,7 +222,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>DLP Due Date</mat-label>
                     <mat-icon matPrefix>event_note</mat-icon>
-                    <input appTrimInput matInput [matDatepicker]="dlpDueDatePicker" formControlName="dlpDueDate" />
+                    <input appTrimInput matInput [min]="today" [matDatepicker] ="dlpDueDatePicker" formControlName="dlpDueDate" />
                     <mat-datepicker-toggle matSuffix [for]="dlpDueDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #dlpDueDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="poForm.get('dlpDueDate')?.touched && poForm.get('dlpDueDate')?.invalid">
@@ -270,7 +270,7 @@
                         </td>
                         <td>
                           <mat-form-field appearance="outline" class="full-width">
-                            <input appTrimInput matInput [matDatepicker]="staggeredDatePicker" formControlName="deliveryDateOfQuantity" required />
+                            <input appTrimInput matInput [min]="today" [matDatepicker] ="staggeredDatePicker" formControlName="deliveryDateOfQuantity" required />
                             <mat-datepicker-toggle matSuffix [for]="staggeredDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #staggeredDatePicker></mat-datepicker>
                             <mat-error *ngIf="staggeredItem.get('deliveryDateOfQuantity')?.touched && staggeredItem.get('deliveryDateOfQuantity')?.invalid">
@@ -422,7 +422,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Contractual Delivery Date</mat-label>
                     <mat-icon matPrefix>calendar_today</mat-icon>
-                    <input matInput [matDatepicker]="editContractualDatePicker" formControlName="contractualDeliveryDate" required />
+                    <input matInput [min]="today" [matDatepicker] ="editContractualDatePicker" formControlName="contractualDeliveryDate" required />
                     <mat-datepicker-toggle matSuffix [for]="editContractualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #editContractualDatePicker></mat-datepicker>
                     <mat-error *ngIf="editPoForm.get('contractualDeliveryDate')?.touched && editPoForm.get('contractualDeliveryDate')?.invalid">
@@ -435,7 +435,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Actual Delivery Date</mat-label>
                     <mat-icon matPrefix>receipt</mat-icon>
-                    <input matInput [matDatepicker]="editActualDatePicker" formControlName="actualDeliveryDate" />
+                    <input matInput [min]="today" [matDatepicker] ="editActualDatePicker" formControlName="actualDeliveryDate" />
                     <mat-datepicker-toggle matSuffix [for]="editActualDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #editActualDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="editPoForm.get('actualDeliveryDate')?.touched && editPoForm.get('actualDeliveryDate')?.invalid">
@@ -448,7 +448,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Shipping Date</mat-label>
                     <mat-icon matPrefix>local_shipping</mat-icon>
-                    <input matInput [matDatepicker]="editShippingDatePicker" formControlName="shippingDate" />
+                    <input matInput [min]="today" [matDatepicker] ="editShippingDatePicker" formControlName="shippingDate" />
                     <mat-datepicker-toggle matSuffix [for]="editShippingDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #editShippingDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="editPoForm.get('shippingDate')?.touched && editPoForm.get('shippingDate')?.invalid">
@@ -461,7 +461,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>CPBG Due Date</mat-label>
                     <mat-icon matPrefix>event</mat-icon>
-                    <input matInput [matDatepicker]="editCpbgDueDatePicker" formControlName="cpbgDueDate" />
+                    <input matInput [min]="today" [matDatepicker] ="editCpbgDueDatePicker" formControlName="cpbgDueDate" />
                     <mat-datepicker-toggle matSuffix [for]="editCpbgDueDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #editCpbgDueDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="editPoForm.get('cpbgDueDate')?.touched && editPoForm.get('cpbgDueDate')?.invalid">
@@ -474,7 +474,7 @@
                   <mat-form-field appearance="fill" class="full-width">
                     <mat-label>DLP Due Date</mat-label>
                     <mat-icon matPrefix>event_note</mat-icon>
-                    <input matInput [matDatepicker]="editDlpDueDatePicker" formControlName="dlpDueDate" />
+                    <input matInput [min]="today" [matDatepicker] ="editDlpDueDatePicker" formControlName="dlpDueDate" />
                     <mat-datepicker-toggle matSuffix [for]="editDlpDueDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #editDlpDueDatePicker></mat-datepicker>
                     <!-- <mat-error *ngIf="editPoForm.get('dlpDueDate')?.touched && editPoForm.get('dlpDueDate')?.invalid">

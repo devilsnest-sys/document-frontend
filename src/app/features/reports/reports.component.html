@@ -22,27 +22,32 @@
             </mat-form-field>
           </div>
 
-          <!-- Vendor Selection (Only for Admins/Users) -->
-          <div class="col-md-4" *appUserRole="['admin', 'user']">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Select Vendor</mat-label>
-              <input appTrimInput type="text"
-                     placeholder="Pick a vendor"
-                     aria-label="Vendor"
-                     matInput
-                     [formControl]="vendorControl"
-                     [matAutocomplete]="vendorAuto"
-                     (focus)="showAllVendors()">
-              <mat-autocomplete #vendorAuto="matAutocomplete"
-                               (optionSelected)="onVendorSelect($event)"
-                               [displayWith]="displayVendor">
-                <mat-option *ngFor="let vendor of filteredVendors$ | async" 
-                            [value]="vendor.id">
-                  {{ vendor.vendorCode }} - {{ vendor.companyName }}
-                </mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
-          </div>
+          <!-- Vendor Selection (Only for Admins/Users and not for All Vendors report) -->
+<ng-container *appUserRole="['admin', 'user']">
+  <div class="col-md-4"
+       *ngIf="reportForm.get('reportType')?.value !== 'all_vendors'">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Select Vendor</mat-label>
+      <input appTrimInput
+             type="text"
+             placeholder="Pick a vendor"
+             matInput
+             [formControl]="vendorControl"
+             [matAutocomplete]="vendorAuto"
+             (focus)="showAllVendors()">
+
+      <mat-autocomplete #vendorAuto="matAutocomplete"
+                        (optionSelected)="onVendorSelect($event)"
+                        [displayWith]="displayVendor">
+        <mat-option *ngFor="let vendor of filteredVendors$ | async"
+                    [value]="vendor.id">
+          {{ vendor.vendorCode }} - {{ vendor.companyName }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+</ng-container>
+
 
           <!-- Purchase Order Selection (Only for PO Stage Report) -->
           <div class="col-md-4" *ngIf="reportForm.get('reportType')?.value === 'po_stage'">
@@ -74,25 +79,6 @@
               <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
               <mat-datepicker #toDatePicker></mat-datepicker>
             </mat-form-field>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="row mt-3">
-          <div class="col-12">
-            <div class="action-buttons">
-              <!-- <button mat-raised-button color="primary" 
-                      [disabled]="!reportForm.get('vendor')?.value"
-                      (click)="generateReport()">
-                <mat-icon>search</mat-icon>
-                Generate Report
-              </button>
-              <button mat-raised-button 
-                      (click)="onCancel()">
-                <mat-icon>clear</mat-icon>
-                Clear
-              </button> -->
-            </div>
           </div>
         </div>
       </form>
@@ -206,6 +192,38 @@
     </div>
   </div>
 
+  <!-- Report Grid for ALL VENDORS LIST -->
+  <div class="card mt-4" *ngIf="allVendorsRowData.length > 0 && reportForm.get('reportType')?.value === 'all_vendors'">
+    <div class="card-header">
+      <h4 class="card-title">
+        <mat-icon>business</mat-icon>
+        ALL VENDORS LIST
+      </h4>
+      <div class="report-info">
+        <span>
+          Total Vendors: {{ allVendorsRowData.length }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="ag-grid-container">
+        <ag-grid-angular
+          class="ag-theme-alpine"
+          [columnDefs]="allVendorsColumnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowData]="allVendorsRowData"
+          [modules]="modules"
+          [pagination]="true"
+          [paginationPageSize]="20"
+          [rowSelection]="'single'"
+          [suppressHorizontalScroll]="false"
+          style="width: 100%; height: 500px;">
+        </ag-grid-angular>
+      </div>
+    </div>
+  </div>
+
   <!-- Stage Status Details -->
   <div class="card mt-4" *ngIf="selectedPoData">
     <div class="card-header">
@@ -245,15 +263,8 @@
     </div>
   </div>
 
-  <!-- Empty State -->
-  <!-- <div class="empty-state" *ngIf="getEmptyStateCondition()">
-    <mat-icon>search</mat-icon>
-    <h3>No Data Available</h3>
-    <p>Please select the required criteria and click "Generate Report" to view the data.</p>
-  </div> -->
-
   <!-- Report Type Instructions -->
-  <div class="card mt-4" *ngIf="!reportForm.get('vendor')?.value">
+  <div class="card mt-4" *ngIf="!reportForm.get('vendor')?.value && reportForm.get('reportType')?.value !== 'all_vendors'">
     <div class="card-header">
       <h4 class="card-title">
         <mat-icon>info</mat-icon>
@@ -262,7 +273,7 @@
     </div>
     <div class="card-body">
       <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="report-type-info">
             <h5>STATUS OF PO STAGE</h5>
             <p>Shows detailed status of a specific Purchase Order including stage completion, delivery dates, and document status.</p>
@@ -272,7 +283,7 @@
             </ul>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="report-type-info">
             <h5>STATUS OF All POs</h5>
             <p>Shows overview of all Purchase Orders for a vendor with completion status and delivery information.</p>
@@ -283,13 +294,23 @@
             </ul>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="report-type-info">
             <h5>STAGE WISE ACTIONS</h5>
             <p>Shows detailed actions required at each stage for all Purchase Orders, including pending actions and responsibilities.</p>
             <ul>
               <li>Requires: Vendor</li>
               <li>Shows: Stage-level details</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="report-type-info">
+            <h5>ALL VENDORS LIST</h5>
+            <p>Shows comprehensive list of all registered vendors with their contact information and details.</p>
+            <ul>
+              <li>Requires: None</li>
+              <li>Shows: All vendors information</li>
             </ul>
           </div>
         </div>

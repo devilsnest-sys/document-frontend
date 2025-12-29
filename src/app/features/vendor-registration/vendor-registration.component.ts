@@ -1,3 +1,5 @@
+// vendor-registration.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { VendorService } from './vendor-registration.service';
@@ -17,6 +19,7 @@ export class VendorRegistrationComponent implements OnInit {
   vendorList: Array<{ username: string; vendorCode: string; companyName: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedVendorId: number | null = null;
+  originalEmail: string = ''; // Track original email to avoid unnecessary validation
 
   constructor(
     private fb: FormBuilder,
@@ -26,15 +29,11 @@ export class VendorRegistrationComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-    // Removed auto-generation call
-    // if (!this.isEditMode) {
-    //   this.fetchAndSetVendorCode();
-    // }
   }
 
   initializeForm(): void {
     this.registrationForm = this.fb.group({
-      vendorCode: ['', Validators.required], // Now required for user input
+      vendorCode: ['', Validators.required],
       companyName: ['', Validators.required],
       mailingAddress: ['', Validators.required],
       telephone: ['', Validators.required],
@@ -44,35 +43,12 @@ export class VendorRegistrationComponent implements OnInit {
       contactEmail: ['', [Validators.required, Validators.email]],
       contactPhone1: [''],
       generalDetails: ['', Validators.required],
-      // generalDetails: [''],
       username: [''],
       HashedPassword: [''],
       userType: ['vendor'],
       salt: ['']
     });
   }
-
-  // Commented out - vendor code will be user input
-  // fetchAndSetVendorCode(): void {
-  //   const token = localStorage.getItem('authToken');
-
-  //   if (!token) {
-  //     this.toastservice.showToast('error', 'Authentication Failed', 'Please login again!');
-  //     return;
-  //   }
-
-  //   this.vendorService.generateNextVendorCode(token).subscribe({
-  //     next: (response) => {
-  //       const vendorCode = response.vendorCode || response;
-  //       this.registrationForm.patchValue({ vendorCode });
-  //     },
-  //     error: (error) => {
-  //       console.error('Error generating vendor code:', error);
-  //       const fallbackCode = this.generateVendorCode();
-  //       this.registrationForm.patchValue({ vendorCode: fallbackCode });
-  //     }
-  //   });
-  // }
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
@@ -82,12 +58,12 @@ export class VendorRegistrationComponent implements OnInit {
       this.registrationForm.reset();
       this.initializeForm();
       this.registrationForm.get('vendorCode')?.enable();
+      this.originalEmail = '';
     } else {
       this.registrationForm.reset();
       this.selectedVendorId = null;
+      this.originalEmail = '';
       this.initializeForm();
-      // Removed auto-generation call
-      // this.fetchAndSetVendorCode();
     }
   }
 
@@ -114,6 +90,7 @@ export class VendorRegistrationComponent implements OnInit {
       this.vendorService.getVendorById(selectedVendor.id).subscribe({
         next: (vendorData) => {
           this.populateForm(vendorData);
+          this.originalEmail = vendorData.email; // Store original email
         },
         error: (err) => {
           console.error(err);
@@ -146,18 +123,17 @@ export class VendorRegistrationComponent implements OnInit {
   }
 
   private mapServiceType(value: string): string {
-  if (!value) return '';
+    if (!value) return '';
 
-  const val = value.toLowerCase().replace(/\s|_/g, '');
+    const val = value.toLowerCase().replace(/\s|_/g, '');
 
-  if (val.includes('composite')) return 'Composite Services';
-  if (val.includes('service')) return 'Services';
-  if (val.includes('goods')) return 'Goods';
-  if (val.includes('work')) return 'Works';
+    if (val.includes('composite')) return 'Composite Services';
+    if (val.includes('service')) return 'Services';
+    if (val.includes('goods')) return 'Goods';
+    if (val.includes('work')) return 'Works';
 
-  return '';
-}
-
+    return '';
+  }
 
   onSubmit(): void {
     if (this.registrationForm.valid) {
@@ -229,39 +205,71 @@ export class VendorRegistrationComponent implements OnInit {
     return password;
   }
 
-  // Commented out - no longer needed as fallback
-  // private generateVendorCode(): string {
-  //   const timestamp = Date.now().toString().slice(-6);
-  //   return `VEN00${timestamp}`;
-  // }
-
   private resetFormState(): void {
     this.isSubmitting = false;
     this.registrationForm.reset();
     this.initializeForm();
-    
-    // Removed auto-generation call
-    // if (!this.isEditMode) {
-    //   this.fetchAndSetVendorCode();
-    // }
-    
     this.isEditMode = false;
     this.selectedVendorId = null;
+    this.originalEmail = '';
   }
 
+  /**
+   * Validates email based on current mode:
+   * - CREATE MODE: Uses checkEmailExists API to see if email is already taken
+   * - EDIT MODE: Uses validateEmail API to check if email is duplicate (excluding current vendor)
+   */
   checkEmailExists(email: string, type: string = 'vendor'): void {
-    if (!email || this.isEditMode) return;
+    if (!email) return;
 
-    this.vendorService.checkEmailExists(email, type).subscribe(
-      response => {
-        if (response.exists) {
-          this.registrationForm.controls['email'].setErrors({ emailTaken: true });
+    // Skip validation if email hasn't changed in edit mode
+    if (this.isEditMode && email === this.originalEmail) {
+      return;
+    }
+
+    if (this.isEditMode && this.selectedVendorId) {
+      // EDIT MODE: Use validate API with vendor ID
+      this.vendorService.validateEmail(this.selectedVendorId, type, email).subscribe(
+        response => {
+          if (!response.isDuplicate) {
+            // Email is already used by another vendor
+            this.registrationForm.controls['email'].setErrors({ emailTaken: true });
+          } else {
+            // Email is valid - clear the emailTaken error if it exists
+            const emailControl = this.registrationForm.controls['email'];
+            if (emailControl.hasError('emailTaken')) {
+              const errors = { ...emailControl.errors };
+              delete errors['emailTaken'];
+              emailControl.setErrors(Object.keys(errors).length ? errors : null);
+            }
+          }
+        },
+        error => {
+          console.error('Error validating email:', error);
+          this.toastservice.showToast('error', 'Email validation failed');
         }
-      },
-      error => {
-        console.error('Error checking email:', error);
-      }
-    );
+      );
+    } else {
+      // CREATE MODE: Use existing check-email API
+      this.vendorService.checkEmailExists(email, type).subscribe(
+        response => {
+          if (response.exists) {
+            this.registrationForm.controls['email'].setErrors({ emailTaken: true });
+          } else {
+            // Clear the emailTaken error if it exists
+            const emailControl = this.registrationForm.controls['email'];
+            if (emailControl.hasError('emailTaken')) {
+              const errors = { ...emailControl.errors };
+              delete errors['emailTaken'];
+              emailControl.setErrors(Object.keys(errors).length ? errors : null);
+            }
+          }
+        },
+        error => {
+          console.error('Error checking email:', error);
+        }
+      );
+    }
   }
 
   get emailControl() {

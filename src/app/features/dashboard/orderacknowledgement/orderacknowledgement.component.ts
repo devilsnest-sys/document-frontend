@@ -92,6 +92,9 @@ export class OrderacknowledgementComponent {
   allPurchaseOrders: PurchaseOrder[] = [];
   selectedPoForEdit: number | null = null;
   isEditMode: boolean = false;
+
+  today = new Date();
+
   
   columnDefs: ColDef[] = [
     { field: 'poDescription', headerName: 'PO Description' },
@@ -146,8 +149,9 @@ export class OrderacknowledgementComponent {
       poDescription: ['', Validators.required],
       poType: ['', Validators.required],
       incoterms: ['', Validators.required],
-      contractualDeliveryDate: ['', Validators.required],
-      actualDeliveryDate: [''],
+      contractualDeliveryDate: ['', Validators.required, noPastDateValidator],
+      actualDeliveryDate: ['', [noPastDateValidator]],
+
       contactPersonName: ['', Validators.required],
       contactPersonEmailId: ['', [Validators.required]],
       contactNumber: ['', Validators.required],
@@ -155,9 +159,9 @@ export class OrderacknowledgementComponent {
       poNo: ['', [Validators.required]],
       vendorCode: ['', Validators.required],
       orderValue: ['', Validators.required],
-      shippingDate: [''],
-      cpbgDueDate: [''],
-      dlpDueDate: [''],
+shippingDate: ['', [noPastDateValidator]],
+cpbgDueDate: ['', [noPastDateValidator]],
+dlpDueDate: ['', [noPastDateValidator]],
       isStaggered: [false],
       staggeredDataList: this.fb.array([])
     });
@@ -175,11 +179,11 @@ export class OrderacknowledgementComponent {
       vendorCode: [{ value: '', disabled: true }],
       orderValue: [{ value: '', disabled: true }],
       // Editable date fields
-      contractualDeliveryDate: ['', Validators.required],
-      actualDeliveryDate: ['', Validators.required],
-      shippingDate: ['', Validators.required],
-      cpbgDueDate: ['', Validators.required],
-      dlpDueDate: ['', Validators.required]
+      contractualDeliveryDate: ['', Validators.required], noPastDateValidator,
+actualDeliveryDate: ['', [noPastDateValidator]],
+shippingDate: ['', [noPastDateValidator]],
+cpbgDueDate: ['', [noPastDateValidator]],
+dlpDueDate: ['', [noPastDateValidator]],
     });
   }
 
@@ -645,4 +649,16 @@ export class OrderacknowledgementComponent {
         console.error('Error downloading document:', error);
       });
   }
+}
+
+export function noPastDateValidator(control: any) {
+  if (!control.value) return null;
+
+  const selected = new Date(control.value);
+  selected.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return selected < today ? { pastDate: true } : null;
 }
