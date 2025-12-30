@@ -94,11 +94,12 @@ export class AuthService {
     const payload = {
       currentPassword,
       newPassword,
-      confirmPassword
+      confirmPassword,
+      userType   
     };
 
     const endpoint = userType === 'vendor' 
-      ? `${environment.apiUrl}/v1/Vendor/change-password`
+      ? `${environment.apiUrl}/v1/Users/change-password`
       : `${environment.apiUrl}/v1/Users/change-password`;
 
     return this.http.post(endpoint, payload, { headers, responseType: 'text' });
