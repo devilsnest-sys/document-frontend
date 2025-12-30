@@ -1,185 +1,187 @@
-<div class="staggered-po-container mt-4">
-  <!-- Header Section -->
-  <div class="table-header">
-    <div class="header-content">
-      <div class="header-icon">
-        <i class="icon-layers"></i>
-      </div>
-      <div class="header-text">
-        <h2 class="header-title">Staggered Purchase Order</h2>
-        <p class="header-subtitle">Manage delivery schedules and submissions</p>
-      </div>
-      <div class="header-stats" *ngIf="!loading && !error && tableData.length > 0">
-        <div class="stat-item">
-          <span class="stat-number">{{ tableData.length }}</span>
-          <span class="stat-label">Total Items</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ getSubmittedCount() }}</span>
-          <span class="stat-label">Submitted</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ getPendingCount() }}</span>
-          <span class="stat-label">Pending</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  
+<div class="staggered-po-container mt-2">
   <!-- Loading State -->
-  <div *ngIf="loading" class="state-container loading-state">
-    <div class="state-content">
-      <div class="modern-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <h4 class="state-title">Loading Data</h4>
-      <p class="state-message">Fetching staggered purchase order details...</p>
+  <div *ngIf="loading" class="loading-spinner text-center py-4">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only">Loading...</span>
     </div>
+    <p class="mt-2">Loading staggered purchase order data...</p>
   </div>
 
   <!-- Error State -->
-  <div *ngIf="error" class="state-container error-state">
-    <div class="state-content">
-      <div class="error-icon">
-        <i class="icon-alert"></i>
-      </div>
-      <h4 class="state-title">Something went wrong</h4>
-      <p class="state-message">{{ error }}</p>
-      <button class="btn btn-retry" (click)="retryLoad()">
-        <i class="icon-refresh"></i>
-        Try Again
-      </button>
-    </div>
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ml-2" (click)="retryLoad()">
+      <i class="fas fa-redo"></i> Retry
+    </button>
   </div>
 
-  <!-- Enhanced Table -->
-  <div *ngIf="!loading && !error && tableData.length > 0" class="table-container">
-    <div class="table-wrapper">
-      <table class="modern-table">
-        <thead>
+  <!-- Main Content -->
+  <div *ngIf="!loading && !error && tableData.length > 0">
+    <!-- Header Section -->
+    <div class="card mb-3">
+      <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1">
+              <i class="fas fa-layer-group"></i>
+              Staggered Deliveries - Stage {{ stageId }}
+            </h6>
+            <small class="text-muted">Manage delivery schedules and submissions</small>
+          </div>
+          <div class="d-flex gap-2">
+            <div class="text-center px-2">
+              <div class="badge badge-info">{{ tableData.length }}</div>
+              <small class="d-block text-muted">Total</small>
+            </div>
+            <div class="text-center px-2">
+              <div class="badge badge-success">{{ getSubmittedCount() }}</div>
+              <small class="d-block text-muted">Submitted</small>
+            </div>
+            <div class="text-center px-2">
+              <div class="badge badge-warning">{{ getPendingCount() }}</div>
+              <small class="d-block text-muted">Pending</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress mt-2" style="height: 6px;">
+          <div class="progress-bar bg-success" 
+               role="progressbar" 
+               [style.width.%]="getProgressPercentage()"
+               [attr.aria-valuenow]="getProgressPercentage()" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm">
+        <thead class="thead-light">
           <tr>
-            <th scope="col" class="col-sn">
-              <div class="th-content">
-                <i class="icon-hash"></i>
-                <span>Serial No.</span>
-              </div>
+            <th style="width: 8%;">
+              <i class="fas fa-hashtag"></i> Sr No.
             </th>
-            <th scope="col" class="col-quantity">
-              <div class="th-content">
-                <i class="icon-package"></i>
-                <span>Quantity</span>
-              </div>
+            <th style="width: 15%;">
+              <i class="fas fa-box"></i> Quantity
             </th>
-            <th scope="col" class="col-date">
-              <div class="th-content">
-                <i class="icon-calendar"></i>
-                <span>Delivery Date</span>
-              </div>
+            <th style="width: 20%;">
+              <i class="fas fa-calendar-alt"></i> Delivery Date
             </th>
-            <th scope="col" class="col-status">
-              <div class="th-content">
-                <i class="icon-activity"></i>
-                <span>Status</span>
-              </div>
+            <th style="width: 15%;">
+              <i class="fas fa-info-circle"></i> Status
             </th>
-            <th scope="col" class="col-action">
-              <div class="th-content">
-                <i class="icon-settings"></i>
-                <span>Action</span>
-              </div>
+            <th style="width: 20%;">
+              <i class="fas fa-tasks"></i> Actions
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr 
-            *ngFor="let row of tableData; let i = index; trackBy: trackByFn"
-            [class.submitted-row]="row.submitted"
-            [class.pending-row]="!row.submitted"
-            class="table-row"
-            [style.animation-delay]="i * 0.1 + 's'"
-          >
-            <td class="col-sn">
-              <div class="cell-content">
-                <span class="serial-badge">{{ row.sn }}</span>
+          <tr *ngFor="let row of tableData; let i = index; trackBy: trackByFn"
+              [class.table-success]="row.submitted"
+              [class.table-warning]="!row.submitted && stageStatus !== 'Complete'"
+              [class.table-secondary]="stageStatus === 'Complete'">
+            <td class="text-center">
+              <span class="badge badge-secondary">{{ row.sn }}</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-boxes text-primary mr-2"></i>
+                <span class="font-weight-bold">{{ row.quantity | number }}</span>
+                <small class="text-muted ml-1">units</small>
               </div>
             </td>
-            <td class="col-quantity">
-              <div class="cell-content">
-                <div class="quantity-display">
-                  <i class="icon-box"></i>
-                  <span class="quantity-number">{{ row.quantity | number }}</span>
-                  <span class="quantity-unit">units</span>
-                </div>
+            <td>
+              <div>
+                <div class="font-weight-bold">{{ formatDate(row.dateDeliver) }}</div>
+                <small class="text-muted">
+                  <i class="fas fa-clock"></i> {{ getRelativeDate(row.dateDeliver) }}
+                </small>
               </div>
             </td>
-            <td class="col-date">
-              <div class="cell-content">
-                <div class="date-display">
-                  <span class="date-primary">{{ formatDate(row.dateDeliver) }}</span>
-                  <span class="date-secondary">{{ getRelativeDate(row.dateDeliver) }}</span>
-                </div>
-              </div>
+            <td>
+              <span class="badge" 
+                    [class.badge-success]="row.submitted"
+                    [class.badge-warning]="!row.submitted">
+                <i [class]="row.submitted ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
+                {{ row.submitted ? 'Submitted' : 'Pending' }}
+              </span>
             </td>
-            <td class="col-status">
-              <div class="cell-content">
-                <span class="status-badge" [ngClass]="row.submitted ? 'status-submitted' : 'status-pending'">
-                  <i [class]="row.submitted ? 'icon-check' : 'icon-clock'"></i>
-                  <span>{{ row.submitted ? 'Submitted' : 'Pending' }}</span>
-                </span>
-              </div>
-            </td>
-            <td class="col-action">
-              <div class="cell-content">
+            <td>
+              <div class="d-flex gap-1">
+                <!-- Submit Button - Only for 'user' role -->
                 <button 
-                  class="action-btn"
-                  [class.btn-submitted]="row.submitted"
-                  [class.btn-pending]="!row.submitted"
-                  [disabled]="row.submitted || loading"
+                  class="btn btn-sm"
+                  [class.btn-success]="!row.submitted && canSubmitRow()"
+                  [class.btn-secondary]="row.submitted || !canSubmitRow()"
+                  [disabled]="isSubmitDisabled(row)"
                   (click)="onSubmit(row)"
-                >
-                  <span *ngIf="row.isSubmitting" class="btn-spinner"></span>
-                  <i *ngIf="!row.isSubmitting" [class]="row.submitted ? 'icon-check' : 'icon-send'"></i>
-                  <span>{{ row.submitted ? 'Completed' : 'Submit' }}</span>
+                  [title]="row.submitted ? 'Already submitted' : 
+                           stageStatus === 'Complete' ? 'Stage completed' :
+                           !canSubmitRow() ? 'You do not have permission to submit' :
+                           'Submit this row'">
+                  <span *ngIf="row.isSubmitting" class="spinner-border spinner-border-sm mr-1"></span>
+                  <i *ngIf="!row.isSubmitting" 
+                     [class]="row.submitted ? 'fas fa-check-double' : 'fas fa-paper-plane'"></i>
+                  {{ getSubmitButtonText(row) }}
                 </button>
+              </div>
+              
+              <!-- Permission Message for Non-Users -->
+              <div *ngIf="!canSubmitRow() && !row.submitted" class="text-muted mt-1">
+                <small>
+                  <i class="fas fa-info-circle"></i> 
+                  {{ isVendor() ? 'Vendor cannot submit' : 'No permission' }}
+                </small>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    
-    <!-- Table Footer -->
-    <div class="table-footer">
-      <div class="footer-info">
-        <span class="footer-text">Showing {{ tableData.length }} entries</span>
+
+    <!-- Footer Actions -->
+    <div class="card mt-2">
+      <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="text-muted">
+              Showing {{ tableData.length }} deliveries | 
+              {{ getProgressPercentage() }}% complete
+            </small>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" (click)="exportData()">
+              <i class="fas fa-file-download"></i> Export
+            </button>
+            <button class="btn btn-sm btn-outline-primary" (click)="refreshData()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="footer-actions">
-        <button class="btn btn-secondary btn-sm" (click)="exportData()">
-          <i class="icon-download"></i>
-          Export
-        </button>
-        <button class="btn btn-primary btn-sm" (click)="refreshData()">
-          <i class="icon-refresh"></i>
-          Refresh
-        </button>
-      </div>
+    </div>
+
+    <!-- All Rows Submitted Alert -->
+    <div *ngIf="allRowsSubmitted()" class="alert alert-success mt-2" role="alert">
+      <i class="fas fa-check-circle"></i>
+      All delivery schedules for this stage have been submitted successfully!
     </div>
   </div>
 
   <!-- No Data State -->
-  <div *ngIf="!loading && !error && tableData.length === 0" class="state-container empty-state">
-    <div class="state-content">
-      <div class="empty-icon">
-        <i class="icon-inbox"></i>
-      </div>
-      <h4 class="state-title">No Data Available</h4>
-      <p class="state-message">No staggered purchase order data found for this order.</p>
-      <button class="btn btn-primary" (click)="loadData()">
-        <i class="icon-refresh"></i>
-        Refresh Data
-      </button>
+  <div *ngIf="!loading && !error && tableData.length === 0" class="text-center py-5">
+    <div class="mb-3">
+      <i class="fas fa-inbox fa-4x text-muted"></i>
     </div>
+    <h5 class="text-muted">No Staggered Deliveries</h5>
+    <p class="text-muted">No staggered delivery data found for this stage.</p>
+    <button class="btn btn-primary btn-sm" (click)="loadData()">
+      <i class="fas fa-sync-alt"></i> Refresh Data
+    </button>
   </div>
 </div>

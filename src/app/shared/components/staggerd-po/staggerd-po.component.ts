@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
+import Swal from 'sweetalert2';
 
 interface StaggeredData {
   id: number;
@@ -38,23 +39,17 @@ interface TableRowData {
   templateUrl: './staggerd-po.component.html',
   styleUrl: './staggerd-po.component.css'
 })
-export class StaggerdPoComponent implements OnInit {
-  retryLoad() {
-    this.loadData();
-
-  }
-  refreshData() {
-    this.loadData();
-
-  }
+export class StaggerdPoComponent implements OnInit, OnChanges {
   @Input() poId!: number;
   @Input() stageId: number = 1;
+  @Input() stageStatus: string = 'Pending'; // NEW: Receive stage status from parent
 
   staggeredData: StaggeredData[] = [];
   stageWiseData: StageWiseData[] = [];
   tableData: TableRowData[] = [];
   loading = false;
   error: string | null = null;
+  userType: string | null = ''; // NEW: Track user type
 
   constructor(
     private http: HttpClient,
@@ -62,11 +57,38 @@ export class StaggerdPoComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.poId) {
+    // NEW: Get user type from localStorage
+    this.userType = localStorage.getItem('userType');
+    
+    if (this.poId && this.stageId) {
       this.loadData();
     }
-    console.log("test staggered", this.poId);
-    console.log("test staggered", this.stageId);
+    console.log("Staggered PO - poId:", this.poId, "stageId:", this.stageId);
+  }
+
+  // NEW: Handle input changes
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['poId'] || changes['stageId']) {
+      if (this.poId && this.stageId) {
+        this.loadData();
+      }
+    }
+  }
+
+  retryLoad() {
+    this.loadData();
+  }
+
+  refreshData() {
+    this.loadData();
+  }
+
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Accept': '*/*'
+    });
   }
 
   loadData(): void {
@@ -88,30 +110,18 @@ export class StaggerdPoComponent implements OnInit {
   }
 
   public fetchStaggeredData(): Promise<StaggeredData[]> {
-    const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Accept': '*/*'
-    });
-
     const url = `${environment.apiUrl}/v1/staggered-data/staggered/search?poId=${this.poId}`;
 
-    return this.http.get<StaggeredData[]>(url, { headers }).toPromise().then(data => {
+    return this.http.get<StaggeredData[]>(url, { headers: this.getHeaders() }).toPromise().then(data => {
       this.staggeredData = data || [];
       return this.staggeredData;
     });
   }
 
   public fetchStageWiseData(): Promise<StageWiseData[]> {
-    const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Accept': '*/*'
-    });
-
     const url = `${environment.apiUrl}/v1/staggered-data/stagewise/search?poId=${this.poId}&stageId=${this.stageId}`;
 
-    return this.http.get<StageWiseData[]>(url, { headers }).toPromise().then(data => {
+    return this.http.get<StageWiseData[]>(url, { headers: this.getHeaders() }).toPromise().then(data => {
       this.stageWiseData = data || [];
       return this.stageWiseData;
     });
@@ -142,20 +152,65 @@ export class StaggerdPoComponent implements OnInit {
   }
 
   onSubmit(row: TableRowData): void {
-    if (row.submitted) {
-      return; // Already submitted
+    // NEW: Check if user has permission to submit
+    if (!this.canSubmitRow()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'You do not have permission to submit.',
+      });
+      return;
     }
 
-    this.loading = true;
-    const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Accept': '*/*'
+    if (row.submitted) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Already Submitted',
+        text: 'This row has already been submitted.',
+      });
+      return;
+    }
+
+    // NEW: Check if stage is complete
+    if (this.stageStatus === 'Complete') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Stage Completed',
+        text: 'This stage has already been completed.',
+      });
+      return;
+    }
+
+    // NEW: Confirmation dialog
+    Swal.fire({
+      title: 'Submit Row',
+      html: `
+        <div style="text-align: left; padding: 1rem;">
+          <p><strong>Quantity:</strong> ${row.quantity} units</p>
+          <p><strong>Delivery Date:</strong> ${row.dateDeliver}</p>
+        </div>
+        <p>Are you sure you want to submit this row?</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Submit',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performSubmit(row);
+      }
     });
+  }
+
+  private performSubmit(row: TableRowData): void {
+    row.isSubmitting = true;
+    this.loading = true;
 
     const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${this.stageId}&quantityId=${row.quantityId}`;
 
-    this.http.patch(url, {}, { headers }).subscribe({
+    this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
       next: (response) => {
         console.log('Submit successful:', response);
 
@@ -163,20 +218,63 @@ export class StaggerdPoComponent implements OnInit {
         const tableRowIndex = this.tableData.findIndex(item => item.quantityId === row.quantityId);
         if (tableRowIndex !== -1) {
           this.tableData[tableRowIndex].submitted = true;
+          this.tableData[tableRowIndex].isSubmitting = false;
         }
 
-        this.toastservice.showToast('success', 'Row submitted successfully');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Row submitted successfully.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
         this.loading = false;
       },
       error: (err) => {
         console.error('Error submitting row:', err);
-        this.toastservice.showToast('error', 'Failed to submit row');
+        row.isSubmitting = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Submission Failed',
+          text: err.error?.message || 'Failed to submit row. Please try again.',
+        });
+        
         this.loading = false;
       }
     });
   }
 
-  // New methods for enhanced UI functionality
+  // NEW: Permission checks
+  canSubmitRow(): boolean {
+    // Only 'user' role can submit rows
+    return this.userType?.toLowerCase() === 'user';
+  }
+
+  isVendor(): boolean {
+    return this.userType?.toLowerCase() === 'vendor';
+  }
+
+  isUser(): boolean {
+    return this.userType?.toLowerCase() === 'user';
+  }
+
+  // NEW: Check if submit button should be disabled
+  isSubmitDisabled(row: TableRowData): boolean {
+    return row.submitted || 
+           this.loading || 
+           this.stageStatus === 'Complete' || 
+           !this.canSubmitRow();
+  }
+
+  // NEW: Get submit button text based on state
+  getSubmitButtonText(row: TableRowData): string {
+    if (row.isSubmitting) return 'Submitting...';
+    return row.submitted ? 'Completed' : 'Submit';
+  }
+
+  // Helper methods
   getSubmittedCount(): number {
     return this.tableData.filter(row => row.submitted).length;
   }
@@ -245,16 +343,13 @@ export class StaggerdPoComponent implements OnInit {
     }
   }
 
-  // Optional: Method to check if data needs refresh based on timestamp
-  shouldRefreshData(): boolean {
-    // You can implement logic here to determine if data should be refreshed
-    // For example, based on last fetch time or data staleness
-    return true;
-  }
-
-  // Optional: Method to get progress percentage
   getProgressPercentage(): number {
     if (this.tableData.length === 0) return 0;
     return Math.round((this.getSubmittedCount() / this.tableData.length) * 100);
+  }
+
+  // NEW: Check if all rows are submitted
+  allRowsSubmitted(): boolean {
+    return this.tableData.length > 0 && this.tableData.every(row => row.submitted);
   }
 }
