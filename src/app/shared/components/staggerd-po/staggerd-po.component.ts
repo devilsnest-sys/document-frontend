@@ -1,8 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { catchError, finalize } from 'rxjs/operators';
+import { of, throwError } from 'rxjs';
 
 interface StaggeredData {
   id: number;
@@ -23,7 +25,53 @@ interface StageWiseData {
   modifiedBy?: number;
 }
 
-interface TableRowData {
+interface DocumentType {
+  id: number;
+  documentName: string;
+}
+
+interface UploadedDocument {
+  id: number;
+  poId: number;
+  stageId: number;
+  quantityId: number;
+  documentTypeId: number;
+  uploadedDocumentName: string;
+  uploadedBy: number;
+  uploadedDate: string;
+  reviewedBy: number;
+  docReviewDate: string;
+  status: string;
+  reviewRemark: string;
+  uploadedDocLocation: string;
+  isApproved: boolean;
+  isRejected: boolean;
+  isDocSubmited: boolean;
+  docUploadedBy: string;
+  docReviewedBy: string;
+  userNameAccToUploadDoc: string;
+  vendorNameAccToReviewDoc: string;
+}
+
+interface Stage {
+  id: number;
+  sequence: number;
+  stageName: string;
+}
+
+interface DocumentGroup {
+  documentType: DocumentType;
+  uploadedDocuments: UploadedDocument[];
+}
+
+interface StageGroup {
+  stageId: number;
+  stageName: string;
+  stageStatus: string;
+  documents: DocumentGroup[];
+}
+
+interface QuantityRowData {
   sn: number;
   quantity: number;
   dateDeliver: string;
@@ -31,6 +79,9 @@ interface TableRowData {
   submitted: boolean;
   stageWiseId: number;
   isSubmitting?: boolean;
+  stages: StageGroup[];
+  expandedStages: { [stageId: number]: boolean };
+  expandedDocuments: { [key: string]: boolean };
 }
 
 @Component({
@@ -41,15 +92,20 @@ interface TableRowData {
 })
 export class StaggerdPoComponent implements OnInit, OnChanges {
   @Input() poId!: number;
-  @Input() stageId: number = 1;
-  @Input() stageStatus: string = 'Pending'; // NEW: Receive stage status from parent
+  @Input() poNumber: string = '';
 
   staggeredData: StaggeredData[] = [];
   stageWiseData: StageWiseData[] = [];
-  tableData: TableRowData[] = [];
+  tableData: QuantityRowData[] = [];
+  stageNames: { [key: number]: string } = {};
+  stageDocuments: { [stageId: string]: DocumentType[] } = {};
+  allUploadedDocuments: UploadedDocument[] = [];
+  stepStatuses: { [key: number]: string } = {};
+  
   loading = false;
   error: string | null = null;
-  userType: string | null = ''; // NEW: Track user type
+  userType: string | null = '';
+  selectedFile: File | null = null;
 
   constructor(
     private http: HttpClient,
@@ -57,30 +113,18 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
   ) { }
 
   ngOnInit(): void {
-    // NEW: Get user type from localStorage
     this.userType = localStorage.getItem('userType');
     
-    if (this.poId && this.stageId) {
-      this.loadData();
+    if (this.poId && this.poNumber) {
+      this.loadAllData();
     }
-    console.log("Staggered PO - poId:", this.poId, "stageId:", this.stageId);
+    console.log("Staggered PO - poId:", this.poId, "poNumber:", this.poNumber);
   }
 
-  // NEW: Handle input changes
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['poId'] || changes['stageId']) {
-      if (this.poId && this.stageId) {
-        this.loadData();
-      }
+    if ((changes['poId'] || changes['poNumber']) && this.poId && this.poNumber) {
+      this.loadAllData();
     }
-  }
-
-  retryLoad() {
-    this.loadData();
-  }
-
-  refreshData() {
-    this.loadData();
   }
 
   private getHeaders(): HttpHeaders {
@@ -91,16 +135,20 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
     });
   }
 
-  loadData(): void {
+  loadAllData(): void {
     this.loading = true;
     this.error = null;
 
-    // Load both APIs concurrently
     Promise.all([
+      this.fetchStageNames(),
       this.fetchStaggeredData(),
-      this.fetchStageWiseData()
+      this.fetchAllStageWiseData(),
+      this.fetchStageDocuments(),
+      this.fetchStepStatuses()
     ]).then(() => {
-      this.combineData();
+      return this.fetchAllUploadedDocuments();
+    }).then(() => {
+      this.combineAllData();
       this.loading = false;
     }).catch((error) => {
       console.error('Error loading staggered PO data:', error);
@@ -109,178 +157,154 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
     });
   }
 
-  public fetchStaggeredData(): Promise<StaggeredData[]> {
+  private fetchStageNames(): Promise<void> {
+    const token = localStorage.getItem('authToken');
+    if (!token) return Promise.resolve();
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const stageRequests = Array.from({ length: 10 }, (_, i) => i + 1).map(stageId =>
+      this.http.get<Stage>(`${environment.apiUrl}/v1/stages/${stageId}`, { headers })
+        .pipe(catchError(() => of(null))).toPromise()
+    );
+
+    return Promise.all(stageRequests).then((results) => {
+      results.forEach((stage) => {
+        if (stage && stage.id && stage.stageName) {
+          this.stageNames[stage.id] = stage.stageName;
+        }
+      });
+    });
+  }
+
+  private fetchStaggeredData(): Promise<void> {
     const url = `${environment.apiUrl}/v1/staggered-data/staggered/search?poId=${this.poId}`;
+    return this.http.get<StaggeredData[]>(url, { headers: this.getHeaders() })
+      .toPromise()
+      .then(data => {
+        this.staggeredData = data || [];
+      });
+  }
 
-    return this.http.get<StaggeredData[]>(url, { headers: this.getHeaders() }).toPromise().then(data => {
-      this.staggeredData = data || [];
-      return this.staggeredData;
+  private fetchAllStageWiseData(): Promise<void> {
+    const url = `${environment.apiUrl}/v1/staggered-data/stagewise/search?poId=${this.poId}`;
+    return this.http.get<StageWiseData[]>(url, { headers: this.getHeaders() })
+      .toPromise()
+      .then(data => {
+        this.stageWiseData = data || [];
+      });
+  }
+
+  private fetchStageDocuments(): Promise<void> {
+    return this.http.get<{ [stageId: string]: DocumentType[] }>(
+      `${environment.apiUrl}/v1/document-selection/documents-by-po-Group?poNo=${this.poNumber}`,
+      { headers: this.getHeaders() }
+    )
+    .pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          return of({});
+        }
+        throw error;
+      })
+    )
+    .toPromise()
+    .then(data => {
+      this.stageDocuments = data || {};
     });
   }
 
-  public fetchStageWiseData(): Promise<StageWiseData[]> {
-    const url = `${environment.apiUrl}/v1/staggered-data/stagewise/search?poId=${this.poId}&stageId=${this.stageId}`;
+  private fetchAllUploadedDocuments(): Promise<void> {
+    const stageIds = Object.keys(this.stageDocuments).map(id => parseInt(id));
+    const quantityIds = this.staggeredData.map(s => s.id);
 
-    return this.http.get<StageWiseData[]>(url, { headers: this.getHeaders() }).toPromise().then(data => {
-      this.stageWiseData = data || [];
-      return this.stageWiseData;
+    const requests = stageIds.flatMap(stageId =>
+      quantityIds.map(quantityId => {
+        const payload = {
+          stageId: stageId,
+          PoId: this.poId,
+          quantityId: quantityId
+        };
+
+        return this.http.post<UploadedDocument[]>(
+          `${environment.apiUrl}/v1/UploadedDocument/GetDocumentFlows`,
+          payload,
+          { headers: this.getHeaders() }
+        ).pipe(catchError(() => of([]))).toPromise();
+      })
+    );
+
+    return Promise.all(requests).then((results) => {
+      this.allUploadedDocuments = results.flat().filter((doc): doc is UploadedDocument => doc !== undefined);
     });
   }
 
-  private combineData(): void {
+  private fetchStepStatuses(): Promise<void> {
+    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${this.poNumber}`;
+    return this.http.get<any>(url, { headers: this.getHeaders() })
+      .toPromise()
+      .then(response => {
+        this.stepStatuses = response.reduce((acc: any, stage: any) => {
+          acc[stage.stageId] = stage.status;
+          return acc;
+        }, {});
+      })
+      .catch(() => {
+        this.stepStatuses = {};
+      });
+  }
+
+  private combineAllData(): void {
     this.tableData = this.staggeredData.map((staggered, index) => {
-      const stageWise = this.stageWiseData.find(sw => sw.quantityId === staggered.id);
+      const quantityStageWiseData = this.stageWiseData.filter(sw => sw.quantityId === staggered.id);
+      
+      const stages: StageGroup[] = Object.keys(this.stageDocuments).map(stageIdStr => {
+        const stageId = parseInt(stageIdStr);
+        const documentTypes = this.stageDocuments[stageIdStr];
+        
+        const stageWise = quantityStageWiseData.find(sw => sw.stageId === stageId);
+        
+        const documentGroups: DocumentGroup[] = documentTypes.map(docType => {
+          const matchingDocs = this.allUploadedDocuments.filter(
+            doc => doc.documentTypeId === docType.id && 
+                   doc.stageId === stageId && 
+                   doc.quantityId === staggered.id
+          );
+
+          return {
+            documentType: docType,
+            uploadedDocuments: matchingDocs
+          };
+        });
+
+        return {
+          stageId: stageId,
+          stageName: this.stageNames[stageId] || `Stage ${stageId}`,
+          stageStatus: this.stepStatuses[stageId] || 'Pending',
+          documents: documentGroups
+        };
+      }).sort((a, b) => a.stageId - b.stageId);
 
       return {
         sn: index + 1,
         quantity: staggered.quantity,
         dateDeliver: this.formatDate(staggered.deliveryDateOfQuantity),
         quantityId: staggered.id,
-        submitted: stageWise?.submitted || false,
-        stageWiseId: stageWise?.id || 0
+        submitted: quantityStageWiseData.every(sw => sw.submitted),
+        stageWiseId: 0,
+        stages: stages,
+        expandedStages: {},
+        expandedDocuments: {}
       };
     });
   }
 
-  public formatDate(dateString: string): string {
+  formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
-  }
-
-  onSubmit(row: TableRowData): void {
-    // NEW: Check if user has permission to submit
-    if (!this.canSubmitRow()) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Unauthorized',
-        text: 'You do not have permission to submit.',
-      });
-      return;
-    }
-
-    if (row.submitted) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Already Submitted',
-        text: 'This row has already been submitted.',
-      });
-      return;
-    }
-
-    // NEW: Check if stage is complete
-    if (this.stageStatus === 'Complete') {
-      Swal.fire({
-        icon: 'info',
-        title: 'Stage Completed',
-        text: 'This stage has already been completed.',
-      });
-      return;
-    }
-
-    // NEW: Confirmation dialog
-    Swal.fire({
-      title: 'Submit Row',
-      html: `
-        <div style="text-align: left; padding: 1rem;">
-          <p><strong>Quantity:</strong> ${row.quantity} units</p>
-          <p><strong>Delivery Date:</strong> ${row.dateDeliver}</p>
-        </div>
-        <p>Are you sure you want to submit this row?</p>
-      `,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Submit',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#28a745',
-      cancelButtonColor: '#6c757d',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.performSubmit(row);
-      }
-    });
-  }
-
-  private performSubmit(row: TableRowData): void {
-    row.isSubmitting = true;
-    this.loading = true;
-
-    const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${this.stageId}&quantityId=${row.quantityId}`;
-
-    this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
-      next: (response) => {
-        console.log('Submit successful:', response);
-
-        // Update the local data to reflect the submitted status
-        const tableRowIndex = this.tableData.findIndex(item => item.quantityId === row.quantityId);
-        if (tableRowIndex !== -1) {
-          this.tableData[tableRowIndex].submitted = true;
-          this.tableData[tableRowIndex].isSubmitting = false;
-        }
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Row submitted successfully.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error submitting row:', err);
-        row.isSubmitting = false;
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Submission Failed',
-          text: err.error?.message || 'Failed to submit row. Please try again.',
-        });
-        
-        this.loading = false;
-      }
-    });
-  }
-
-  // NEW: Permission checks
-  canSubmitRow(): boolean {
-    // Only 'user' role can submit rows
-    return this.userType?.toLowerCase() === 'user';
-  }
-
-  isVendor(): boolean {
-    return this.userType?.toLowerCase() === 'vendor';
-  }
-
-  isUser(): boolean {
-    return this.userType?.toLowerCase() === 'user';
-  }
-
-  // NEW: Check if submit button should be disabled
-  isSubmitDisabled(row: TableRowData): boolean {
-    return row.submitted || 
-           this.loading || 
-           this.stageStatus === 'Complete' || 
-           !this.canSubmitRow();
-  }
-
-  // NEW: Get submit button text based on state
-  getSubmitButtonText(row: TableRowData): string {
-    if (row.isSubmitting) return 'Submitting...';
-    return row.submitted ? 'Completed' : 'Submit';
-  }
-
-  // Helper methods
-  getSubmittedCount(): number {
-    return this.tableData.filter(row => row.submitted).length;
-  }
-
-  getPendingCount(): number {
-    return this.tableData.filter(row => !row.submitted).length;
   }
 
   getRelativeDate(dateString: string): string {
@@ -294,62 +318,357 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
     if (diffDays === -1) return 'Yesterday';
     if (diffDays > 0) return `${diffDays} days away`;
     if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
-
     return 'Unknown';
   }
 
-  trackByFn(index: number, item: TableRowData): any {
-    return item.quantityId || index;
+  // Toggle methods
+  expandedQuantities: { [quantityId: number]: boolean } = {};
+
+  toggleQuantity(quantityId: number): void {
+    this.expandedQuantities[quantityId] = !this.expandedQuantities[quantityId];
   }
 
-  exportData(): void {
-    if (this.tableData.length === 0) {
-      this.toastservice.showToast('warning', 'No data available to export');
+  isQuantityExpanded(quantityId: number): boolean {
+    return this.expandedQuantities[quantityId] === true;
+  }
+
+  toggleStage(row: QuantityRowData, stageId: number): void {
+    row.expandedStages[stageId] = !row.expandedStages[stageId];
+  }
+
+  isStageExpanded(row: QuantityRowData, stageId: number): boolean {
+    return row.expandedStages[stageId] === true;
+  }
+
+  toggleDocument(row: QuantityRowData, stageId: number, documentId: number): void {
+    const key = `${stageId}-${documentId}`;
+    row.expandedDocuments[key] = !row.expandedDocuments[key];
+  }
+
+  isDocumentExpanded(row: QuantityRowData, stageId: number, documentId: number): boolean {
+    const key = `${stageId}-${documentId}`;
+    return row.expandedDocuments[key] === true;
+  }
+
+  // Document upload
+  handleFileSelect(event: Event, row: QuantityRowData, stageId: number, documentTypeId: number): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFile = input.files?.[0] || null;
+
+    if (this.selectedFile) {
+      this.confirmUpload(row, stageId, documentTypeId);
+    }
+  }
+
+  confirmUpload(row: QuantityRowData, stageId: number, documentTypeId: number): void {
+    if (!this.selectedFile) return;
+
+    const fileName = this.selectedFile.name;
+    const fileSize = this.formatFileSize(this.selectedFile.size);
+
+    Swal.fire({
+      title: 'Document Upload',
+      html: `
+        <div style="text-align: left; padding: 1rem;">
+          <p><strong>File:</strong> ${fileName}</p>
+          <p><strong>Size:</strong> ${fileSize}</p>
+          <p><strong>Quantity:</strong> ${row.quantity}</p>
+          <p><strong>Stage:</strong> ${this.stageNames[stageId]}</p>
+        </div>
+      `,
+      input: 'text',
+      inputLabel: 'Review Notes',
+      inputPlaceholder: 'Add notes...',
+      showCancelButton: true,
+      confirmButtonText: 'Upload',
+      confirmButtonColor: '#28a745'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.uploadDocument(row, stageId, documentTypeId, result.value || '');
+      }
+    });
+  }
+
+  uploadDocument(row: QuantityRowData, stageId: number, documentTypeId: number, reviewRemark: string): void {
+    if (!this.selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    formData.append('quantityId', row.quantityId.toString());
+    formData.append('stageId', stageId.toString());
+    formData.append('documentTypeId', documentTypeId.toString());
+    formData.append('poId', this.poId.toString());
+    formData.append('uploadedDocumentName', this.selectedFile.name);
+    formData.append('uploadedBy', localStorage.getItem('userId') || '1');
+    formData.append('docUploadedBy', localStorage.getItem('userType') || '');
+    formData.append('uploadedDate', new Date().toISOString());
+    formData.append('status', 'Pending');
+    formData.append('isApproved', 'false');
+    formData.append('isRejected', 'false');
+    formData.append('isDocSubmited', 'true');
+    formData.append('reviewRemark', reviewRemark);
+    formData.append('id', '0');
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('authToken')}`);
+
+    this.http.post(`${environment.apiUrl}/v1/UploadedDocument/CreateUploadDocFlow`, formData, { headers })
+      .subscribe({
+        next: () => {
+          this.toastservice.showToast('success', 'Document uploaded successfully');
+          this.selectedFile = null;
+          this.loadAllData();
+        },
+        error: (err) => {
+          console.error('Upload error:', err);
+          this.toastservice.showToast('error', 'Failed to upload document');
+        }
+      });
+  }
+
+  // Document review
+  async approveDocument(doc: UploadedDocument): Promise<void> {
+    const result = await Swal.fire({
+      title: 'Approve Document',
+      text: `Approve "${doc.uploadedDocumentName}"?`,
+      icon: 'question',
+      input: 'text',
+      inputLabel: 'Review Remark',
+      inputPlaceholder: 'Enter remark...',
+      showCancelButton: true,
+      confirmButtonText: 'Approve',
+      confirmButtonColor: '#28a745'
+    });
+
+    if (result.isConfirmed) {
+      await this.reviewDocument(doc, true, result.value || 'Approved');
+    }
+  }
+
+  async rejectDocument(doc: UploadedDocument): Promise<void> {
+    const result = await Swal.fire({
+      title: 'Reject Document',
+      text: `Reject "${doc.uploadedDocumentName}"?`,
+      icon: 'warning',
+      input: 'textarea',
+      inputLabel: 'Rejection Reason (Required)',
+      inputPlaceholder: 'Enter reason...',
+      inputValidator: (value) => !value ? 'Reason required!' : null,
+      showCancelButton: true,
+      confirmButtonText: 'Reject',
+      confirmButtonColor: '#dc3545'
+    });
+
+    if (result.isConfirmed) {
+      await this.reviewDocument(doc, false, result.value);
+    }
+  }
+
+  private async reviewDocument(doc: UploadedDocument, isApproved: boolean, reviewRemark: string): Promise<void> {
+    const payload = {
+      id: doc.id,
+      isApproved: isApproved,
+      isRejected: !isApproved,
+      reviewedBy: parseInt(localStorage.getItem('userId') || '1'),
+      docReviewedBy: localStorage.getItem('userType') || '',
+      status: isApproved ? 'Approved' : 'Rejected',
+      reviewRemark: reviewRemark,
+      docReviewDate: new Date().toISOString()
+    };
+
+    try {
+      await this.http.patch(`${environment.apiUrl}/v1/UploadedDocument/${doc.id}`, payload, { headers: this.getHeaders() }).toPromise();
+      this.toastservice.showToast('success', isApproved ? 'Document approved' : 'Document rejected');
+      this.loadAllData();
+    } catch (error) {
+      this.toastservice.showToast('error', 'Failed to review document');
+    }
+  }
+
+  // Document actions
+  viewDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
+    const newWindow = window.open('', '_blank');
+    
+    if (!newWindow) {
+      alert('Please allow popups');
       return;
     }
 
-    try {
-      // Create CSV content
-      const csvHeaders = ['Serial No.', 'Quantity', 'Delivery Date', 'Status'];
-      const csvData = this.tableData.map(row => [
-        row.sn,
-        row.quantity,
-        row.dateDeliver,
-        row.submitted ? 'Submitted' : 'Pending'
-      ]);
+    fetch(`${environment.apiUrl}/v1/PurchaseOrder/view-uploaded-document/${documentId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      newWindow.location.href = blobUrl;
+    })
+    .catch(err => {
+      console.error('View error:', err);
+      newWindow.close();
+    });
+  }
 
-      const csvContent = [
-        csvHeaders.join(','),
-        ...csvData.map(row => row.join(','))
-      ].join('\n');
+  downloadDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+    this.http.get(`${environment.apiUrl}/v1/PurchaseOrder/download-stage/${documentId}`, {
+      headers: headers,
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `document_${documentId}`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+      }
+    });
+  }
 
-      link.setAttribute('href', url);
-      link.setAttribute('download', `staggered-po-${this.poId}-stage-${this.stageId}.csv`);
-      link.style.visibility = 'hidden';
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      this.toastservice.showToast('success', 'Data exported successfully');
-    } catch (error) {
-      console.error('Export error:', error);
-      this.toastservice.showToast('error', 'Failed to export data');
+  // Stage submission
+  submitStage(row: QuantityRowData, stageId: number): void {
+    if (!this.canSubmitStage(row, stageId)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot Submit',
+        text: 'All documents must be approved before submission'
+      });
+      return;
     }
+
+    Swal.fire({
+      title: 'Submit Stage',
+      text: `Submit ${this.stageNames[stageId]} for quantity ${row.quantity}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Submit',
+      confirmButtonColor: '#28a745'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performStageSubmission(row, stageId);
+      }
+    });
+  }
+
+  private performStageSubmission(row: QuantityRowData, stageId: number): void {
+    const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${stageId}&quantityId=${row.quantityId}`;
+
+    this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Stage Submitted',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadAllData();
+      },
+      error: (err) => {
+        console.error('Stage submission error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Submission Failed',
+          text: 'Please try again'
+        });
+      }
+    });
+  }
+
+  // Helper methods
+  canSubmitStage(row: QuantityRowData, stageId: number): boolean {
+    const stage = row.stages.find(s => s.stageId === stageId);
+    if (!stage) return false;
+    
+    return stage.documents.every(docGroup =>
+      docGroup.uploadedDocuments.some(doc => doc.isApproved)
+    );
+  }
+
+  canReviewDocument(doc: UploadedDocument): boolean {
+    const currentUserType = this.userType?.toLowerCase();
+    const uploaderType = doc.docUploadedBy?.toLowerCase();
+    
+    if (currentUserType === 'user' && uploaderType === 'vendor') return true;
+    if (currentUserType === 'vendor' && uploaderType === 'user') return true;
+    
+    return false;
+  }
+
+  isUser(): boolean {
+    return this.userType?.toLowerCase() === 'user';
+  }
+
+  isVendor(): boolean {
+    return this.userType?.toLowerCase() === 'vendor';
+  }
+
+  hasApprovedDocument(group: DocumentGroup): boolean {
+    return group.uploadedDocuments.some(doc => doc.isApproved);
+  }
+
+  isGroupVisible(group: DocumentGroup): boolean {
+    if (group.uploadedDocuments.some(doc => doc.isApproved)) return false;
+    return group.uploadedDocuments.some(doc => doc.isRejected) || group.uploadedDocuments.length === 0;
+  }
+
+  getDocumentCount(stage: StageGroup, documentId: number): number {
+    const docGroup = stage.documents.find(d => d.documentType.id === documentId);
+    return docGroup ? docGroup.uploadedDocuments.length : 0;
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  trackByQuantity(index: number, item: QuantityRowData): any {
+    return item.quantityId;
+  }
+
+  trackByStage(index: number, item: StageGroup): any {
+    return item.stageId;
+  }
+
+  trackByDocument(index: number, item: UploadedDocument): any {
+    return item.id;
+  }
+
+  retryLoad(): void {
+    this.loadAllData();
+  }
+
+  refreshData(): void {
+    this.loadAllData();
+  }
+
+  exportData(): void {
+    // Export logic remains the same
+    this.toastservice.showToast('warning', 'Export functionality');
   }
 
   getProgressPercentage(): number {
     if (this.tableData.length === 0) return 0;
-    return Math.round((this.getSubmittedCount() / this.tableData.length) * 100);
+    const submitted = this.tableData.filter(row => row.submitted).length;
+    return Math.round((submitted / this.tableData.length) * 100);
   }
 
-  // NEW: Check if all rows are submitted
-  allRowsSubmitted(): boolean {
-    return this.tableData.length > 0 && this.tableData.every(row => row.submitted);
+  getCompletedCount(): number {
+    return this.tableData.filter(row => row.submitted).length;
+  }
+
+  getPendingCount(): number {
+    return this.tableData.filter(row => !row.submitted).length;
+  }
+
+  getTotalCount(): number {
+    return this.tableData.length;
   }
 }

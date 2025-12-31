@@ -25,18 +25,18 @@
           <div>
             <h6 class="mb-1">
               <i class="fas fa-layer-group"></i>
-              Staggered Deliveries - Stage {{ stageId }}
+              Staggered Deliveries Management
             </h6>
-            <small class="text-muted">Manage delivery schedules and submissions</small>
+            <small class="text-muted">Manage delivery schedules, stages, and documents</small>
           </div>
           <div class="d-flex gap-2">
             <div class="text-center px-2">
-              <div class="badge badge-info">{{ tableData.length }}</div>
-              <small class="d-block text-muted">Total</small>
+              <div class="badge badge-info">{{ getTotalCount() }}</div>
+              <small class="d-block text-muted">Total Quantities</small>
             </div>
             <div class="text-center px-2">
-              <div class="badge badge-success">{{ getSubmittedCount() }}</div>
-              <small class="d-block text-muted">Submitted</small>
+              <div class="badge badge-success">{{ getCompletedCount() }}</div>
+              <small class="d-block text-muted">Completed</small>
             </div>
             <div class="text-center px-2">
               <div class="badge badge-warning">{{ getPendingCount() }}</div>
@@ -58,90 +58,242 @@
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover table-sm">
-        <thead class="thead-light">
-          <tr>
-            <th style="width: 8%;">
-              <i class="fas fa-hashtag"></i> Sr No.
-            </th>
-            <th style="width: 15%;">
-              <i class="fas fa-box"></i> Quantity
-            </th>
-            <th style="width: 20%;">
-              <i class="fas fa-calendar-alt"></i> Delivery Date
-            </th>
-            <th style="width: 15%;">
-              <i class="fas fa-info-circle"></i> Status
-            </th>
-            <th style="width: 20%;">
-              <i class="fas fa-tasks"></i> Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of tableData; let i = index; trackBy: trackByFn"
-              [class.table-success]="row.submitted"
-              [class.table-warning]="!row.submitted && stageStatus !== 'Complete'"
-              [class.table-secondary]="stageStatus === 'Complete'">
-            <td class="text-center">
-              <span class="badge badge-secondary">{{ row.sn }}</span>
-            </td>
-            <td>
-              <div class="d-flex align-items-center">
-                <i class="fas fa-boxes text-primary mr-2"></i>
-                <span class="font-weight-bold">{{ row.quantity | number }}</span>
-                <small class="text-muted ml-1">units</small>
-              </div>
-            </td>
-            <td>
+    <!-- Staggered Quantities with Nested Stages and Documents -->
+    <div class="quantities-container">
+      <div *ngFor="let row of tableData; trackBy: trackByQuantity" class="card mb-2">
+        <!-- Quantity Header -->
+        <div class="card-header quantity-header" 
+             (click)="toggleQuantity(row.quantityId)"
+             [class.completed]="row.submitted"
+             [class.pending]="!row.submitted">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="d-flex align-items-center flex-grow-1">
+              <i class="fas toggle-chevron mr-2" 
+                 [class.fa-chevron-down]="isQuantityExpanded(row.quantityId)"
+                 [class.fa-chevron-right]="!isQuantityExpanded(row.quantityId)"></i>
+              <span class="badge badge-secondary mr-2">{{ row.sn }}</span>
               <div>
-                <div class="font-weight-bold">{{ formatDate(row.dateDeliver) }}</div>
-                <small class="text-muted">
-                  <i class="fas fa-clock"></i> {{ getRelativeDate(row.dateDeliver) }}
+                <strong>
+                  <i class="fas fa-boxes text-white mr-1"></i>
+                  Quantity: {{ row.quantity | number }} units
+                </strong>
+                <small class="d-block text-white-50">
+                  <i class="fas fa-calendar-alt"></i> 
+                  Delivery: {{ row.dateDeliver }} ({{ getRelativeDate(row.dateDeliver) }})
                 </small>
               </div>
-            </td>
-            <td>
-              <span class="badge" 
-                    [class.badge-success]="row.submitted"
-                    [class.badge-warning]="!row.submitted">
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge badge-light" 
+                    [class.bg-success]="row.submitted"
+                    [class.bg-warning]="!row.submitted">
                 <i [class]="row.submitted ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
-                {{ row.submitted ? 'Submitted' : 'Pending' }}
+                {{ row.submitted ? 'All Stages Complete' : 'In Progress' }}
               </span>
-            </td>
-            <td>
-              <div class="d-flex gap-1">
-                <!-- Submit Button - Only for 'user' role -->
-                <button 
-                  class="btn btn-sm"
-                  [class.btn-success]="!row.submitted && canSubmitRow()"
-                  [class.btn-secondary]="row.submitted || !canSubmitRow()"
-                  [disabled]="isSubmitDisabled(row)"
-                  (click)="onSubmit(row)"
-                  [title]="row.submitted ? 'Already submitted' : 
-                           stageStatus === 'Complete' ? 'Stage completed' :
-                           !canSubmitRow() ? 'You do not have permission to submit' :
-                           'Submit this row'">
-                  <span *ngIf="row.isSubmitting" class="spinner-border spinner-border-sm mr-1"></span>
-                  <i *ngIf="!row.isSubmitting" 
-                     [class]="row.submitted ? 'fas fa-check-double' : 'fas fa-paper-plane'"></i>
-                  {{ getSubmitButtonText(row) }}
-                </button>
-              </div>
-              
-              <!-- Permission Message for Non-Users -->
-              <div *ngIf="!canSubmitRow() && !row.submitted" class="text-muted mt-1">
-                <small>
-                  <i class="fas fa-info-circle"></i> 
-                  {{ isVendor() ? 'Vendor cannot submit' : 'No permission' }}
-                </small>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity Body: Stages -->
+        <div *ngIf="isQuantityExpanded(row.quantityId)" class="card-body p-0">
+          <div class="table-responsive">
+              <table class="table table-bordered table-sm mb-0">
+                <tbody>
+                  <ng-container *ngFor="let stage of row.stages; trackBy: trackByStage">
+                    <!-- Stage Header Row -->
+                    <tr (click)="toggleStage(row, stage.stageId)" 
+                        class="stage-header-row cursor-pointer"
+                        [class.expanded]="isStageExpanded(row, stage.stageId)"
+                        [class.status-completed]="stage.stageStatus === 'Complete'"
+                        [class.status-inprogress]="stage.stageStatus === 'InProgress'"
+                        [class.status-pending]="stage.stageStatus === 'Pending'">
+                      <td colspan="8" class="stage-header-cell">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <i class="fas" 
+                               [class.fa-chevron-down]="isStageExpanded(row, stage.stageId)"
+                               [class.fa-chevron-right]="!isStageExpanded(row, stage.stageId)"></i>
+                            <span class="stage-name ml-2">{{ stage.stageName }}</span>
+                            <span class="badge badge-info ml-2">
+                              {{ stage.documents.length }} Document Types
+                            </span>
+                            <span class="badge ml-2" 
+                                  [class.badge-success]="stage.stageStatus === 'Complete'"
+                                  [class.badge-warning]="stage.stageStatus === 'InProgress'"
+                                  [class.badge-secondary]="stage.stageStatus === 'Pending'">
+                              {{ stage.stageStatus }}
+                            </span>
+                          </div>
+                          
+                          <button class="btn btn-sm" 
+                                  [class.btn-success]="stage.stageStatus !== 'Complete'"
+                                  [class.btn-secondary]="stage.stageStatus === 'Complete'"
+                                  (click)="submitStage(row, stage.stageId); $event.stopPropagation();" 
+                                  *ngIf="isUser()"
+                                  [disabled]="stage.stageStatus === 'Complete' || !canSubmitStage(row, stage.stageId)"
+                                  [title]="stage.stageStatus === 'Complete' ? 'Stage already submitted' : 
+                                           !canSubmitStage(row, stage.stageId) ? 'All documents must be approved' : 
+                                           'Submit this stage'">
+                            <i class="fas fa-check-circle"></i>
+                            {{ stage.stageStatus === 'Complete' ? 'Submitted' : 'Submit Stage' }}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <!-- Document Types within Stage -->
+                    <ng-container *ngIf="isStageExpanded(row, stage.stageId)">
+                      <ng-container *ngFor="let docGroup of stage.documents">
+                        <!-- Document Type Header -->
+                        <tr (click)="toggleDocument(row, stage.stageId, docGroup.documentType.id)" 
+                            class="document-type-header cursor-pointer"
+                            [class.expanded]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)">
+                          <td colspan="8" class="document-type-cell">
+                            <div class="document-type-content">
+                              <i class="fas toggle-icon"
+                                 [class.fa-chevron-down]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"
+                                 [class.fa-chevron-right]="!isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"></i>
+                              <i class="fas fa-file-alt mr-2"></i>
+                              <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
+                              <span class="badge badge-secondary ml-2">
+                                {{ getDocumentCount(stage, docGroup.documentType.id) }} documents
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+
+                        <!-- Document Table Header -->
+                        <tr *ngIf="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id) && docGroup.uploadedDocuments.length > 0"
+                            class="thead-light">
+                          <th style="width: 5%;">Sr</th>
+                          <th style="width: 8%;">Upload</th>
+                          <th style="width: 15%;">Document Name</th>
+                          <th style="width: 10%;">Status</th>
+                          <th style="width: 12%;">Uploaded By</th>
+                          <th style="width: 10%;">Upload Date</th>
+                          <th style="width: 12%;">Reviewed By</th>
+                          <th style="width: 28%;">Actions & Remarks</th>
+                        </tr>
+
+                        <!-- Uploaded Documents -->
+                        <tr *ngFor="let doc of docGroup.uploadedDocuments; let docIndex = index; trackBy: trackByDocument"
+                            [hidden]="!isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"
+                            class="document-row"
+                            [class.row-approved]="doc.isApproved"
+                            [class.row-rejected]="doc.isRejected"
+                            [class.row-pending]="!doc.isApproved && !doc.isRejected">
+                          <td>{{ docIndex + 1 }}</td>
+                          <td>
+                            <div class="upload-container">
+                              <input appTrimInput #fileInput type="file"
+                                [id]="'fileInput-' + row.quantityId + '-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex"
+                                style="display: none;" 
+                                (change)="handleFileSelect($event, row, stage.stageId, docGroup.documentType.id)" />
+                              <button class="btn btn-sm btn-outline-primary" 
+                                      (click)="fileInput.click()"
+                                      [disabled]="doc.isApproved || doc.status === 'Pending' || stage.stageStatus === 'Complete'"
+                                      title="Upload new version">
+                                <i class="fas fa-upload"></i>
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <span class="doc-name" [title]="doc.uploadedDocumentName">
+                              {{ doc.uploadedDocumentName }}
+                            </span>
+                          </td>
+                          <td>
+                            <span class="badge" 
+                                  [class.badge-success]="doc.isApproved"
+                                  [class.badge-danger]="doc.isRejected"
+                                  [class.badge-warning]="!doc.isApproved && !doc.isRejected">
+                              {{ doc.status || 'N/A' }}
+                            </span>
+                          </td>
+                          <td>
+                            <div class="uploader-info">
+                              <small class="text-muted d-block">{{ doc.userNameAccToUploadDoc || 'N/A' }}</small>
+                              <span class="badge badge-light">{{ doc.docUploadedBy || 'N/A' }}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <small>{{ doc.uploadedDate | date: 'short' }}</small>
+                          </td>
+                          <td>
+                            <div class="reviewer-info">
+                              <small class="text-muted d-block">{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</small>
+                              <span class="badge badge-light">{{ doc.docReviewedBy || 'N/A' }}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="action-buttons d-flex flex-wrap gap-1 mb-1">
+                              <button class="btn btn-sm btn-info" 
+                                      (click)="viewDocument(doc.id)" 
+                                      title="View">
+                                <i class="fas fa-eye"></i>
+                              </button>
+                              
+                              <button class="btn btn-sm btn-secondary" 
+                                      (click)="downloadDocument(doc.id)" 
+                                      title="Download">
+                                <i class="fas fa-download"></i>
+                              </button>
+                              
+                              <button class="btn btn-sm btn-success" 
+                                      (click)="approveDocument(doc)" 
+                                      *ngIf="canReviewDocument(doc)"
+                                      [disabled]="doc.isApproved || doc.isRejected"
+                                      title="Approve">
+                                <i class="fas fa-check"></i>
+                              </button>
+                              
+                              <button class="btn btn-sm btn-danger" 
+                                      (click)="rejectDocument(doc)" 
+                                      *ngIf="canReviewDocument(doc)"
+                                      [disabled]="doc.isApproved || doc.isRejected"
+                                      title="Reject">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                            <small class="text-muted d-block" *ngIf="doc.reviewRemark">
+                              <strong>Remark:</strong> {{ doc.reviewRemark }}
+                            </small>
+                          </td>
+                        </tr>
+
+                        <!-- Upload Row for New Documents -->
+                        <tr *ngIf="isGroupVisible(docGroup) && isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"
+                            class="upload-row">
+                          <td></td>
+                          <td>
+                            <div class="upload-container">
+                              <input appTrimInput #fileInputNew type="file"
+                                [id]="'fileInputNew-' + row.quantityId + '-' + stage.stageId + '-' + docGroup.documentType.id"
+                                style="display: none;" 
+                                (change)="handleFileSelect($event, row, stage.stageId, docGroup.documentType.id)" />
+                              <button class="btn btn-sm btn-primary" 
+                                      (click)="fileInputNew.click()"
+                                      [disabled]="hasApprovedDocument(docGroup) || stage.stageStatus === 'Complete'"
+                                      title="Upload document">
+                                <i class="fas fa-upload"></i> Upload
+                              </button>
+                            </div>
+                          </td>
+                          <td colspan="6" class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            No documents uploaded yet or document was rejected. Upload to begin.
+                          </td>
+                        </tr>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Footer Actions -->
@@ -150,7 +302,7 @@
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <small class="text-muted">
-              Showing {{ tableData.length }} deliveries | 
+              Showing {{ getTotalCount() }} quantities | 
               {{ getProgressPercentage() }}% complete
             </small>
           </div>
@@ -165,12 +317,6 @@
         </div>
       </div>
     </div>
-
-    <!-- All Rows Submitted Alert -->
-    <div *ngIf="allRowsSubmitted()" class="alert alert-success mt-2" role="alert">
-      <i class="fas fa-check-circle"></i>
-      All delivery schedules for this stage have been submitted successfully!
-    </div>
   </div>
 
   <!-- No Data State -->
@@ -179,9 +325,8 @@
       <i class="fas fa-inbox fa-4x text-muted"></i>
     </div>
     <h5 class="text-muted">No Staggered Deliveries</h5>
-    <p class="text-muted">No staggered delivery data found for this stage.</p>
-    <button class="btn btn-primary btn-sm" (click)="loadData()">
+    <p class="text-muted">No staggered delivery data found for this PO.</p>
+    <button class="btn btn-primary btn-sm" (click)="retryLoad()">
       <i class="fas fa-sync-alt"></i> Refresh Data
     </button>
   </div>
-</div>

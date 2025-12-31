@@ -1,119 +1,130 @@
-
-
 <div class="container m-0">
-  <!-- <h2 class="text-center">Stage 1-OA</h2> -->
-
-
-<div class="container mx-auto">
-  <div class="po-container">
-    <!-- Compact Single Box with Status Legend and PO Details -->
-    <div class="unified-card mb-3" *ngIf="poData.length > 0">
-      <!-- Status Legend Section -->
-      <!-- <div class="status-legend">
-        <h3 class="legend-title">Status Guide</h3>
-
-      </div> -->
-
-      <!-- PO Details Section -->
-      <div class="po-details">
-        <div class="po-header-inline">
-          <h2 class="po-title">Purchase Order</h2>
-          
-          <div class="po-badge">{{ poData[0]?.pO_NO || 'N/A' }}</div>
-          <h2 class="po-title">Vendor</h2>
-          <div class="po-badge">{{ selectedVendor?.companyName || 'No Vendor Selected' }}</div>
-          <div class="action-buttons">
-            <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
-              [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
-            <button class="btn-icon btn-primary" (click)="viewPoFile(poData[0]?.id)" title="View">👁</button>
-            <button class="btn-icon btn-success" (click)="downloadAllDocuments(poData[0]?.id)" 
-              [disabled]="downloadingAll" title="Download All Documents">📦</button>
+  <div class="container mx-auto">
+    <div class="po-container">
+      <!-- Compact Single Box with Status Legend and PO Details -->
+      <div class="unified-card mb-3" *ngIf="poData.length > 0">
+        <!-- PO Details Section -->
+        <div class="po-details">
+          <div class="po-header-inline">
+            <h2 class="po-title">Purchase Order</h2>
+            
+            <div class="po-badge">{{ poData[0]?.pO_NO || 'N/A' }}</div>
+            <h2 class="po-title">Vendor</h2>
+            <div class="po-badge">{{ selectedVendor?.companyName || 'No Vendor Selected' }}</div>
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="downloadPoFile(poData[0]?.id)" 
+                [disabled]="!poData[0]?.poFilePath" title="Download">⬇</button>
+              <button class="btn-icon btn-primary" (click)="viewPoFile(poData[0]?.id)" title="View">👁</button>
+              <button class="btn-icon btn-success" (click)="downloadAllDocuments(poData[0]?.id)" 
+                [disabled]="downloadingAll" title="Download All Documents">📦</button>
+            </div>
+            <div class="legend-items">
+              <div class="legend-item">
+                <span class="legend-indicator status-completed"></span>
+                <span class="legend-label">Completed</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-indicator status-inprogress"></span>
+                <span class="legend-label">In Progress</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-indicator status-pending"></span>
+                <span class="legend-label">Pending</span>
+              </div>
+            </div>
           </div>
-                  <div class="legend-items">
-          <div class="legend-item">
-            <span class="legend-indicator status-completed"></span>
-            <span class="legend-label">Completed</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-indicator status-inprogress"></span>
-            <span class="legend-label">In Progress</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-indicator status-pending"></span>
-            <span class="legend-label">Pending</span>
+
+          <!-- Compact Info Grid -->
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Description:</span>
+              <span class="value">{{ poData[0]?.poDescription || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Type:</span>
+              <span class="value">{{ poData[0]?.poTypeName || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Order Type:</span>
+              <span class="value">
+                <span class="badge" 
+                      [class.badge-primary]="poData[0]?.staggeredOrder"
+                      [class.badge-secondary]="!poData[0]?.staggeredOrder">
+                  {{ poData[0]?.staggeredOrder ? 'Staggered' : 'Regular' }}
+                </span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">Incoterms:</span>
+              <span class="value">{{ poData[0]?.incotermName || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Contact:</span>
+              <span class="value">{{ poData[0]?.contactPersonName || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Contractual:</span>
+              <span class="value">{{ poData[0]?.contractualDeliveryDate || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Actual:</span>
+              <span class="value">{{ poData[0]?.actualDeliveryDate || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Email:</span>
+              <span class="value">
+                <a [href]="'mailto:' + poData[0]?.contactPersonEmailId" class="email-link">
+                  {{ poData[0]?.contactPersonEmailId || 'N/A' }}
+                </a>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">Phone:</span>
+              <span class="value">{{ poData[0]?.contactNo || 'N/A' }}</span>
+            </div>
           </div>
         </div>
-        </div>
-
-        <!-- Compact Info Grid -->
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="label">Description:</span>
-            <span class="value">{{ poData[0]?.poDescription || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Type:</span>
-            <span class="value">{{ poData[0]?.poTypeName || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Incoterms:</span>
-            <span class="value">{{ poData[0]?.incotermName || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Contact:</span>
-            <span class="value">{{ poData[0]?.contactPersonName || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Contractual:</span>
-            <span class="value">{{ poData[0]?.contractualDeliveryDate || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Actual:</span>
-            <span class="value">{{ poData[0]?.actualDeliveryDate || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Email:</span>
-            <span class="value">
-              <a [href]="'mailto:' + poData[0]?.contactPersonEmailId" class="email-link">
-                {{ poData[0]?.contactPersonEmailId || 'N/A' }}
-              </a>
-            </span>
-          </div>
-          <div class="info-item">
-            <span class="label">Phone:</span>
-            <span class="value">{{ poData[0]?.contactNo || 'N/A' }}</span>
-          </div>
-        </div>
-
-        <!-- Document Actions - Inline -->
-        <!-- <div class="document-actions-inline">
-          <span class="file-name">{{ poData[0]?.poFilePath?.split('\\').pop() || 'No file' }}</span>
-          
-        </div> -->
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-state">
-      <div class="spinner"></div>
-      <span>Loading...</span>
-    </div>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
 
-    <!-- Error State -->
-    <div *ngIf="error" class="error-state">
-      <i class="icon-error">⚠</i>
-      <span>{{ error }}</span>
-    
-</div>
-<app-document-upload></app-document-upload>
-<app-additional-field-flow [stageNumber]="1"></app-additional-field-flow>
-<app-staggerd-po *ngIf="!loading && poData[0]?.staggeredOrder === true" [poId]="selectedPoId"
-  [stageId]="1"></app-staggerd-po>
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state">
+        <i class="icon-error">⚠</i>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Document Upload Component (for regular POs only) -->
+      <app-document-upload *ngIf="!loading && poData.length > 0 && !poData[0]?.staggeredOrder"></app-document-upload>
+
+      <!-- Additional Fields (for regular POs only) -->
+      <app-additional-field-flow 
+        *ngIf="!loading && poData.length > 0 && !poData[0]?.staggeredOrder"
+        [stageNumber]="1">
+      </app-additional-field-flow>
+
+      <!-- Regular PO: Show All Stages Documents -->
+      <app-all-stages-documents 
+        *ngIf="!loading && poData.length > 0 && !poData[0]?.staggeredOrder">
+      </app-all-stages-documents>
+
+      <!-- Staggered PO: Show Enhanced Staggered Component -->
+      <app-staggerd-po 
+        *ngIf="!loading && poData.length > 0 && poData[0]?.staggeredOrder === true" 
+        [poId]="selectedPoId"
+        [poNumber]="poData[0]?.pO_NO">
+      </app-staggerd-po>
+
+      <!-- Other Documents Upload -->
       <app-other-doc-upload 
+        *ngIf="!loading && poData.length > 0"
         [poId]="selectedPoId" 
-        [stageId]="16"
-       
-        >
+        [stageId]="16">
       </app-other-doc-upload>
-<!-- <app-stage-submit *appUserRole="['user']" [stageNumber]="1"></app-stage-submit> -->
-<!-- <app-document-upload></app-document-upload> -->
+    </div>
+  </div>
+</div>
