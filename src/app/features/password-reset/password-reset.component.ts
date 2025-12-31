@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class PasswordResetComponent {
   email: string = '';
   otp: string = '';
+  userType: string = '';
   newPassword: string = '';
   isOtpSent: boolean = false;
   message: string = '';
@@ -35,7 +36,7 @@ export class PasswordResetComponent {
       );
     } else {
       // Step 2: Reset Password
-      this.authService.resetPassword(this.email, this.otp, this.newPassword).subscribe(
+      this.authService.resetPassword(this.email, this.otp, this.newPassword, this.userType).subscribe(
         response => {
           this.message = 'Password reset successfully!';
           this.isOtpSent = false;
