@@ -416,7 +416,7 @@ export class OtherDocUploadComponent implements OnInit {
       Accept: 'application/octet-stream',
     });
 
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${documentId}`;
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${documentId}`;
 
     this.http.get(url, { headers, responseType: 'blob' }).subscribe({
       next: (blob) => {
