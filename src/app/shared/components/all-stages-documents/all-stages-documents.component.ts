@@ -771,7 +771,10 @@ downloadDocument(documentId: number): void {
     this.isLoading = true;
 
     this.http.get(
-      `${environment.apiUrl}/v1/StageStatus/validate-submission/${+this.poID}/${stageId}?TncSelected=${tncAccepted}`,
+  `${environment.apiUrl}/v1/StageStatus/validate-submission` +
+  `?poId=${this.poID}` +
+  `&stageId=${stageId}` +
+  `&TncSelected=${tncAccepted}`,
       { headers: this.getHeaders() }
     )
     .pipe(

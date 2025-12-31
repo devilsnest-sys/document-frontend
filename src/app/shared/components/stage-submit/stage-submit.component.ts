@@ -73,7 +73,12 @@ onSubmit(): void {
   }
 
   // API Call to validate submission
-  this.http.get(`${environment.apiUrl}/v1/StageStatus/validate-submission/${+poId}/${stageId}?TncSelected=${tncAccepted}`, { headers })
+ this.http.get(
+  `${environment.apiUrl}/v1/StageStatus/validate-submission` +
+  `?poId=${poId}` +
+  `&stageId=${stageId}` +
+  `&TncSelected=${tncAccepted}`,
+     { headers })
     .subscribe({
       next: (response: any) => {
         if (response?.canSubmit) {

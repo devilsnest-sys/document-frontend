@@ -234,12 +234,18 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
     );
 
     return Promise.all(requests).then((results) => {
-      this.allUploadedDocuments = results.flat().filter((doc): doc is UploadedDocument => doc !== undefined);
+    this.allUploadedDocuments = results
+  .flat()
+  .filter((doc): doc is UploadedDocument => doc !== undefined)
+  .filter((doc, index, self) =>
+    index === self.findIndex(d => d.id === doc.id)
+  );
+     // this.allUploadedDocuments = results.flat().filter((doc): doc is UploadedDocument => doc !== undefined);
     });
   }
 
   private fetchStepStatuses(): Promise<void> {
-    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${this.poNumber}`;
+    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${this.poId}`;
     return this.http.get<any>(url, { headers: this.getHeaders() })
       .toPromise()
       .then(response => {
@@ -554,30 +560,78 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
       }
     });
   }
+private performStageSubmission(row: QuantityRowData, stageId: number): void {
 
-  private performStageSubmission(row: QuantityRowData, stageId: number): void {
-    const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${stageId}&quantityId=${row.quantityId}`;
+  // quantityId is OPTIONAL
+  const quantityParam = row.quantityId
+    ? `&quantityId=${row.quantityId}`
+    : '';
 
-    this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
-      next: () => {
+  const url =
+    `${environment.apiUrl}/v1/StageStatus/validate-submission` +
+    `?poId=${this.poId}` +
+    `&stageId=${stageId}` +
+    `${quantityParam}` +
+    `&TncSelected=true`;
+
+  this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+    next: (res) => {
+      
+      const canSubmit =
+  res?.canSubmit === true ||
+  res?.canSubmit === 'true';
+
+    if (canSubmit) {
         Swal.fire({
           icon: 'success',
           title: 'Stage Submitted',
+          text: res.Message,
           timer: 2000,
           showConfirmButton: false
         });
         this.loadAllData();
-      },
-      error: (err) => {
-        console.error('Stage submission error:', err);
+      } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Submission Failed',
-          text: 'Please try again'
+          icon: 'warning',
+          title: 'Cannot Submit',
+          text: res.Message
         });
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('Stage submission error:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Submission Failed',
+        text: 'Please try again'
+      });
+    }
+  });
+}
+
+  // private performStageSubmission(row: QuantityRowData, stageId: number): void {
+  //   const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${stageId}&quantityId=${row.quantityId}`;
+
+  //   this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
+  //     next: () => {
+  //       Swal.fire({
+  //         icon: 'success',
+  //         title: 'Stage Submitted',
+  //         timer: 2000,
+  //         showConfirmButton: false
+  //       });
+  //       this.loadAllData();
+  //     },
+  //     error: (err) => {
+  //       console.error('Stage submission error:', err);
+  //       Swal.fire({
+  //         icon: 'error',
+  //         title: 'Submission Failed',
+  //         text: 'Please try again'
+  //       });
+  //     }
+  //   });
+  // }
 
   // Helper methods
   canSubmitStage(row: QuantityRowData, stageId: number): boolean {
