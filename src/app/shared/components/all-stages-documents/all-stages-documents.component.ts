@@ -91,8 +91,9 @@ export class AllStagesDocumentsComponent implements OnInit {
   poNumber: string = '';
   stepStatuses: { [key: number]: string } = {};
   stageNames: { [key: number]: string } = {};
+allowedStageId: number[] = [];
 
-  constructor(
+constructor(
     private http: HttpClient,
     private toastService: ToastserviceService,
     private route: ActivatedRoute,
@@ -101,6 +102,12 @@ export class AllStagesDocumentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
+    const stageStr = localStorage.getItem('userForStage');
+  this.allowedStageId = stageStr
+    ? stageStr.split(',').map(s => Number(s.trim()))
+    : [];
+
+  console.log('User allowed stage:', this.allowedStageId);
     this.poID = this.route.snapshot.paramMap.get('poNumber');
     console.log('PO ID:', this.poID);
     console.log('User Type from localStorage:', this.userType);
@@ -109,6 +116,10 @@ export class AllStagesDocumentsComponent implements OnInit {
     this.fetchPoDetails();
     this.fetchStepStatuses();
   }
+
+canAccessStage(stageId: number): boolean {
+  return this.allowedStageId.includes(stageId);
+}
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
@@ -723,6 +734,15 @@ downloadDocument(documentId: number): void {
 
   submitStage(stageId: number): void {
     // BUG FIX: Check if user is allowed to submit
+    if (!this.canAccessStage(stageId)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Unauthorized',
+      text: 'You are not allowed to submit this stage.'
+    });
+    return;
+  }
+  
     if (this.userType?.toLowerCase() !== 'user') {
       Swal.fire({
         icon: 'error',
@@ -892,6 +912,15 @@ canReviewDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
   const uploaderType = doc.docUploadedBy?.toLowerCase();
   
+   if (!this.allowedStageId.includes(doc.stageId)) {
+    console.log(
+      '[REVIEW BLOCKED]',
+      'AllowedStages:', this.allowedStageId,
+      'DocStage:', doc.stageId
+    );
+    return false;
+  }
+
   // Users can review vendor-uploaded documents
   if (currentUserType === 'user' && uploaderType === 'vendor') {
     return true;

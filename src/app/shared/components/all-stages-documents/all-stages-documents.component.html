@@ -79,7 +79,7 @@
                           [class.btn-success]="getStageStatus(stage.stageId) !== 'Complete'"
                           [class.btn-secondary]="getStageStatus(stage.stageId) === 'Complete'"
                           (click)="submitStage(stage.stageId); $event.stopPropagation();" 
-                          *ngIf="isUser()"
+                          *ngIf="isUser() && canAccessStage(stage.stageId)"
                           [disabled]="isSubmitDisabled(stage.stageId)"
                           [title]="getStageStatus(stage.stageId) === 'Complete' ? 'Stage already submitted' : 
                                    !canSubmitStage(stage.stageId) ? 'All documents must be approved before submission' : 
@@ -129,7 +129,8 @@
                         [id]="'fileInput-' + stage.stageId + '-' + docGroup.documentType.id + '-' + docIndex"
                         style="display: none;" (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
                       <button class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
-                        [disabled]="doc.isApproved || doc.status === 'Pending' || getStageStatus(stage.stageId) === 'Complete'"
+                        [disabled]="doc.isApproved || doc.status === 'Pending' || getStageStatus(stage.stageId) === 'Complete'||
+  !canAccessStage(stage.stageId)"
                         [title]="doc.isApproved ? 'Upload disabled - Already approved' : 
                                  doc.status === 'Pending' ? 'Upload disabled - Document is pending' : 
                                  getStageStatus(stage.stageId) === 'Complete' ? 'Upload disabled - Stage completed' : 
@@ -227,7 +228,7 @@
                         [id]="'fileInputNew-' + stage.stageId + '-' + docGroup.documentType.id" style="display: none;"
                         (change)="handleFileSelect($event, stage.stageId, docGroup.documentType.id)" />
                       <button class="btn btn-sm btn-primary" (click)="fileInputNew.click()"
-                        [disabled]="hasApprovedDocument(docGroup) || getStageStatus(stage.stageId) === 'Complete'"
+                        [disabled]="hasApprovedDocument(docGroup) || getStageStatus(stage.stageId) === 'Complete' || !canAccessStage(stage.stageId)"
                         [title]="hasApprovedDocument(docGroup) ? 'Document already approved' : 
                                  getStageStatus(stage.stageId) === 'Complete' ? 'Stage already completed' : 
                                  'Upload document'">

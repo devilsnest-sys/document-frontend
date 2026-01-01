@@ -130,7 +130,7 @@
                                   [class.btn-success]="stage.stageStatus !== 'Complete'"
                                   [class.btn-secondary]="stage.stageStatus === 'Complete'"
                                   (click)="submitStage(row, stage.stageId); $event.stopPropagation();" 
-                                  *ngIf="isUser()"
+                                  *ngIf="isUser() && canAccessStage(stage.stageId)"
                                   [disabled]="stage.stageStatus === 'Complete' || !canSubmitStage(row, stage.stageId)"
                                   [title]="stage.stageStatus === 'Complete' ? 'Stage already submitted' : 
                                            !canSubmitStage(row, stage.stageId) ? 'All documents must be approved' : 
@@ -192,7 +192,8 @@
                                 (change)="handleFileSelect($event, row, stage.stageId, docGroup.documentType.id)" />
                               <button class="btn btn-sm btn-outline-primary" 
                                       (click)="fileInput.click()"
-                                      [disabled]="doc.isApproved || doc.status === 'Pending' || stage.stageStatus === 'Complete'"
+                                      [disabled]="doc.isApproved || doc.status === 'Pending' || stage.stageStatus === 'Complete' ||
+          !canAccessStage(stage.stageId)"
                                       title="Upload new version">
                                 <i class="fas fa-upload"></i>
                               </button>
@@ -274,7 +275,7 @@
                                 (change)="handleFileSelect($event, row, stage.stageId, docGroup.documentType.id)" />
                               <button class="btn btn-sm btn-primary" 
                                       (click)="fileInputNew.click()"
-                                      [disabled]="hasApprovedDocument(docGroup) || stage.stageStatus === 'Complete'"
+                                      [disabled]="hasApprovedDocument(docGroup) || stage.stageStatus === 'Complete'|| !canAccessStage(stage.stageId)"
                                       title="Upload document">
                                 <i class="fas fa-upload"></i> Upload
                               </button>

@@ -19,11 +19,14 @@ export class AuthService {
     return this.http.post(this.loginUrl, payload);
   }
 
-  setToken(token: string, userName: string, id: number, userType: any): void {
+  setToken(token: string, userName: string, id: number, userType: any,userForStage: string | number | null): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', userName);
     localStorage.setItem('userId', id.toString());
     localStorage.setItem('userType', userType);
+    if (userForStage !== null && userForStage !== undefined) {
+  localStorage.setItem('userForStage', userForStage.toString());
+}
     this.isLoggedInSubject.next(true);
     this.userNameSubject.next(userName);
     this.userTypeSubject.next(userType);
@@ -54,6 +57,7 @@ export class AuthService {
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
     localStorage.removeItem('userType');
+    localStorage.removeItem('userForStage'); // ✅ ADD
     this.isLoggedInSubject.next(false);
     this.userNameSubject.next(null);
     this.userTypeSubject.next(null);
