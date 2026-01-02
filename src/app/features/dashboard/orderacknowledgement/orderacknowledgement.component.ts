@@ -21,7 +21,7 @@ interface Vendor {
 
 interface StaggeredData {
   id: number;
-  quantity: number;
+  quantity: string;
   deliveryDateOfQuantity: Date;
   poId: number;
 }

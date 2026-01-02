@@ -101,9 +101,15 @@
       <!-- Document Upload Component (for regular POs only) -->
       <app-document-upload *ngIf="!loading && poData.length > 0 && !poData[0]?.staggeredOrder"></app-document-upload>
 
+           <app-staggerd-po 
+        *ngIf="!loading && poData.length > 0 && poData[0]?.staggeredOrder === true" 
+        [poId]="selectedPoId"
+        [poNumber]="poData[0]?.pO_NO">
+      </app-staggerd-po>
+
       <!-- Additional Fields (for regular POs only) -->
       <app-additional-field-flow 
-        *ngIf="!loading && poData.length > 0 && !poData[0]?.staggeredOrder"
+        *ngIf="!loading && poData.length > 0 "
         [stageNumber]="1">
       </app-additional-field-flow>
 
@@ -113,11 +119,7 @@
       </app-all-stages-documents> -->
 
       <!-- Staggered PO: Show Enhanced Staggered Component -->
-      <app-staggerd-po 
-        *ngIf="!loading && poData.length > 0 && poData[0]?.staggeredOrder === true" 
-        [poId]="selectedPoId"
-        [poNumber]="poData[0]?.pO_NO">
-      </app-staggerd-po>
+ 
 
       <!-- Other Documents Upload -->
       <app-other-doc-upload 
