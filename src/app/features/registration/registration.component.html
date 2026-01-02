@@ -76,11 +76,9 @@
               <mat-select id="role" formControlName="role" [required]="!isEditMode"
                 [placeholder]="isEditMode ? 'Role cannot be edited' : 'Select Role'">
                 <mat-option value="" disabled>Select Role</mat-option>
-                <mat-option value="admin">Admin</mat-option>
-                <mat-option value="user">User</mat-option>
-                <mat-option value="emp">Employee</mat-option>
-                <mat-option value="guest">Guest</mat-option>
-                <mat-option value="mgr">Manager</mat-option>
+                <mat-option value="Admin">Admin</mat-option>
+                <mat-option value="Purchase Department">Purchase Department</mat-option>
+                <mat-option value="Employees">Employees</mat-option>
               </mat-select>
               <mat-error
                 *ngIf="registrationForm.get('role')?.touched && registrationForm.get('role')?.invalid && !isEditMode">
