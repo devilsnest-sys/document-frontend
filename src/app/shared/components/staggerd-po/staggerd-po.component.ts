@@ -105,7 +105,12 @@ loading = false;
     }
     console.log("Staggered PO - poId:", this.poId, "poNumber:", this.poNumber);
   }
+  
 canAccessStage(stageId: number): boolean {
+    // ✅ Vendor has access to all stages
+  if (this.isVendor()) {
+    return true;
+  }
   return this.userForStages.includes(stageId);
 }
   ngOnChanges(changes: SimpleChanges): void {

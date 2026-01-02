@@ -94,6 +94,7 @@ export class AllStagesDocumentsComponent implements OnInit {
 allowedStageId: number[] = [];
 
 constructor(
+  
     private http: HttpClient,
     private toastService: ToastserviceService,
     private route: ActivatedRoute,
@@ -118,6 +119,10 @@ constructor(
   }
 
 canAccessStage(stageId: number): boolean {
+    // ✅ Vendor has access to all stages
+  if (this.isVendor()) {
+    return true;
+  }
   return this.allowedStageId.includes(stageId);
 }
 
@@ -742,7 +747,7 @@ downloadDocument(documentId: number): void {
     });
     return;
   }
-  
+
     if (this.userType?.toLowerCase() !== 'user') {
       Swal.fire({
         icon: 'error',
@@ -910,27 +915,24 @@ downloadDocument(documentId: number): void {
   // Add this method to your component
 canReviewDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
-  const uploaderType = doc.docUploadedBy?.toLowerCase();
-  
-   if (!this.allowedStageId.includes(doc.stageId)) {
-    console.log(
-      '[REVIEW BLOCKED]',
-      'AllowedStages:', this.allowedStageId,
-      'DocStage:', doc.stageId
-    );
-    return false;
+
+  // ✅ Vendor: can review ALL pending documents (no stage restriction)
+  if (currentUserType === 'vendor') {
+    return !doc.isApproved && !doc.isRejected;
   }
 
-  // Users can review vendor-uploaded documents
-  if (currentUserType === 'user' && uploaderType === 'vendor') {
-    return true;
+  // ✅ User: only assigned stages + vendor uploaded docs
+  if (currentUserType === 'user') {
+    return (
+      this.allowedStageId.includes(doc.stageId) &&
+      doc.docUploadedBy?.toLowerCase() === 'vendor' &&
+      !doc.isApproved &&
+      !doc.isRejected
+    );
   }
-  
-  // Vendors can review user-uploaded documents
-  if (currentUserType === 'vendor' && uploaderType === 'user') {
-    return true;
-  }
-  
+
   return false;
 }
+
+
 }
