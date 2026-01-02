@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { UtilService } from '../../../core/services/util.service';
 
 interface AdditionalFieldRow {
   id: number;
@@ -89,7 +90,7 @@ export class AdditionalfieldselectionComponent implements OnInit {
     minWidth: 100,
   };
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService, private utilService: UtilService) {}
   
   allStages: any;
   allAdditionalfield: any;
@@ -380,8 +381,8 @@ export class AdditionalfieldselectionComponent implements OnInit {
               updatedUserId: Number(this.userId),
               stageId: stageId,
               additionalFieldId: additionalFieldId,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              createdAt: this.utilService.getISTISOString(),
+              updatedAt: this.utilService.getISTISOString(),
               isDelete: 0,
               pono: this.selectedPoNumber
             });

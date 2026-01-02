@@ -10,6 +10,7 @@ import { of, throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UtilService } from '../../../core/services/util.service';
 
 interface DocumentType {
   id: number;
@@ -98,7 +99,8 @@ constructor(
     private http: HttpClient,
     private toastService: ToastserviceService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -355,7 +357,7 @@ canAccessStage(stageId: number): boolean {
       formData.append('file', this.selectedFile);
 
       const currentUser = localStorage.getItem('userId') || '1';
-      const currentDate = new Date().toISOString();
+      const currentDate = this.utilService.getISTISOString();
 
       formData.append('isApproved', 'false');
       formData.append('isDocSubmited', 'true');
@@ -515,7 +517,7 @@ canAccessStage(stageId: number): boolean {
         docReviewedBy: currentUserType,
         status: isApproved ? 'Approved' : 'Rejected',
         reviewRemark: finalReviewRemark,
-        docReviewDate: new Date().toISOString(),
+        docReviewDate: this.utilService.getISTISOString(),
       };
 
       await this.http

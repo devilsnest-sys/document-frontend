@@ -7,6 +7,7 @@ import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { UtilService } from '../../../core/services/util.service';
 
 @Component({
   selector: 'app-masterdocument',
@@ -72,7 +73,8 @@ export class MasterdocumentComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
-    private ToastserviceService: ToastserviceService
+    private ToastserviceService: ToastserviceService,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -111,9 +113,9 @@ export class MasterdocumentComponent {
       const payload = {
         id: 0,
         documentName: this.documentTypeForm.value.documentName?.trim(),
-        createdAt: new Date().toISOString(),
+        createdAt: this.utilService.getISTISOString(),
         createdBy: this.userId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: this.utilService.getISTISOString(),
         updatedBy: this.userId,
         isDeleted: false,
       };
@@ -190,9 +192,9 @@ export class MasterdocumentComponent {
     const payload = {
       id: documentId,
       documentName: updatedData.documentName,
-      createdAt: new Date().toISOString(), // Use current date if required
+      createdAt: this.utilService.getISTISOString(), // Use current date if required
       createdBy: this.userId,
-      updatedAt: new Date().toISOString(),
+      updatedAt: this.utilService.getISTISOString(),
       updatedBy: this.userId,
       isDeleted: false,
     };

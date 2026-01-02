@@ -6,6 +6,7 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { BehaviorSubject } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
+import { UtilService } from '../../../core/services/util.service';
 
 interface DocumentTypeRow {
   id: number;
@@ -88,7 +89,7 @@ export class DocumentselectionComponent implements OnInit {
     minWidth: 100,
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private utilService: UtilService) {}
   
   allStages: any;
   allDocumentTypes: any;
@@ -395,8 +396,8 @@ onVendorSelect(event: any): void {
               updatedUserId: Number(this.userId),
               stageId: stageId,
               documentId: documentId,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              createdAt: this.utilService.getISTISOString(),
+              updatedAt: this.utilService.getISTISOString(),
               isDelete: 0,
               pono: this.selectedPoNumber
             });

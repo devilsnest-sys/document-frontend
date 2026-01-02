@@ -7,6 +7,7 @@ import { ColDef, Module } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { UtilService } from '../../../core/services/util.service';
 
 @Component({
   selector: 'app-create-po-type',
@@ -72,7 +73,8 @@ export class CreatePoTypeComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
-    private ToastserviceService: ToastserviceService
+    private ToastserviceService: ToastserviceService,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -111,7 +113,7 @@ export class CreatePoTypeComponent {
         id: 0,
         potypeName: this.poType.value.potypeName?.trim(),
         createdBy: this.userId, 
-      createdAt: new Date().toISOString(),
+      createdAt: this.utilService.getISTISOString(),
       };
 
       this.http
@@ -180,7 +182,7 @@ export class CreatePoTypeComponent {
       id: potypeId,
       potypeName: updatedData.potypeName,
       createdBy: this.userId, 
-      createdAt: new Date().toISOString(),
+      createdAt: this.utilService.getISTISOString(),
     };
 
     this.http

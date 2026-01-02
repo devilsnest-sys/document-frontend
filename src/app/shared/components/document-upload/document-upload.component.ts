@@ -10,6 +10,7 @@ import { of, throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
+import { UtilService } from '../../../core/services/util.service';
 
 interface DocumentType {
   id: number;
@@ -87,7 +88,8 @@ export class DocumentUploadComponent implements OnInit {
   constructor(
     private http: HttpClient, 
     private toasService: ToastserviceService, 
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -305,7 +307,7 @@ export class DocumentUploadComponent implements OnInit {
         docReviewedBy: currentUserType!,
         status: isApproved ? 'Approved' : 'Rejected',
         reviewRemark: finalReviewRemark,
-        docReviewDate: new Date().toISOString(),
+        docReviewDate: this.utilService.getISTISOString(),
       };
 
       await this.http
@@ -365,7 +367,7 @@ export class DocumentUploadComponent implements OnInit {
       formData.append('file', this.selectedFile);
   
       const currentUser = localStorage.getItem('userId') || '1';
-      const currentDate = new Date().toISOString();
+      const currentDate = this.utilService.getISTISOString();
   
       const siteUrl = window.location.href;
       const regex = /\/stages\/(\d+)\/(\d+)/;

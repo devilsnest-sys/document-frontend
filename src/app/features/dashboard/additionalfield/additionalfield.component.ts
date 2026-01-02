@@ -7,6 +7,7 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../../core/services/auth.service';
+import { UtilService } from '../../../core/services/util.service';
 
 @Component({
   selector: 'app-additionalfield',
@@ -79,7 +80,8 @@ export class AdditionalfieldComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     private ToastserviceService: ToastserviceService,
-     private authService: AuthService
+     private authService: AuthService,
+      private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -121,9 +123,9 @@ export class AdditionalfieldComponent {
        // additionalFieldRequiredDataType: this.additionalFieldForm.value.additionalFieldRequiredDataType,
         additionalFieldName: this.additionalFieldForm.value.additionalFieldName,
         isMandatory: this.additionalFieldForm.value.isMandatory, // Added isMandatory
-        createdAt: new Date().toISOString(),
+        createdAt: this.utilService.getISTISOString(),
         createdBy:  this.userId, // Replace with actual user ID
-        updatedAt: new Date().toISOString(),
+        updatedAt: this.utilService.getISTISOString(),
         updatedBy:  this.userId, // Replace with actual user ID
         isDeleted: false,
       };
@@ -248,7 +250,7 @@ export class AdditionalfieldComponent {
           isMandatory, // Ensure this matches the API
           createdAt: additionalField.createdAt,
           createdBy: additionalField.createdBy,
-          updatedAt: new Date().toISOString(),
+          updatedAt: this.utilService.getISTISOString(),
           updatedBy: 0, // Replace with actual user ID
           isDeleted: additionalField.isDeleted,
         };
