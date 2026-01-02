@@ -5,6 +5,7 @@ import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
+import { UtilService } from '../../../core/services/util.service';
 
 interface DocumentRow {
   id: string;
@@ -52,7 +53,8 @@ export class OtherDocUploadComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private toastService: ToastserviceService
+    private toastService: ToastserviceService,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -229,7 +231,7 @@ export class OtherDocUploadComponent implements OnInit {
       formData.append('file', file);
 
       const currentUser = localStorage.getItem('userId') || '1';
-      const currentDate = new Date().toISOString();
+      const currentDate = this.utilService.getISTISOString();
 
       formData.append('isApproved', 'false');
       formData.append('isDocSubmited', 'true');

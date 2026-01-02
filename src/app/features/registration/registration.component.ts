@@ -4,6 +4,7 @@ import { RegistrationService } from './registration.service';
 import { ToastserviceService } from '../../core/services/toastservice.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
+import { UtilService } from '../../core/services/util.service';
 
 @Component({
   selector: 'app-registration',
@@ -23,7 +24,8 @@ export class RegistrationComponent implements OnInit {
     private fb: FormBuilder,
     private toastservice: ToastserviceService,
     private registrationService: RegistrationService,
-    private http: HttpClient
+    private http: HttpClient,
+    private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
@@ -289,7 +291,7 @@ isAllSelected(): boolean {
           mobileNo: payload.mobileNo,
           designation: payload.designation,
           companyId: payload.companyId,
-          createdAt: new Date().toISOString(),
+          createdAt: this.utilService.getISTISOString(),
           salt: payload.salt || '',
           userDesignationForstageId: payload.userDesignationForstageId
         };

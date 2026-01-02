@@ -7,6 +7,7 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ViewChild, ElementRef } from '@angular/core';
+import { UtilService } from '../../../core/services/util.service';
 
 interface Vendor {
   companyName: any;
@@ -144,7 +145,7 @@ export class OrderacknowledgementComponent {
     minWidth: 100,
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private authService: AuthService, private ToastserviceService : ToastserviceService) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private authService: AuthService, private ToastserviceService : ToastserviceService, private utilService: UtilService) {
     this.poForm = this.fb.group({
       poDescription: ['', Validators.required],
       poType: ['', Validators.required],
@@ -337,7 +338,7 @@ dlpDueDate: ['', [noPastDateValidator]],
       shippingDate: formValues.shippingDate ? new Date(formValues.shippingDate).toISOString() : null,
       cpbgDueDate: formValues.cpbgDueDate ? new Date(formValues.cpbgDueDate).toISOString() : null,
       dlpDueDate: formValues.dlpDueDate ? new Date(formValues.dlpDueDate).toISOString() : null,
-      modifiedAt: new Date().toISOString(),
+      modifiedAt: this.utilService.getISTISOString(),
       modifiedBy: parseInt(this.userId || '0')
     };
 
@@ -465,9 +466,9 @@ dlpDueDate: ['', [noPastDateValidator]],
       contactPersonName: this.poForm.value.contactPersonName,
       contactPersonEmailId: this.poForm.value.contactPersonEmailId,
       contactNo: this.poForm.value.contactNumber,
-      createdAt: new Date().toISOString(),
+      createdAt: this.utilService.getISTISOString(),
       createdBy: this.userId ?? 0,
-      updatedAt: new Date().toISOString(),
+      updatedAt: this.utilService.getISTISOString(),
       updatedBy: this.userId ?? 0,
       isDeleted: false,
       vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,

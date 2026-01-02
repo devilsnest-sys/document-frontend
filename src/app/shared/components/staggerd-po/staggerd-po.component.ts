@@ -5,6 +5,7 @@ import { ToastserviceService } from '../../../core/services/toastservice.service
 import Swal from 'sweetalert2';
 import { catchError, finalize } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
+import { UtilService } from '../../../core/services/util.service';
 
 interface StaggeredData {
   id: number;
@@ -91,7 +92,8 @@ loading = false;
 
   constructor(
     private http: HttpClient,
-    private toastservice: ToastserviceService
+    private toastservice: ToastserviceService,
+    private utilService: UtilService
   ) { }
 
   ngOnInit(): void {
@@ -560,7 +562,7 @@ private combineAllData(): void {
     formData.append('uploadedDocumentName', this.selectedFile.name);
     formData.append('uploadedBy', localStorage.getItem('userId') || '1');
     formData.append('docUploadedBy', localStorage.getItem('userType') || '');
-    formData.append('uploadedDate', new Date().toISOString());
+    formData.append('uploadedDate', this.utilService.getISTISOString());
     formData.append('status', 'Pending');
     formData.append('isApproved', 'false');
     formData.append('isRejected', 'false');
@@ -631,7 +633,7 @@ private combineAllData(): void {
       docReviewedBy: localStorage.getItem('userType') || '',
       status: isApproved ? 'Approved' : 'Rejected',
       reviewRemark: reviewRemark,
-      docReviewDate: new Date().toISOString()
+      docReviewDate: this.utilService.getISTISOString()
     };
 
     try {
