@@ -18,27 +18,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen: boolean = false;
   isMobileMastersOpen: boolean = false;
   isUserMenuOpen = false;
+userRole: string | null = null;
 
   private loginStateSubscription!: Subscription;
   private userNameSubscription!: Subscription;
   private userTypeSubscription!: Subscription;
+private userRoleSubscription!: Subscription;
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.logoUrl = 'assets/images/envato-logo-small.svg';
     this.headerTitle = 'Post Order Activity';
-
+this.userRole = this.authService.getRole();
     // Subscribe to login state
     this.loginStateSubscription = this.authService.getLoginState().subscribe(
       (loggedIn) => {
         this.isLoggedIn = loggedIn;
       }
     );
-
+this.userRoleSubscription = this.authService
+  .getUserRoleState()
+  .subscribe(role => {
+    this.userRole = role;
+  });
     // Subscribe to username state
     this.userNameSubscription = this.authService.getUserNameState().subscribe(
       (name) => {
@@ -74,6 +80,9 @@ closeMenu(event: Event) {
     if (this.userTypeSubscription) {
       this.userTypeSubscription.unsubscribe();
     }
+    if (this.userRoleSubscription) {
+  this.userRoleSubscription.unsubscribe();
+}
   }
 
   toggleMobileMenu(): void {

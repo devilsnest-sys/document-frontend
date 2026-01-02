@@ -192,7 +192,7 @@
                 <!-- Shipping Date -->
                 <div class="col-lg-6">
                   <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Shipping Date</mat-label>
+                    <mat-label>Shipping/Receive Date</mat-label>
                     <mat-icon matPrefix>local_shipping</mat-icon>
                     <input appTrimInput matInput [min]="today" [matDatepicker] ="shippingDatePicker" formControlName="shippingDate" />
                     <mat-datepicker-toggle matSuffix [for]="shippingDatePicker"></mat-datepicker-toggle>
@@ -446,7 +446,7 @@
 
                 <div class="col-lg-6">
                   <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Shipping Date</mat-label>
+                    <mat-label>Shipping/Receive Date</mat-label>
                     <mat-icon matPrefix>local_shipping</mat-icon>
                     <input matInput [min]="today" [matDatepicker] ="editShippingDatePicker" formControlName="shippingDate" />
                     <mat-datepicker-toggle matSuffix [for]="editShippingDatePicker"></mat-datepicker-toggle>

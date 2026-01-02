@@ -199,7 +199,7 @@ export class ReportsComponent implements OnInit {
       headerTooltip: 'CPBG due date - Received or Not Received based on PO data'
     },
     {
-      headerName: 'Shipping Docs',
+      headerName: 'Shipping/Receive Date',
       field: 'receiptOfShipping',
       minWidth: 150,
       width: 170,
@@ -324,20 +324,6 @@ export class ReportsComponent implements OnInit {
       width: 150
     },
     {
-      headerName: 'Date of Return by User',
-      field: 'dateOfReturnByUser',
-      minWidth: 180,
-      width: 200,
-      headerTooltip: 'Date when document was returned by User with document names (comma separated if multiple)'
-    },
-    {
-      headerName: 'Date of Return by Vendor',
-      field: 'dateOfReturnByVendor',
-      minWidth: 180,
-      width: 200,
-      headerTooltip: 'Date when document was returned by Vendor with document names (comma separated if multiple)'
-    },
-    {
       headerName: 'Date of Receipt',
       field: 'dateOfReceipt',
       minWidth: 130,
@@ -396,7 +382,7 @@ export class ReportsComponent implements OnInit {
       width: 180
     },
     {
-      headerName: 'Contact Email',
+      headerName: 'Vendor Registration Email',
       field: 'contactEmail',
       minWidth: 200,
       width: 220

@@ -44,7 +44,7 @@ isLoading = false;
       this.authService.login(username, password, userType).subscribe({
         next: (response) => {
           if (response.token) {
-            this.authService.setToken(response.token, response.userName, response.id, userType,response.userForStage );
+            this.authService.setToken(response.token, response.userName, response.id, userType,response.role,response.userForStage);
             this.ToastserviceService.showToast('success', 'Login Successful');
             this.router.navigate(['/dashboard']);
           } else {

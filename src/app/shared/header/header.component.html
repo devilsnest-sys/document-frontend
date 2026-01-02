@@ -16,28 +16,28 @@
           </a>
         </li>
 
-        <li class="menu-item" *appUserRole="['user']">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase() || authService.isEmployee()">
           <a routerLink="/orderAcknowledgement" routerLinkActive="active" class="nav-link">
             <mat-icon>receipt_long</mat-icon>
             <span>PO Details</span>
           </a>
         </li>
 
-        <li class="menu-item" *appUserRole="['user']">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase()">
           <a routerLink="/registration" routerLinkActive="active" class="nav-link">
             <mat-icon>person_add</mat-icon>
             <span>User Registration</span>
           </a>
         </li>
 
-        <li class="menu-item" *appUserRole="['user']">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase()">
           <a routerLink="/vendorRegistration" routerLinkActive="active" class="nav-link">
             <mat-icon>business</mat-icon>
             <span>Vendor Registration</span>
           </a>
         </li>
 
-        <li class="menu-item" *appUserRole="['user']">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase() || authService.isEmployee()">
           <a routerLink="/reports" routerLinkActive="active" class="nav-link">
             <mat-icon>assessment</mat-icon>
             <span>Reports</span>
@@ -45,7 +45,7 @@
         </li>
 
         <!-- Masters Dropdown -->
-        <li class="menu-item dropdown-container" *appUserRole="['user']">
+        <li class="menu-item dropdown-container"  *ngIf="authService.isAdmin() || authService.isPurchase()">
           <a class="nav-link">
             <mat-icon>admin_panel_settings</mat-icon>
             <span>Masters</span>
@@ -108,8 +108,9 @@
       <span>{{ userName?.charAt(0)?.toUpperCase() || 'U' }}</span>
     </div>
     <div class="user-info">
+      
       <span class="user-name">{{ userName || 'User' }}</span>
-      <span class="user-role">{{ userType }}</span>
+      <span class="user-role">{{ userRole  }}</span>
     </div>
     <mat-icon class="dropdown-arrow">expand_more</mat-icon>
   </div>

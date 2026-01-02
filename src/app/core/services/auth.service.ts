@@ -11,6 +11,7 @@ export class AuthService {
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.isLoggedIn());
   private userNameSubject = new BehaviorSubject<string | null>(this.getUserName());
   private userTypeSubject = new BehaviorSubject<string | null>(this.getUserType());
+  private userRoleSubject = new BehaviorSubject<string | null>(this.getRole());
 
   constructor(private http: HttpClient) {}
 
@@ -19,14 +20,16 @@ export class AuthService {
     return this.http.post(this.loginUrl, payload);
   }
 
-  setToken(token: string, userName: string, id: number, userType: any,userForStage: string | number | null): void {
+  setToken(token: string, userName: string, id: number, userType: any,role: string | null,userForStage: string | number | null): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userName', userName);
     localStorage.setItem('userId', id.toString());
     localStorage.setItem('userType', userType);
+    localStorage.setItem('role', role ?? '');
     if (userForStage !== null && userForStage !== undefined) {
   localStorage.setItem('userForStage', userForStage.toString());
 }
+  this.userRoleSubject.next(role ?? '');
     this.isLoggedInSubject.next(true);
     this.userNameSubject.next(userName);
     this.userTypeSubject.next(userType);
@@ -58,11 +61,15 @@ export class AuthService {
     localStorage.removeItem('userId');
     localStorage.removeItem('userType');
     localStorage.removeItem('userForStage'); // ✅ ADD
+    localStorage.removeItem('role');   
     this.isLoggedInSubject.next(false);
     this.userNameSubject.next(null);
     this.userTypeSubject.next(null);
+     this.userRoleSubject.next(null);
   }
-
+getUserRoleState(): Observable<string | null> {
+  return this.userRoleSubject.asObservable();
+}
   getLoginState(): Observable<boolean> {
     return this.isLoggedInSubject.asObservable();
   }
@@ -109,4 +116,23 @@ export class AuthService {
 
     return this.http.post(endpoint, payload, { headers, responseType: 'text' });
   }
+
+  getRole(): string {
+  return localStorage.getItem('role') ?? '';
+}
+
+isAdmin(): boolean {
+  return this.getRole() === 'Admin';
+}
+
+isPurchase(): boolean {
+  return this.getRole() === 'Purchase Department';
+}
+
+isVendor(): boolean {
+  return this.getRole() === 'Vendor';
+}
+isEmployee(): boolean {
+  return this.getRole() === 'Employees';
+}
 }
