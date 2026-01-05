@@ -304,205 +304,168 @@
       </div>
     </mat-tab>
 
-    <!-- TAB 3: EDIT PO DATES -->
-    <mat-tab label="Edit PO Dates">
-      <div class="mt-3">
-        <div class="card">
-          <div class="card-body">
-            <!-- PO Selection Dropdown -->
-            <div class="row mb-4">
-              <div class="col-lg-12">
-                <mat-form-field appearance="fill" class="full-width">
-                  <mat-label>Select Purchase Order to Edit</mat-label>
-                  <mat-icon matPrefix>search</mat-icon>
-                  <mat-select [(value)]="selectedPoForEdit" (selectionChange)="onPoSelectionForEdit($event.value)">
-                    <mat-option value="">-- Select PO --</mat-option>
-                    <mat-option *ngFor="let po of allPurchaseOrders" [value]="po.id">
-                      {{ po.pO_NO }} - {{ po.poDescription }} ({{ po.vendorCode }})
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </div>
-            </div>
+<!-- TAB 3: EDIT PO DATES -->
+<mat-tab label="Edit PO Dates">
+  <div class="mt-3">
+    <div class="card">
+      <div class="card-body">
 
-            <!-- Edit Form -->
-            <form [formGroup]="editPoForm" (ngSubmit)="onEditSubmit()" class="w-100" *ngIf="isEditMode">
-              <div class="row">
-                <!-- Read-only fields -->
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>PO ID</mat-label>
-                    <mat-icon matPrefix>tag</mat-icon>
-                    <input matInput formControlName="id" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>PO Number</mat-label>
-                    <mat-icon matPrefix>format_list_numbered</mat-icon>
-                    <input matInput formControlName="poNo" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>PO Description</mat-label>
-                    <mat-icon matPrefix>description</mat-icon>
-                    <input matInput formControlName="poDescription" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Vendor Code</mat-label>
-                    <mat-icon matPrefix>business</mat-icon>
-                    <input matInput formControlName="vendorCode" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>PO Type</mat-label>
-                    <mat-icon matPrefix>list</mat-icon>
-                    <input matInput formControlName="poType" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Incoterms</mat-label>
-                    <mat-icon matPrefix>sync</mat-icon>
-                    <input matInput formControlName="incoterms" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Contact Person Name</mat-label>
-                    <mat-icon matPrefix>person</mat-icon>
-                    <input matInput formControlName="contactPersonName" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Contact Person Email</mat-label>
-                    <mat-icon matPrefix>email</mat-icon>
-                    <input matInput formControlName="contactPersonEmailId" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Contact Number</mat-label>
-                    <mat-icon matPrefix>phone</mat-icon>
-                    <input matInput formControlName="contactNumber" readonly />
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Order Value</mat-label>
-                    <mat-icon matPrefix>attach_money</mat-icon>
-                    <input matInput formControlName="orderValue" readonly />
-                  </mat-form-field>
-                </div>
-
-                <!-- Divider -->
-                <div class="col-lg-12 mt-4 mb-3">
-                  <mat-divider></mat-divider>
-                  <h4 class="mt-3 mb-3 text-primary">
-                    <mat-icon>edit_calendar</mat-icon> Editable Date Fields
-                  </h4>
-                </div>
-
-                <!-- Editable Date Fields -->
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Contractual Delivery Date</mat-label>
-                    <mat-icon matPrefix>calendar_today</mat-icon>
-                    <input matInput [min]="today" [matDatepicker] ="editContractualDatePicker" formControlName="contractualDeliveryDate" required />
-                    <mat-datepicker-toggle matSuffix [for]="editContractualDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #editContractualDatePicker></mat-datepicker>
-                    <mat-error *ngIf="editPoForm.get('contractualDeliveryDate')?.touched && editPoForm.get('contractualDeliveryDate')?.invalid">
-                      <span *ngIf="editPoForm.get('contractualDeliveryDate')?.hasError('required')">Contractual Delivery Date is required.</span>
-                    </mat-error>
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Actual Delivery Date</mat-label>
-                    <mat-icon matPrefix>receipt</mat-icon>
-                    <input matInput [min]="today" [matDatepicker] ="editActualDatePicker" formControlName="actualDeliveryDate" />
-                    <mat-datepicker-toggle matSuffix [for]="editActualDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #editActualDatePicker></mat-datepicker>
-                    <!-- <mat-error *ngIf="editPoForm.get('actualDeliveryDate')?.touched && editPoForm.get('actualDeliveryDate')?.invalid">
-                      <span *ngIf="editPoForm.get('actualDeliveryDate')?.hasError('required')">Actual Delivery Date is required.</span>
-                    </mat-error> -->
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Shipping/Receive Date</mat-label>
-                    <mat-icon matPrefix>local_shipping</mat-icon>
-                    <input matInput [min]="today" [matDatepicker] ="editShippingDatePicker" formControlName="shippingDate" />
-                    <mat-datepicker-toggle matSuffix [for]="editShippingDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #editShippingDatePicker></mat-datepicker>
-                    <!-- <mat-error *ngIf="editPoForm.get('shippingDate')?.touched && editPoForm.get('shippingDate')?.invalid">
-                      <span *ngIf="editPoForm.get('shippingDate')?.hasError('required')">Shipping Date is required.</span>
-                    </mat-error> -->
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>CPBG Due Date</mat-label>
-                    <mat-icon matPrefix>event</mat-icon>
-                    <input matInput [min]="today" [matDatepicker] ="editCpbgDueDatePicker" formControlName="cpbgDueDate" />
-                    <mat-datepicker-toggle matSuffix [for]="editCpbgDueDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #editCpbgDueDatePicker></mat-datepicker>
-                    <!-- <mat-error *ngIf="editPoForm.get('cpbgDueDate')?.touched && editPoForm.get('cpbgDueDate')?.invalid">
-                      <span *ngIf="editPoForm.get('cpbgDueDate')?.hasError('required')">CPBG Due Date is required.</span>
-                    </mat-error> -->
-                  </mat-form-field>
-                </div>
-
-                <div class="col-lg-6">
-                  <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>DLP Due Date</mat-label>
-                    <mat-icon matPrefix>event_note</mat-icon>
-                    <input matInput [min]="today" [matDatepicker] ="editDlpDueDatePicker" formControlName="dlpDueDate" />
-                    <mat-datepicker-toggle matSuffix [for]="editDlpDueDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #editDlpDueDatePicker></mat-datepicker>
-                    <!-- <mat-error *ngIf="editPoForm.get('dlpDueDate')?.touched && editPoForm.get('dlpDueDate')?.invalid">
-                      <span *ngIf="editPoForm.get('dlpDueDate')?.hasError('required')">DLP Due Date is required.</span>
-                    </mat-error> -->
-                  </mat-form-field>
-                </div>
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="mt-4">
-                <button mat-raised-button color="primary" type="submit" class="me-2">
-                  <mat-icon>save</mat-icon> Update Dates
-                </button>
-                <button mat-raised-button color="warn" type="button" (click)="resetEditForm()">
-                  <mat-icon>cancel</mat-icon> Cancel
-                </button>
-              </div>
-            </form>
-
-            <!-- Message when no PO is selected -->
-            <div *ngIf="!isEditMode" class="text-center mt-5">
-              <mat-icon class="large-icon" style="font-size: 48px; color: #ccc;">search</mat-icon>
-              <h5 class="mt-3 text-muted">Please select a Purchase Order from the dropdown above to edit its dates</h5>
-            </div>
+        <!-- PO Selection -->
+        <div class="row mb-4">
+          <div class="col-lg-12">
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Select Purchase Order</mat-label>
+              <mat-select [(value)]="selectedPoForEdit" (selectionChange)="onPoSelectionForEdit($event.value)">
+                <mat-option value="">-- Select PO --</mat-option>
+                <mat-option *ngFor="let po of allPurchaseOrders" [value]="po.id">
+                  {{ po.pO_NO }} - {{ po.poDescription }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
         </div>
+
+        <!-- EDIT FORM -->
+        <form [formGroup]="editPoForm" (ngSubmit)="onEditSubmit()" *ngIf="isEditMode">
+
+          <div class="row">
+
+            <!-- Readonly Fields -->
+            <div class="col-lg-6" *ngFor="let f of ['id','poNo','poDescription','vendorCode','poType','incoterms','contactPersonName','contactPersonEmailId','contactNumber','orderValue']">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>{{ f | titlecase }}</mat-label>
+                <input matInput [formControlName]="f" readonly>
+              </mat-form-field>
+            </div>
+
+            <div class="col-lg-12 mt-4">
+              <mat-divider></mat-divider>
+              <h4 class="text-primary mt-3">Editable Date Fields</h4>
+            </div>
+
+            <!-- EDITABLE DATES -->
+            <div class="col-lg-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Contractual Delivery Date</mat-label>
+                <mat-icon matPrefix>calendar_today</mat-icon>
+                <input matInput [matDatepicker]="cdp" formControlName="contractualDeliveryDate">
+                <mat-datepicker-toggle matSuffix [for]="cdp"></mat-datepicker-toggle>
+                <mat-datepicker #cdp></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="col-lg-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Actual Delivery Date</mat-label>
+                <mat-icon matPrefix>receipt</mat-icon>
+                <input matInput [matDatepicker]="adp" formControlName="actualDeliveryDate">
+                <mat-datepicker-toggle matSuffix [for]="adp"></mat-datepicker-toggle>
+                <mat-datepicker #adp></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="col-lg-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Shipping / Receive Date</mat-label>
+                <mat-icon matPrefix>local_shipping</mat-icon>
+                <input matInput [matDatepicker]="sdp" formControlName="shippingDate">
+                <mat-datepicker-toggle matSuffix [for]="sdp"></mat-datepicker-toggle>
+                <mat-datepicker #sdp></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="col-lg-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>CPBG Due Date</mat-label>
+                <mat-icon matPrefix>event</mat-icon>
+                <input matInput [matDatepicker]="cpdp" formControlName="cpbgDueDate">
+                <mat-datepicker-toggle matSuffix [for]="cpdp"></mat-datepicker-toggle>
+                <mat-datepicker #cpdp></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="col-lg-6">
+              <mat-form-field appearance="fill" class="full-width">
+                <mat-label>DLP Due Date</mat-label>
+                <mat-icon matPrefix>event_note</mat-icon>
+                <input matInput [matDatepicker]="ddp" formControlName="dlpDueDate">
+                <mat-datepicker-toggle matSuffix [for]="ddp"></mat-datepicker-toggle>
+                <mat-datepicker #ddp></mat-datepicker>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- STAGGERED EDIT SECTION -->
+          <div *ngIf="isEditStaggeredOrder" class="mt-4">
+            <mat-divider></mat-divider>
+            <h4 class="text-primary mt-3">
+              <mat-icon>layers</mat-icon> Staggered Delivery Schedule
+            </h4>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Quantity</th>
+                    <th>Delivery Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="editStaggeredDataList">
+                  <tr *ngFor="let row of editStaggeredDataList.controls; let i=index" [formGroupName]="i">
+                    <td>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <input matInput type="number" formControlName="quantity" min="1" required />
+                        <mat-error *ngIf="row.get('quantity')?.touched && row.get('quantity')?.invalid">
+                          <span *ngIf="row.get('quantity')?.hasError('required')">Quantity is required.</span>
+                          <span *ngIf="row.get('quantity')?.hasError('min')">Quantity must be greater than 0.</span>
+                        </mat-error>
+                      </mat-form-field>
+                    </td>
+                    <td>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <input matInput [matDatepicker]="sdp2" formControlName="deliveryDateOfQuantity" required />
+                        <mat-datepicker-toggle matSuffix [for]="sdp2"></mat-datepicker-toggle>
+                        <mat-datepicker #sdp2></mat-datepicker>
+                        <mat-error *ngIf="row.get('deliveryDateOfQuantity')?.touched && row.get('deliveryDateOfQuantity')?.invalid">
+                          <span *ngIf="row.get('deliveryDateOfQuantity')?.hasError('required')">Delivery Date is required.</span>
+                        </mat-error>
+                      </mat-form-field>
+                    </td>
+                    <td>
+                      <button mat-icon-button color="warn" type="button" (click)="removeEditStaggeredItem(i)" [disabled]="editStaggeredDataList.length === 1">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-2">
+              <button mat-raised-button color="accent" type="button" (click)="addEditStaggeredItem()">
+                <mat-icon>add</mat-icon> Add New Delivery
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button mat-raised-button color="primary" type="submit">
+              <mat-icon>save</mat-icon> Update PO
+            </button>
+            <button mat-raised-button color="warn" type="button" class="ms-2" (click)="resetEditForm()">
+              <mat-icon>cancel</mat-icon> Cancel
+            </button>
+          </div>
+
+        </form>
+
+        <div *ngIf="!isEditMode" class="text-center text-muted mt-5">
+          <mat-icon style="font-size: 48px; width: 48px; height: 48px;">inbox</mat-icon>
+          <p class="mt-2">Select a Purchase Order to edit</p>
+        </div>
+
       </div>
-    </mat-tab>
+    </div>
+  </div>
+</mat-tab>
   </mat-tab-group>
 </div>
