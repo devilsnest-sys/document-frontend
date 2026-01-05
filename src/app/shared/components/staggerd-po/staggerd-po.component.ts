@@ -75,19 +75,16 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
   @Input() poId!: number;
   @Input() poNumber = '';
 
-
- staggeredData: StaggeredData[] = [];
+  staggeredData: StaggeredData[] = [];
   tableData: QuantityRowData[] = [];
-   stageNames: { [key: number]: string } = {};
+  stageNames: { [key: number]: string } = {};
   stageDocuments: { [stageId: string]: DocumentType[] } = {};
   allUploadedDocuments: UploadedDocument[] = [];
-  //stepStatuses: { [key: number]: string } = {};
-   stepStatuses: { [key: string]: string } = {};
-loading = false;
+  stepStatuses: { [key: string]: string } = {};
+  loading = false;
   error: string | null = null;
   userType = localStorage.getItem('userType');
   selectedFile: File | null = null;
-
   userForStages: number[] = [];
 
   constructor(
@@ -98,23 +95,23 @@ loading = false;
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
-    const stageStr = localStorage.getItem('userForStage'); // "1,2"
-  this.userForStages = stageStr
-    ? stageStr.split(',').map(s => Number(s.trim()))
-    : [];
+    const stageStr = localStorage.getItem('userForStage');
+    this.userForStages = stageStr
+      ? stageStr.split(',').map(s => Number(s.trim()))
+      : [];
     if (this.poId && this.poNumber) {
       this.loadAllData();
     }
     console.log("Staggered PO - poId:", this.poId, "poNumber:", this.poNumber);
   }
-  
-canAccessStage(stageId: number): boolean {
-    // ✅ Vendor has access to all stages
-  if (this.isVendor()) {
-    return true;
+
+  canAccessStage(stageId: number): boolean {
+    if (this.isVendor()) {
+      return true;
+    }
+    return this.userForStages.includes(stageId);
   }
-  return this.userForStages.includes(stageId);
-}
+
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['poId'] || changes['poNumber']) && this.poId && this.poNumber) {
       this.loadAllData();
@@ -178,27 +175,6 @@ canAccessStage(stageId: number): boolean {
       });
   }
 
-//  private fetchAllStageWiseData(): Promise<void> {
-//   const url = `${environment.apiUrl}/v1/staggered-data/stagewise/search?poId=${this.poId}`;
-
-//   return this.http
-//     .get<any[]>(url, { headers: this.getHeaders() })
-//     .toPromise()
-//     .then(data => {
-
-//       console.log('RAW STAGEWISE API DATA:', data);
-
-//       // 🔥 NORMALIZE BACKEND RESPONSE
-//       this.stageWiseData = (data || []).map(sw => ({
-//         ...sw,
-//         status: sw.status ?? sw.Status ?? sw.stageStatus
-//       }));
-
-//       console.log('NORMALIZED STAGEWISE DATA:', this.stageWiseData);
-//     });
-// }
-
-
   private fetchStageDocuments(): Promise<void> {
     return this.http.get<{ [stageId: string]: DocumentType[] }>(
       `${environment.apiUrl}/v1/document-selection/documents-by-po-Group?poNo=${this.poNumber}`,
@@ -239,225 +215,93 @@ canAccessStage(stageId: number): boolean {
     );
 
     return Promise.all(requests).then((results) => {
-    this.allUploadedDocuments = results
-  .flat()
-  .filter((doc): doc is UploadedDocument => doc !== undefined)
-  .filter((doc, index, self) =>
-    index === self.findIndex(d => d.id === doc.id)
-  );
-     // this.allUploadedDocuments = results.flat().filter((doc): doc is UploadedDocument => doc !== undefined);
+      this.allUploadedDocuments = results
+        .flat()
+        .filter((doc): doc is UploadedDocument => doc !== undefined)
+        .filter((doc, index, self) =>
+          index === self.findIndex(d => d.id === doc.id)
+        );
     });
   }
 
-private fetchStepStatuses(): Promise<void> {
-  const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${this.poId}`;
+  private fetchStepStatuses(): Promise<void> {
+    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${this.poId}`;
 
-  return this.http.get<any[]>(url, { headers: this.getHeaders() })
-    .toPromise()
-    .then((response: any[] | undefined) => {
+    return this.http.get<any[]>(url, { headers: this.getHeaders() })
+      .toPromise()
+      .then((response: any[] | undefined) => {
+        this.stepStatuses = {};
 
-      this.stepStatuses = {};
+        if (!response || response.length === 0) {
+          console.log('[STEP STATUS] No data returned');
+          return;
+        }
 
-      if (!response || response.length === 0) {
-        console.log('[STEP STATUS] No data returned');
-        return;
-      }
+        response.forEach(stage => {
+          const key = `${stage.stageId}_${stage.quantityId}`;
+          this.stepStatuses[key] = stage.status;
 
-      response.forEach(stage => {
-        const key = `${stage.stageId}_${stage.quantityId}`;
-        this.stepStatuses[key] = stage.status;
+          console.log(
+            '[STEP STATUS]',
+            'Key:', key,
+            'Status:', stage.status
+          );
+        });
+      })
+      .catch(err => {
+        console.error('[STEP STATUS] API failed', err);
+        this.stepStatuses = {};
+      });
+  }
+
+  private combineAllData(): void {
+    console.log('=== COMBINE ALL DATA START ===');
+
+    this.tableData = this.staggeredData.map((staggered, index) => {
+      const stages: StageGroup[] = Object.keys(this.stageDocuments).map(stageIdStr => {
+        const stageId = Number(stageIdStr);
+        const key = `${stageId}_${staggered.id}`;
+        const dbStatus = this.stepStatuses[key];
 
         console.log(
-          '[STEP STATUS]',
+          '[STAGE STATUS RESOLVE]',
+          'Qty:', staggered.id,
+          'Stage:', stageId,
           'Key:', key,
-          'Status:', stage.status
+          'DB Status:', dbStatus
         );
+
+        return {
+          stageId,
+          stageName: this.stageNames[stageId] || `Stage ${stageId}`,
+          stageStatus: dbStatus === 'Complete' ? 'Complete' : 'Pending',
+          documents: this.stageDocuments[stageIdStr].map(docType => ({
+            documentType: docType,
+            uploadedDocuments: this.allUploadedDocuments.filter(
+              doc =>
+                doc.stageId === stageId &&
+                doc.quantityId === staggered.id &&
+                doc.documentTypeId === docType.id
+            )
+          }))
+        };
       });
-    })
-    .catch(err => {
-      console.error('[STEP STATUS] API failed', err);
-      this.stepStatuses = {};
-    });
-}
-
-private combineAllData(): void {
-  console.log('=== COMBINE ALL DATA START ===');
-
-  this.tableData = this.staggeredData.map((staggered, index) => {
-
-    const stages: StageGroup[] = Object.keys(this.stageDocuments).map(stageIdStr => {
-      const stageId = Number(stageIdStr);
-
-      const key = `${stageId}_${staggered.id}`;
-      const dbStatus = this.stepStatuses[key];
-
-      console.log(
-        '[STAGE STATUS RESOLVE]',
-        'Qty:', staggered.id,
-        'Stage:', stageId,
-        'Key:', key,
-        'DB Status:', dbStatus
-      );
 
       return {
-        stageId,
-        stageName: this.stageNames[stageId] || `Stage ${stageId}`,
-        stageStatus: dbStatus === 'Complete' ? 'Complete' : 'Pending',
-        documents: this.stageDocuments[stageIdStr].map(docType => ({
-          documentType: docType,
-          uploadedDocuments: this.allUploadedDocuments.filter(
-            doc =>
-              doc.stageId === stageId &&
-              doc.quantityId === staggered.id &&
-              doc.documentTypeId === docType.id
-          )
-        }))
+        sn: index + 1,
+        quantity: staggered.quantity,
+        dateDeliver: this.formatDate(staggered.deliveryDateOfQuantity),
+        quantityId: staggered.id,
+        submitted: stages.every(s => s.stageStatus === 'Complete'),
+        stages,
+        expandedStages: {},
+        expandedDocuments: {}
       };
     });
 
-    return {
-      sn: index + 1,
-      quantity: staggered.quantity,
-      dateDeliver: this.formatDate(staggered.deliveryDateOfQuantity),
-      quantityId: staggered.id,
-      submitted: stages.every(s => s.stageStatus === 'Complete'),
-      stages,
-      expandedStages: {},
-      expandedDocuments: {}
-    };
-  });
-
-  console.log('FINAL TABLE DATA:', this.tableData);
-  console.log('=== COMBINE ALL DATA END ===');
-}
-
-// private combineAllData(): void {
-//   console.log('=== COMBINE ALL DATA START ===');
-
-//   this.tableData = this.staggeredData.map((staggered, index) => {
-
-//     const quantityStageWiseData = this.stageWiseData.filter(
-//       sw => sw.quantityId === staggered.id
-//     );
-
-//     console.log(
-//       '[QTY]',
-//       staggered.id,
-//       'StageWiseData:',
-//       quantityStageWiseData
-//     );
-
-//     const stages: StageGroup[] = Object.keys(this.stageDocuments)
-//       .map(stageIdStr => {
-//         const stageId = Number(stageIdStr);
-
-//         const isStageSubmitted = quantityStageWiseData.some(sw => {
-//           const match =
-//             sw.stageId === stageId &&
-//             sw.quantityId === staggered.id &&
-//             sw.status === 'Complete';
-
-//           console.log(
-//             '[STAGE CHECK]',
-//             'Qty:', staggered.id,
-//             'Stage:', stageId,
-//             'DB StageId:', sw.stageId,
-//             'DB Status:', sw.status,
-//             'MATCH:', match
-//           );
-
-//           return match;
-//         });
-
-//         console.log(
-//           '[FINAL STAGE STATUS]',
-//           'Qty:', staggered.id,
-//           'Stage:', stageId,
-//           'Submitted:', isStageSubmitted
-//         );
-
-//         return {
-//           stageId,
-//           stageName: this.stageNames[stageId] || `Stage ${stageId}`,
-//           stageStatus: isStageSubmitted ? 'Complete' : 'Pending',
-//           documents: this.stageDocuments[stageIdStr].map(docType => ({
-//             documentType: docType,
-//             uploadedDocuments: this.allUploadedDocuments.filter(
-//               doc =>
-//                 doc.documentTypeId === docType.id &&
-//                 doc.stageId === stageId &&
-//                 doc.quantityId === staggered.id
-//             )
-//           }))
-//         };
-//       });
-
-//     return {
-//       sn: index + 1,
-//       quantity: staggered.quantity,
-//       dateDeliver: this.formatDate(staggered.deliveryDateOfQuantity),
-//       quantityId: staggered.id,
-//       submitted: quantityStageWiseData.every(sw => sw.status === 'Complete'),
-//       stageWiseId: 0,
-//       stages,
-//       expandedStages: {},
-//       expandedDocuments: {}
-//     };
-//   });
-
-//   console.log('FINAL TABLE DATA:', this.tableData);
-//   console.log('=== COMBINE ALL DATA END ===');
-// }
-
-
-
-//   private combineAllData(): void {
-//     this.tableData = this.staggeredData.map((staggered, index) => {
-//       const quantityStageWiseData = this.stageWiseData.filter(sw => sw.quantityId === staggered.id);
-      
-//       const stages: StageGroup[] = Object.keys(this.stageDocuments).map(stageIdStr => {
-//         const stageId = parseInt(stageIdStr);
-//         const documentTypes = this.stageDocuments[stageIdStr];
-        
-//         const stageWise = quantityStageWiseData.find(sw => sw.stageId === stageId);
-        
-//         const documentGroups: DocumentGroup[] = documentTypes.map(docType => {
-//           const matchingDocs = this.allUploadedDocuments.filter(
-//             doc => doc.documentTypeId === docType.id && 
-//                    doc.stageId === stageId && 
-//                    doc.quantityId === staggered.id
-//           );
-
-//           return {
-//             documentType: docType,
-//             uploadedDocuments: matchingDocs
-//           };
-//         });
-// const isStageSubmitted = quantityStageWiseData.some(
-//   sw => sw.stageId === stageId && sw.submitted === true
-// );
-
-//         return {
-//           stageId: stageId,
-//           stageName: this.stageNames[stageId] || `Stage ${stageId}`,
-//           stageStatus: isStageSubmitted ? 'Complete' : (this.stepStatuses[stageId] || 'Pending'),
-//           documents: documentGroups
-//         };
-//       }).sort((a, b) => a.stageId - b.stageId);
-
-//       return {
-//         sn: index + 1,
-//         quantity: staggered.quantity,
-//         dateDeliver: this.formatDate(staggered.deliveryDateOfQuantity),
-//         quantityId: staggered.id,
-//         submitted: quantityStageWiseData.every(sw => sw.submitted),
-//         stageWiseId: 0,
-//         stages: stages,
-//         expandedStages: {},
-//         expandedDocuments: {}
-//       };
-//     });
-//   }
+    console.log('FINAL TABLE DATA:', this.tableData);
+    console.log('=== COMBINE ALL DATA END ===');
+  }
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -694,13 +538,13 @@ private combineAllData(): void {
   // Stage submission
   submitStage(row: QuantityRowData, stageId: number): void {
     if (!this.canAccessStage(stageId)) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Unauthorized',
-      text: 'You are not allowed to submit this stage.'
-    });
-    return;
-  }
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'You are not allowed to submit this stage.'
+      });
+      return;
+    }
     if (!this.canSubmitStage(row, stageId)) {
       Swal.fire({
         icon: 'error',
@@ -723,137 +567,106 @@ private combineAllData(): void {
       }
     });
   }
-private performStageSubmission(row: QuantityRowData, stageId: number): void {
 
-  // quantityId is OPTIONAL
-  const quantityParam = row.quantityId
-    ? `&quantityId=${row.quantityId}`
-    : '';
+  private performStageSubmission(row: QuantityRowData, stageId: number): void {
+    const quantityParam = row.quantityId
+      ? `&quantityId=${row.quantityId}`
+      : '';
 
-  const url =
-    `${environment.apiUrl}/v1/StageStatus/validate-submission` +
-    `?poId=${this.poId}` +
-    `&stageId=${stageId}` +
-    `${quantityParam}` +
-    `&TncSelected=true`;
+    const url =
+      `${environment.apiUrl}/v1/StageStatus/validate-submission` +
+      `?poId=${this.poId}` +
+      `&stageId=${stageId}` +
+      `${quantityParam}` +
+      `&TncSelected=true`;
 
-  this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
-    next: (res) => {
-      
-      const canSubmit =
-  res?.canSubmit === true ||
-  res?.canSubmit === 'true';
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+      next: (res) => {
+        const canSubmit =
+          res?.canSubmit === true ||
+          res?.canSubmit === 'true';
 
-    if (canSubmit) {
+        if (canSubmit) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Stage Submitted',
+            text: res.Message,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadAllData();
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Submit',
+            text: res.Message
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Stage submission error:', err);
         Swal.fire({
-          icon: 'success',
-          title: 'Stage Submitted',
-          text: res.Message,
-          timer: 2000,
-          showConfirmButton: false
-        });
-        this.loadAllData();
-      } else {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Cannot Submit',
-          text: res.Message
+          icon: 'error',
+          title: 'Submission Failed',
+          text: 'Please try again'
         });
       }
-    },
-    error: (err) => {
-      console.error('Stage submission error:', err);
-      Swal.fire({
-        icon: 'error',
-        title: 'Submission Failed',
-        text: 'Please try again'
-      });
-    }
-  });
-}
-
-  // private performStageSubmission(row: QuantityRowData, stageId: number): void {
-  //   const url = `${environment.apiUrl}/v1/staggered-data/stagewise/update?poId=${this.poId}&stageId=${stageId}&quantityId=${row.quantityId}`;
-
-  //   this.http.patch(url, {}, { headers: this.getHeaders() }).subscribe({
-  //     next: () => {
-  //       Swal.fire({
-  //         icon: 'success',
-  //         title: 'Stage Submitted',
-  //         timer: 2000,
-  //         showConfirmButton: false
-  //       });
-  //       this.loadAllData();
-  //     },
-  //     error: (err) => {
-  //       console.error('Stage submission error:', err);
-  //       Swal.fire({
-  //         icon: 'error',
-  //         title: 'Submission Failed',
-  //         text: 'Please try again'
-  //       });
-  //     }
-  //   });
-  // }
+    });
+  }
 
   // Helper methods
-canSubmitStage(row: QuantityRowData, stageId: number): boolean {
-  const stage = row.stages.find(s => s.stageId === stageId);
+  canSubmitStage(row: QuantityRowData, stageId: number): boolean {
+    const stage = row.stages.find(s => s.stageId === stageId);
 
-  console.log(
-    '[CAN SUBMIT CHECK]',
-    'Qty:', row.quantityId,
-    'Stage:', stageId,
-    'StageObj:', stage
-  );
+    console.log(
+      '[CAN SUBMIT CHECK]',
+      'Qty:', row.quantityId,
+      'Stage:', stageId,
+      'StageObj:', stage
+    );
 
-  if (!stage) {
-    console.log('❌ Stage not found');
-    return false;
+    if (!stage) {
+      console.log('❌ Stage not found');
+      return false;
+    }
+
+    if (stage.stageStatus === 'Complete') {
+      console.log('❌ Stage already COMPLETE — disabling button');
+      return false;
+    }
+
+    const allDocsApproved = stage.documents.every(docGroup =>
+      docGroup.uploadedDocuments.some(doc => doc.isApproved)
+    );
+
+    console.log(
+      '[DOC APPROVAL CHECK]',
+      'Qty:', row.quantityId,
+      'Stage:', stageId,
+      'AllApproved:', allDocsApproved
+    );
+
+    return allDocsApproved;
   }
-
-  if (stage.stageStatus === 'Complete') {
-    console.log('❌ Stage already COMPLETE — disabling button');
-    return false;
-  }
-
-  const allDocsApproved = stage.documents.every(docGroup =>
-    docGroup.uploadedDocuments.some(doc => doc.isApproved)
-  );
-
-  console.log(
-    '[DOC APPROVAL CHECK]',
-    'Qty:', row.quantityId,
-    'Stage:', stageId,
-    'AllApproved:', allDocsApproved
-  );
-
-  return allDocsApproved;
-}
-
-
 
   canReviewDocument(doc: UploadedDocument): boolean {
-  const currentUserType = this.userType?.toLowerCase();
-  const uploaderType = doc.docUploadedBy?.toLowerCase();
+    const currentUserType = this.userType?.toLowerCase();
+    const uploaderType = doc.docUploadedBy?.toLowerCase();
 
-  // 🔒 STAGE PERMISSION CHECK
-  if (!this.canAccessStage(doc.stageId)) {
-    console.log(
-      '[REVIEW BLOCKED]',
-      'AllowedStages:', this.userForStages,
-      'DocStage:', doc.stageId
-    );
+    if (!this.canAccessStage(doc.stageId)) {
+      console.log(
+        '[REVIEW BLOCKED]',
+        'AllowedStages:', this.userForStages,
+        'DocStage:', doc.stageId
+      );
+      return false;
+    }
+
+    if (currentUserType === 'user' && uploaderType === 'vendor') return true;
+    if (currentUserType === 'vendor' && uploaderType === 'user') return true;
+
     return false;
   }
-
-  // 🔄 ROLE-BASED REVIEW
-  if (currentUserType === 'user' && uploaderType === 'vendor') return true;
-  if (currentUserType === 'vendor' && uploaderType === 'user') return true;
-
-  return false;
-}
-
 
   isUser(): boolean {
     return this.userType?.toLowerCase() === 'user';
@@ -906,7 +719,6 @@ canSubmitStage(row: QuantityRowData, stageId: number): boolean {
   }
 
   exportData(): void {
-    // Export logic remains the same
     this.toastservice.showToast('warning', 'Export functionality');
   }
 
@@ -926,5 +738,94 @@ canSubmitStage(row: QuantityRowData, stageId: number): boolean {
 
   getTotalCount(): number {
     return this.tableData.length;
+  }
+
+  // NEW METHOD: Reuse document for another quantity
+  async reuseDocument(doc: UploadedDocument, stageId: number): Promise<void> {
+    // Get available quantities (excluding current quantity)
+    const availableQuantities = this.tableData
+      .filter(row => row.quantityId !== doc.quantityId)
+      .map(row => ({
+        value: row.quantityId.toString(),
+        text: `Quantity ${row.quantity} (Delivery: ${row.dateDeliver})`
+      }));
+
+    if (availableQuantities.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'No Available Quantities',
+        text: 'There are no other quantities to reuse this document for.'
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Reuse Document',
+      html: `
+        <div style="text-align: left; padding: 1rem;">
+          <p><strong>Document:</strong> ${doc.uploadedDocumentName}</p>
+          <p><strong>Current Quantity:</strong> ${this.getQuantityByDoc(doc)?.quantity}</p>
+          <p><strong>Stage:</strong> ${this.stageNames[stageId]}</p>
+        </div>
+      `,
+      input: 'select',
+      inputLabel: 'Select Target Quantity',
+      inputOptions: availableQuantities.reduce((acc, curr) => {
+        acc[curr.value] = curr.text;
+        return acc;
+      }, {} as { [key: string]: string }),
+      inputPlaceholder: 'Choose quantity...',
+      showCancelButton: true,
+      confirmButtonText: 'Reuse Document',
+      confirmButtonColor: '#007bff',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Please select a target quantity';
+        }
+        return null;
+      }
+    });
+
+    if (result.isConfirmed && result.value) {
+      this.performDocumentReuse(doc, stageId, parseInt(result.value));
+    }
+  }
+
+  private performDocumentReuse(doc: UploadedDocument, stageId: number, targetQuantityId: number): void {
+    const payload = {
+      poId: this.poId,
+      stageId: stageId,
+      documentTypeId: doc.documentTypeId,
+      targetQuantityId: targetQuantityId
+    };
+
+    this.http.post(
+      `${environment.apiUrl}/v1/UploadedDocument/reuse-for-quantity`,
+      payload,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Document Reused',
+          text: 'Document has been successfully reused for the selected quantity.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadAllData();
+      },
+      error: (err) => {
+        console.error('Document reuse error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Reuse Failed',
+          text: err.error?.message || 'Failed to reuse document. Please try again.'
+        });
+      }
+    });
+  }
+
+  private getQuantityByDoc(doc: UploadedDocument): QuantityRowData | undefined {
+    return this.tableData.find(row => row.quantityId === doc.quantityId);
   }
 }

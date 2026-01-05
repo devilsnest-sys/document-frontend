@@ -115,15 +115,6 @@
                                [class.fa-chevron-down]="isStageExpanded(row, stage.stageId)"
                                [class.fa-chevron-right]="!isStageExpanded(row, stage.stageId)"></i>
                             <span class="stage-name ml-2">{{ stage.stageName }}</span>
-                            <!-- <span class="badge badge-info ml-2">
-                              {{ stage.documents.length }} Document Types
-                            </span> -->
-                            <!-- <span class="badge ml-2" 
-                                  [class.badge-success]="stage.stageStatus === 'Complete'"
-                                  [class.badge-warning]="stage.stageStatus === 'InProgress'"
-                                  [class.badge-secondary]="stage.stageStatus === 'Pending'">
-                              {{ stage.stageStatus }}
-                            </span> -->
                           </div>
                           
                           <button class="btn btn-sm" 
@@ -156,9 +147,6 @@
                                  [class.fa-chevron-right]="!isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"></i>
                               <i class="fas fa-file-alt mr-2"></i>
                               <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
-                              <!-- <span class="badge badge-secondary ml-2">
-                                {{ getDocumentCount(stage, docGroup.documentType.id) }} documents
-                              </span> -->
                             </div>
                           </td>
                         </tr>
@@ -215,7 +203,6 @@
                           <td>
                             <div class="uploader-info">
                               <small class="text-muted d-block">{{ doc.userNameAccToUploadDoc || 'N/A' }}</small>
-                              <!-- <span class="badge badge-light">{{ doc.docUploadedBy || 'N/A' }}</span> -->
                             </div>
                           </td>
                           <td>
@@ -224,7 +211,6 @@
                           <td>
                             <div class="reviewer-info">
                               <small class="text-muted d-block">{{ doc.vendorNameAccToReviewDoc || 'N/A' }}</small>
-                              <!-- <span class="badge badge-light">{{ doc.docReviewedBy || 'N/A' }}</span> -->
                             </div>
                           </td>
                           <td>
@@ -255,6 +241,13 @@
                                       [disabled]="doc.isApproved || doc.isRejected"
                                       title="Reject">
                                 <i class="fas fa-times"></i>
+                              </button>
+                              
+                              <button class="btn btn-sm btn-primary" 
+                                      (click)="reuseDocument(doc, stage.stageId); $event.stopPropagation();" 
+                                      *ngIf="doc.isApproved && canAccessStage(stage.stageId)"
+                                      title="Reuse for another quantity">
+                                <i class="fas fa-copy"></i>
                               </button>
                             </div>
                             <small class="text-muted d-block" *ngIf="doc.reviewRemark">
