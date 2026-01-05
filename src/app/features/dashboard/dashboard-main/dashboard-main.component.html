@@ -1,59 +1,322 @@
-<div class="container m-0">
-  <div class="card">
-    <div class="card-header bg-dark text-white">
-      <h3 class="text-center">Vendor and Purchase Order Selection</h3>
+<!-- dashboard-main.component.html -->
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">
+        <span class="material-icons">dashboard</span>
+        Dashboard Overview
+      </h1>
+      <button class="refresh-btn" (click)="refreshDashboard()" [disabled]="isLoadingStats">
+        <span class="material-icons">refresh</span>
+        Refresh
+      </button>
     </div>
-    <div class="card-body">
-      <form [formGroup]="vendorPoForm">
-        <div class="row">
-          <!-- Vendor Selection (Only for Admins/Users) -->
-          <div class="col-md-6" *appUserRole="['admin', 'user']">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Select Vendor</mat-label>
-              <input appTrimInput type="text"
-                     placeholder="Pick a vendor"
-                     aria-label="Vendor"
-                     matInput
-                     [formControl]="vendorControl"
-                     [matAutocomplete]="vendorAuto"
-                     (focus)="showAllVendors()">
-              <mat-autocomplete #vendorAuto="matAutocomplete"
-                               (optionSelected)="onVendorSelect($event)"
-                               [displayWith]="displayVendor">
-                <mat-option *ngFor="let vendor of filteredVendors$ | async" 
-                            [value]="vendor.id">
-                  {{ vendor.vendorCode }} - {{ vendor.companyName }}
-                </mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid" *ngIf="!isLoadingStats">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon">
+        <span class="material-icons">description</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.totalPOs }}</h3>
+        <p class="stat-label">Total Purchase Orders</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <div class="stat-icon">
+        <span class="material-icons">business</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.totalVendors }}</h3>
+        <p class="stat-label">Total Vendors</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <div class="stat-icon">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.completedStages }}</h3>
+        <p class="stat-label">Completed Stages</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+      <div class="stat-icon">
+        <span class="material-icons">pending</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.pendingStages }}</h3>
+        <p class="stat-label">Pending Stages</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-danger">
+      <div class="stat-icon">
+        <span class="material-icons">warning</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.overduePos }}</h3>
+        <p class="stat-label">Overdue POs</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span class="material-icons">trending_up</span>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ dashboardStats.activePos }}</h3>
+        <p class="stat-label">Active POs</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLoadingStats">
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Vendor & PO Selection Card -->
+    <div class="dashboard-card selection-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">search</span>
+          Select Vendor & Purchase Order
+        </h3>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="vendorPoForm">
+          <div class="form-row">
+            <!-- Vendor Selection -->
+            <div class="form-group" *appUserRole="['admin', 'user']">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Select Vendor</mat-label>
+                <input appTrimInput 
+                       type="text"
+                       placeholder="Search vendor..."
+                       matInput
+                       [formControl]="vendorControl"
+                       [matAutocomplete]="vendorAuto"
+                       (focus)="showAllVendors()">
+                <mat-icon matPrefix>business</mat-icon>
+                <mat-autocomplete #vendorAuto="matAutocomplete"
+                                 (optionSelected)="onVendorSelect($event)"
+                                 [displayWith]="displayVendor">
+                  <mat-option *ngFor="let vendor of filteredVendors$ | async" 
+                              [value]="vendor.id">
+                    <div class="vendor-option">
+                      <span class="vendor-code">{{ vendor.vendorCode }}</span>
+                      <span class="vendor-name">{{ vendor.companyName }}</span>
+                    </div>
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+
+            <!-- PO Selection -->
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Select Purchase Order</mat-label>
+                <mat-select formControlName="po" 
+                           [disabled]="!vendorPoForm.get('vendor')?.value">
+                  <mat-icon matPrefix>description</mat-icon>
+                  <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
+                    {{ po.pO_NO }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
           </div>
 
-          <!-- Purchase Order Selection (Always Visible) -->
-          <div class="col-md-6">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Select Purchase Order</mat-label>
-              <mat-select formControlName="po" [disabled]="!vendorPoForm.get('vendor')?.value">
-                <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
-                  {{ po.pO_NO }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+          <!-- Action Button -->
+          <div class="action-buttons" *ngIf="isStepBarVisible()">
+            <button class="btn-go" 
+                    [routerLink]="['/stages', 1, vendorPoForm.get('po')?.value]"
+                    [disabled]="!vendorPoForm.get('po')?.value">
+              <span class="material-icons">arrow_forward</span>
+              View Stages
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Recent POs Card -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">schedule</span>
+          Recent Purchase Orders
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="po-list" *ngIf="recentPOs.length > 0">
+          <div class="po-item" *ngFor="let po of recentPOs" 
+               (click)="navigateToPO(po.poNumber)">
+            <div class="po-info">
+              <h4 class="po-number">{{ po.poNumber }}</h4>
+              <p class="po-vendor">{{ po.vendorName }}</p>
+              <p class="po-date">
+                <span class="material-icons">event</span>
+                Due: {{ po.dueDate | date: 'MMM dd, yyyy' }}
+              </p>
+            </div>
+            <div class="po-status">
+              <span class="status-badge" [ngClass]="'status-' + po.status.toLowerCase().replace(' ', '-')">
+                {{ po.status }}
+              </span>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="po.progress"></div>
+              </div>
+              <span class="progress-text">{{ po.progress }}%</span>
+            </div>
           </div>
         </div>
-      </form>
+        <div class="empty-state" *ngIf="recentPOs.length === 0">
+          <span class="material-icons">inbox</span>
+          <p>No recent purchase orders</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue POs Card -->
+    <div class="dashboard-card" *ngIf="overduePOs.length > 0">
+      <div class="card-header alert-header">
+        <h3 class="card-title">
+          <span class="material-icons">warning</span>
+          Overdue Purchase Orders
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="po-list overdue-list">
+          <div class="po-item overdue-item" *ngFor="let po of overduePOs"
+               (click)="navigateToPO(po.poNumber)">
+            <div class="po-info">
+              <h4 class="po-number">{{ po.poNumber }}</h4>
+              <p class="po-vendor">{{ po.vendorName }}</p>
+              <p class="po-overdue">
+                <span class="material-icons">alarm</span>
+                Overdue by {{ getDaysOverdue(po.dueDate) }} days
+              </p>
+            </div>
+            <div class="po-status">
+              <div class="progress-bar">
+                <div class="progress-fill danger" [style.width.%]="po.progress"></div>
+              </div>
+              <span class="progress-text">{{ po.progress }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage Progress Overview -->
+    <div class="dashboard-card stages-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">assignment</span>
+          Stage Progress Summary
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="stage-summary">
+          <div class="summary-item">
+            <div class="summary-circle completed">
+              <span class="material-icons">check</span>
+            </div>
+            <div class="summary-info">
+              <h4>{{ dashboardStats.completedStages }}</h4>
+              <p>Completed</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-circle pending">
+              <span class="material-icons">schedule</span>
+            </div>
+            <div class="summary-info">
+              <h4>{{ dashboardStats.pendingStages }}</h4>
+              <p>Pending</p>
+            </div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-total">
+            <h3>{{ dashboardStats.completedStages + dashboardStats.pendingStages }}</h3>
+            <p>Total Stages</p>
+          </div>
+        </div>
+
+        <div class="completion-rate">
+          <div class="rate-label">
+            <span>Overall Completion Rate</span>
+            <span class="rate-value">
+              {{ ((dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0) | number: '1.0-0' }}%
+            </span>
+          </div>
+          <div class="progress-bar large">
+            <div class="progress-fill" 
+                 [style.width.%]="(dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-card quick-stats-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">insights</span>
+          Quick Statistics
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="quick-stat-item">
+          <span class="material-icons stat-icon-small">assignment_turned_in</span>
+          <div class="stat-details">
+            <p class="stat-label-small">Completion Rate</p>
+            <p class="stat-value-small">
+              {{ ((dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0) | number: '1.0-0' }}%
+            </p>
+          </div>
+        </div>
+
+        <div class="quick-stat-item">
+          <span class="material-icons stat-icon-small">trending_up</span>
+          <div class="stat-details">
+            <p class="stat-label-small">Active Projects</p>
+            <p class="stat-value-small">{{ dashboardStats.activePos }}</p>
+          </div>
+        </div>
+
+        <div class="quick-stat-item">
+          <span class="material-icons stat-icon-small">people</span>
+          <div class="stat-details">
+            <p class="stat-label-small">Avg POs per Vendor</p>
+            <p class="stat-value-small">
+              {{ dashboardStats.totalVendors > 0 ? (dashboardStats.totalPOs / dashboardStats.totalVendors | number: '1.0-1') : 0 }}
+            </p>
+          </div>
+        </div>
+
+        <div class="quick-stat-item alert-item" *ngIf="dashboardStats.overduePos > 0">
+          <span class="material-icons stat-icon-small">notification_important</span>
+          <div class="stat-details">
+            <p class="stat-label-small">Needs Attention</p>
+            <p class="stat-value-small">{{ dashboardStats.overduePos }} POs</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Go Button Section -->
-<div class="container mt-4" *ngIf="isStepBarVisible()">
-  <div class="text-center">
-    <button 
-      class="btn btn-primary btn-lg"
-      [routerLink]="['/stages', 1, vendorPoForm.get('po')?.value]"
-      [disabled]="!vendorPoForm.get('po')?.value">
-      Go
-    </button>
-  </div>
-</div>
+<!-- Include reports component -->
 <app-reports></app-reports>

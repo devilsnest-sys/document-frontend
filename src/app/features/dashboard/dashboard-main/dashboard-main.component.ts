@@ -8,6 +8,23 @@ import { environment } from '../../../../environment/environment';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import { Router } from '@angular/router';
 
+interface DashboardStats {
+  totalPOs: number;
+  totalVendors: number;
+  completedStages: number;
+  pendingStages: number;
+  overduePos: number;
+  activePos: number;
+}
+
+interface POStatus {
+  poNumber: string;
+  vendorName: string;
+  dueDate: Date;
+  status: string;
+  progress: number;
+}
+
 @Component({
   selector: 'app-dashboard-main',
   standalone: false,
@@ -25,28 +42,39 @@ export class DashboardMainComponent {
   vendorControl = new FormControl('');
   filteredVendors$ = new BehaviorSubject<any[]>([]);
   isSubmitting = false;
-
-  // Add this property to track the selected PO number
   selectedPoNumber: string | null = null;
-// vendor-po.component.ts (or your component file)
-stages = [
-  { id: 1, stageName: 'OA' },
-  { id: 2, stageName: 'CPBG' },
-  { id: 3, stageName: 'LC' },
-  { id: 4, stageName: 'Advance' },
-  { id: 5, stageName: 'Drawing & QAP' },
-  { id: 6, stageName: 'FF' },
-  { id: 7, stageName: 'Draft Shipping' },
-  { id: 8, stageName: 'Original Shipping' },
-  { id: 9, stageName: 'Bank-LC' },
-  { id: 10, stageName: 'Bank-CAD' },
-  { id: 11, stageName: 'Bank-LSC' },
-  { id: 12, stageName: 'Credit' },
-  { id: 13, stageName: 'Imports Clearance' },
-  { id: 14, stageName: 'Acceptance' },
-  { id: 15, stageName: 'Payment' }
-];
 
+  // Dashboard statistics
+  dashboardStats: DashboardStats = {
+    totalPOs: 0,
+    totalVendors: 0,
+    completedStages: 0,
+    pendingStages: 0,
+    overduePos: 0,
+    activePos: 0
+  };
+
+  recentPOs: POStatus[] = [];
+  overduePOs: POStatus[] = [];
+  isLoadingStats = false;
+
+  stages = [
+    { id: 1, stageName: 'OA' },
+    { id: 2, stageName: 'CPBG' },
+    { id: 3, stageName: 'LC' },
+    { id: 4, stageName: 'Advance' },
+    { id: 5, stageName: 'Drawing & QAP' },
+    { id: 6, stageName: 'FF' },
+    { id: 7, stageName: 'Draft Shipping' },
+    { id: 8, stageName: 'Original Shipping' },
+    { id: 9, stageName: 'Bank-LC' },
+    { id: 10, stageName: 'Bank-CAD' },
+    { id: 11, stageName: 'Bank-LSC' },
+    { id: 12, stageName: 'Credit' },
+    { id: 13, stageName: 'Imports Clearance' },
+    { id: 14, stageName: 'Acceptance' },
+    { id: 15, stageName: 'Payment' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -59,14 +87,12 @@ stages = [
     this.initializeForm();
     this.loadVendors();
     this.setupVendorFilter();
+    this.loadDashboardStats();
 
-    // Auto-set vendor for vendors
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
     
-    // Fetch step statuses when PO changes
     this.vendorPoForm.get('po')?.valueChanges.subscribe((poValue) => {
-      this.selectedPoNumber = poValue; // Update the selected PO number
-      // console.log('Selected PO Number:', this.selectedPoNumber); // Log it
+      this.selectedPoNumber = poValue;
       this.fetchStepStatuses();
     });
   }
@@ -96,7 +122,6 @@ stages = [
         this.vendors = vendors;
         this.filteredVendors$.next(this.vendors);
   
-        // Restore selected vendor in case of page reload
         const selectedVendor = this.vendorPoForm.get('vendor')?.value;
         if (selectedVendor) {
           const foundVendor = this.vendors.find(v => v.id === selectedVendor.id);
@@ -129,7 +154,6 @@ stages = [
       this.vendorPoForm.patchValue({ vendor: selectedVendor });
       this.vendorControl.setValue(selectedVendor, { emitEvent: false });
       this.onVendorChange(selectedVendor.vendorCode);
-      console.log(selectedVendor.companyName);
     }
   }   
 
@@ -178,7 +202,7 @@ stages = [
   onCancel(): void {
     this.vendorPoForm.reset();
     this.purchaseOrders = [];
-    this.selectedPoNumber = null; // Reset the selected PO number
+    this.selectedPoNumber = null;
   }
 
   private loadVendorById(vendorId: number): void {
@@ -193,7 +217,7 @@ stages = [
         if (vendor) {
           this.vendorPoForm.patchValue({ vendor: vendor });
           this.vendorControl.setValue(vendor, { emitEvent: false });
-          this.onVendorChange(vendor.vendorCode); // Load POs for this vendor
+          this.onVendorChange(vendor.vendorCode);
         }
       },
       error: err => {
@@ -208,7 +232,7 @@ stages = [
     const vendorId = localStorage.getItem('userId');
 
     if (userType === 'vendor' && vendorId) {
-      this.loadVendorById(parseInt(vendorId, 10)); // Fetch vendor details directly
+      this.loadVendorById(parseInt(vendorId, 10));
     }
   }
 
@@ -216,7 +240,6 @@ stages = [
     const token = localStorage.getItem('authToken');
     if (!token) return;
     const poNumber = this.vendorPoForm.get('po')?.value;
-    //const poNumber=1;
     const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${poNumber}`;
     
     const headers = { Authorization: `Bearer ${token}` };
@@ -244,6 +267,138 @@ stages = [
       return 'current';
     } else {
       return 'pending';
+    }
+  }
+
+  // New Dashboard Methods
+  private loadDashboardStats(): void {
+    this.isLoadingStats = true;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    // Fetch all POs
+    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+      next: (pos) => {
+        this.calculateDashboardStats(pos);
+        this.identifyOverduePOs(pos);
+        this.getRecentPOs(pos);
+        this.isLoadingStats = false;
+      },
+      error: (err) => {
+        console.error('Error loading dashboard stats:', err);
+        this.isLoadingStats = false;
+      }
+    });
+  }
+
+  private calculateDashboardStats(pos: any[]): void {
+    this.dashboardStats.totalPOs = pos.length;
+    this.dashboardStats.totalVendors = this.vendors.length;
+    
+    let completedCount = 0;
+    let pendingCount = 0;
+    let overdueCount = 0;
+    let activeCount = 0;
+
+    pos.forEach(po => {
+      // Count stages
+      if (po.stageStatuses) {
+        const completed = po.stageStatuses.filter((s: any) => s.status === 'Complete').length;
+        const pending = po.stageStatuses.filter((s: any) => s.status === 'Pending').length;
+        
+        completedCount += completed;
+        pendingCount += pending;
+      }
+
+      // Check if overdue
+      if (po.contractualDeliveryDate) {
+        const dueDate = new Date(po.contractualDeliveryDate);
+        const today = new Date();
+        if (dueDate < today && po.stageStatuses?.some((s: any) => s.status !== 'Complete')) {
+          overdueCount++;
+        }
+      }
+
+      // Count active POs
+      if (po.stageStatuses?.some((s: any) => s.status === 'InProgress' || s.status === 'Pending')) {
+        activeCount++;
+      }
+    });
+
+    this.dashboardStats.completedStages = completedCount;
+    this.dashboardStats.pendingStages = pendingCount;
+    this.dashboardStats.overduePos = overdueCount;
+    this.dashboardStats.activePos = activeCount;
+  }
+
+  private identifyOverduePOs(pos: any[]): void {
+    const today = new Date();
+    this.overduePOs = pos
+      .filter(po => {
+        if (!po.contractualDeliveryDate) return false;
+        const dueDate = new Date(po.contractualDeliveryDate);
+        return dueDate < today && po.stageStatuses?.some((s: any) => s.status !== 'Complete');
+      })
+      .map(po => ({
+        poNumber: po.pO_NO,
+        vendorName: this.getVendorName(po.vendorId),
+        dueDate: new Date(po.contractualDeliveryDate),
+        status: 'Overdue',
+        progress: this.calculateProgress(po.stageStatuses)
+      }))
+      .slice(0, 5); // Show top 5 overdue
+  }
+
+  private getRecentPOs(pos: any[]): void {
+    this.recentPOs = pos
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5)
+      .map(po => ({
+        poNumber: po.pO_NO,
+        vendorName: this.getVendorName(po.vendorId),
+        dueDate: new Date(po.contractualDeliveryDate),
+        status: this.getOverallStatus(po.stageStatuses),
+        progress: this.calculateProgress(po.stageStatuses)
+      }));
+  }
+
+  private getVendorName(vendorId: number): string {
+    const vendor = this.vendors.find(v => v.id === vendorId);
+    return vendor ? vendor.companyName : 'Unknown';
+  }
+
+  private calculateProgress(stageStatuses: any[]): number {
+    if (!stageStatuses || stageStatuses.length === 0) return 0;
+    const completed = stageStatuses.filter(s => s.status === 'Complete').length;
+    return Math.round((completed / stageStatuses.length) * 100);
+  }
+
+  private getOverallStatus(stageStatuses: any[]): string {
+    if (!stageStatuses || stageStatuses.length === 0) return 'Not Started';
+    if (stageStatuses.every(s => s.status === 'Complete')) return 'Completed';
+    if (stageStatuses.some(s => s.status === 'InProgress')) return 'In Progress';
+    return 'Pending';
+  }
+
+  getDaysOverdue(dueDate: Date): number {
+    const today = new Date();
+    const diffTime = today.getTime() - dueDate.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  refreshDashboard(): void {
+    this.loadVendors();
+    this.loadDashboardStats();
+    this.toastService.showToast('success', 'Dashboard refreshed');
+  }
+
+  navigateToPO(poNumber: string): void {
+    // Find the PO and set it in the form
+    const po = this.purchaseOrders.find(p => p.pO_NO === poNumber);
+    if (po) {
+      this.vendorPoForm.patchValue({ po: po.id });
     }
   }
 }
