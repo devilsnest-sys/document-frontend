@@ -136,20 +136,30 @@
                     <!-- Document Types within Stage -->
                     <ng-container *ngIf="isStageExpanded(row, stage.stageId)">
                       <ng-container *ngFor="let docGroup of stage.documents">
-                        <!-- Document Type Header -->
-                        <tr (click)="toggleDocument(row, stage.stageId, docGroup.documentType.id)" 
-                            class="document-type-header cursor-pointer"
-                            [class.expanded]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)">
-                          <td colspan="8" class="document-type-cell">
-                            <div class="document-type-content">
-                              <i class="fas toggle-icon"
-                                 [class.fa-chevron-down]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"
-                                 [class.fa-chevron-right]="!isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"></i>
-                              <i class="fas fa-file-alt mr-2"></i>
-                              <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
-                            </div>
-                          </td>
-                        </tr>
+<!-- Document Type Header -->
+<tr (click)="toggleDocument(row, stage.stageId, docGroup.documentType.id)" 
+    class="document-type-header cursor-pointer"
+    [class.expanded]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)">
+  <td colspan="8" class="document-type-cell">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <div class="document-type-content">
+        <i class="fas toggle-icon"
+           [class.fa-chevron-down]="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"
+           [class.fa-chevron-right]="!isDocumentExpanded(row, stage.stageId, docGroup.documentType.id)"></i>
+        <i class="fas fa-file-alt mr-2"></i>
+        <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
+      </div>
+
+      <!-- Reuse Button - USER ONLY -->
+      <button class="btn btn-sm btn-primary"
+              *ngIf="isUser() && getApprovedDoc(docGroup) && canAccessStage(stage.stageId)"
+              (click)="reuseDocument(getApprovedDoc(docGroup)!, stage.stageId); $event.stopPropagation()">
+        <i class="fas fa-copy"></i> Reuse
+      </button>
+    </div>
+  </td>
+</tr>
+
 
                         <!-- Document Table Header -->
                         <tr *ngIf="isDocumentExpanded(row, stage.stageId, docGroup.documentType.id) && docGroup.uploadedDocuments.length > 0"
@@ -193,7 +203,7 @@
                             </span>
                           </td>
                           <td>
-                            <span class="badge" 
+                            <span class="" 
                                   [class.badge-success]="doc.isApproved"
                                   [class.badge-danger]="doc.isRejected"
                                   [class.badge-warning]="!doc.isApproved && !doc.isRejected">
@@ -241,13 +251,6 @@
                                       [disabled]="doc.isApproved || doc.isRejected"
                                       title="Reject">
                                 <i class="fas fa-times"></i>
-                              </button>
-                              
-                              <button class="btn btn-sm btn-primary" 
-                                      (click)="reuseDocument(doc, stage.stageId); $event.stopPropagation();" 
-                                      *ngIf="doc.isApproved && canAccessStage(stage.stageId)"
-                                      title="Reuse for another quantity">
-                                <i class="fas fa-copy"></i>
                               </button>
                             </div>
                             <small class="text-muted d-block" *ngIf="doc.reviewRemark">

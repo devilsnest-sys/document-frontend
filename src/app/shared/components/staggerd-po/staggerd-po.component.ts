@@ -739,6 +739,9 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
   getTotalCount(): number {
     return this.tableData.length;
   }
+getApprovedDoc(group: DocumentGroup): UploadedDocument | null {
+  return group.uploadedDocuments.find(d => d.isApproved) || null;
+}
 
   // NEW METHOD: Reuse document for another quantity
   async reuseDocument(doc: UploadedDocument, stageId: number): Promise<void> {
