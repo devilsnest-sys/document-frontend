@@ -15,6 +15,9 @@ interface DashboardStats {
   pendingStages: number;
   overduePos: number;
   activePos: number;
+  totalUsers?: number;
+  totalCompletedPOs?: number;
+  totalPendingPOs?: number;
 }
 
 interface POStatus {
@@ -43,6 +46,10 @@ export class DashboardMainComponent {
   filteredVendors$ = new BehaviorSubject<any[]>([]);
   isSubmitting = false;
   selectedPoNumber: string | null = null;
+
+  // User type tracking
+  isVendorUser = false;
+  userType: string | null = null;
 
   // Dashboard statistics
   dashboardStats: DashboardStats = {
@@ -84,10 +91,15 @@ export class DashboardMainComponent {
   ) {}
 
   ngOnInit(): void {
+    this.checkUserType();
     this.initializeForm();
     this.loadVendors();
     this.setupVendorFilter();
-    this.loadDashboardStats();
+    
+    // Only load dashboard stats for non-vendor users
+    if (!this.isVendorUser) {
+      this.loadDashboardStats();
+    }
 
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
     
@@ -95,6 +107,11 @@ export class DashboardMainComponent {
       this.selectedPoNumber = poValue;
       this.fetchStepStatuses();
     });
+  }
+
+  private checkUserType(): void {
+    this.userType = localStorage.getItem('userType');
+    this.isVendorUser = this.userType === 'vendor';
   }
 
   private initializeForm(): void {
@@ -228,10 +245,9 @@ export class DashboardMainComponent {
   }
   
   private checkUserTypeAndSetVendor(): void {
-    const userType = localStorage.getItem('userType');
     const vendorId = localStorage.getItem('userId');
 
-    if (userType === 'vendor' && vendorId) {
+    if (this.isVendorUser && vendorId) {
       this.loadVendorById(parseInt(vendorId, 10));
     }
   }
@@ -270,67 +286,81 @@ export class DashboardMainComponent {
     }
   }
 
-  // New Dashboard Methods
+  // New Dashboard Methods - Updated to use summary API
   private loadDashboardStats(): void {
     this.isLoadingStats = true;
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    if (!token) {
+      this.isLoadingStats = false;
+      return;
+    }
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch all POs
-    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
-      next: (pos) => {
-        this.calculateDashboardStats(pos);
-        this.identifyOverduePOs(pos);
-        this.getRecentPOs(pos);
-        this.isLoadingStats = false;
+    // Fetch summary data from the new API
+    this.http.get<any>(`${environment.apiUrl}/v1/users/summary`, { headers }).subscribe({
+      next: (summary) => {
+        // Map API response to dashboard stats
+        this.dashboardStats = {
+          totalPOs: summary.totalPurchaseOrders || 0,
+          totalVendors: summary.totalVendors || 0,
+          completedStages: 0, // Will be calculated from POs
+          pendingStages: 0,   // Will be calculated from POs
+          overduePos: summary.totalOverduePOs || 0,
+          activePos: summary.totalPendingPOs || 0,
+          totalUsers: summary.totalUsers || 0,
+          totalCompletedPOs: summary.totalCompletedPOs || 0,
+          totalPendingPOs: summary.totalPendingPOs || 0
+        };
+
+        // Load additional details for recent/overdue POs
+        this.loadDetailedPOData();
       },
       error: (err) => {
-        console.error('Error loading dashboard stats:', err);
+        console.error('Error loading dashboard summary:', err);
+        this.toastService.showToast('error', 'Error loading dashboard statistics');
         this.isLoadingStats = false;
       }
     });
   }
 
-  private calculateDashboardStats(pos: any[]): void {
-    this.dashboardStats.totalPOs = pos.length;
-    this.dashboardStats.totalVendors = this.vendors.length;
-    
+  private loadDetailedPOData(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    // Fetch all POs for detailed stats
+    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+      next: (pos) => {
+        this.calculateStageStats(pos);
+        this.identifyOverduePOs(pos);
+        this.getRecentPOs(pos);
+        this.isLoadingStats = false;
+      },
+      error: (err) => {
+        console.error('Error loading detailed PO data:', err);
+        this.isLoadingStats = false;
+      }
+    });
+  }
+
+  private calculateStageStats(pos: any[]): void {
     let completedCount = 0;
     let pendingCount = 0;
-    let overdueCount = 0;
-    let activeCount = 0;
 
     pos.forEach(po => {
-      // Count stages
       if (po.stageStatuses) {
         const completed = po.stageStatuses.filter((s: any) => s.status === 'Complete').length;
-        const pending = po.stageStatuses.filter((s: any) => s.status === 'Pending').length;
+        const pending = po.stageStatuses.filter((s: any) => s.status === 'Pending' || s.status === 'InProgress').length;
         
         completedCount += completed;
         pendingCount += pending;
-      }
-
-      // Check if overdue
-      if (po.contractualDeliveryDate) {
-        const dueDate = new Date(po.contractualDeliveryDate);
-        const today = new Date();
-        if (dueDate < today && po.stageStatuses?.some((s: any) => s.status !== 'Complete')) {
-          overdueCount++;
-        }
-      }
-
-      // Count active POs
-      if (po.stageStatuses?.some((s: any) => s.status === 'InProgress' || s.status === 'Pending')) {
-        activeCount++;
       }
     });
 
     this.dashboardStats.completedStages = completedCount;
     this.dashboardStats.pendingStages = pendingCount;
-    this.dashboardStats.overduePos = overdueCount;
-    this.dashboardStats.activePos = activeCount;
   }
 
   private identifyOverduePOs(pos: any[]): void {
@@ -390,7 +420,9 @@ export class DashboardMainComponent {
 
   refreshDashboard(): void {
     this.loadVendors();
-    this.loadDashboardStats();
+    if (!this.isVendorUser) {
+      this.loadDashboardStats();
+    }
     this.toastService.showToast('success', 'Dashboard refreshed');
   }
 

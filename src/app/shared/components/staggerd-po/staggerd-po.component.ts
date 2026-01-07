@@ -743,6 +743,35 @@ getApprovedDoc(group: DocumentGroup): UploadedDocument | null {
   return group.uploadedDocuments.find(d => d.isApproved) || null;
 }
 
+shouldShowReuseButton(row: QuantityRowData, stage: StageGroup, docGroup: DocumentGroup): boolean {
+  // Only show for users
+  if (!this.isUser() || !this.canAccessStage(stage.stageId)) {
+    return false;
+  }
+
+  // Check if this document group has an approved document
+  const hasApproved = this.hasApprovedDocument(docGroup);
+  if (!hasApproved) {
+    return false;
+  }
+
+  // Find the FIRST quantity that has an approved document for this stage and document type
+  const firstQuantityWithApproval = this.tableData.find(r => {
+    const matchingStage = r.stages.find(s => s.stageId === stage.stageId);
+    if (!matchingStage) return false;
+
+    const matchingDocGroup = matchingStage.documents.find(
+      d => d.documentType.id === docGroup.documentType.id
+    );
+    if (!matchingDocGroup) return false;
+
+    return this.hasApprovedDocument(matchingDocGroup);
+  });
+
+  // Only show reuse button if this is the first quantity with an approved document
+  return firstQuantityWithApproval?.quantityId === row.quantityId;
+}
+
   // NEW METHOD: Reuse document for another quantity
   async reuseDocument(doc: UploadedDocument, stageId: number): Promise<void> {
     // Get available quantities (excluding current quantity)

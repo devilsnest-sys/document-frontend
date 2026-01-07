@@ -150,9 +150,9 @@
         <span class="doc-type-name">{{ docGroup.documentType.documentName }}</span>
       </div>
 
-      <!-- Reuse Button - USER ONLY -->
+      <!-- Reuse Button - Only show for the FIRST quantity with an approved document -->
       <button class="btn btn-sm btn-primary"
-              *ngIf="isUser() && getApprovedDoc(docGroup) && canAccessStage(stage.stageId)"
+              *ngIf="shouldShowReuseButton(row, stage, docGroup)"
               (click)="reuseDocument(getApprovedDoc(docGroup)!, stage.stageId); $event.stopPropagation()">
         <i class="fas fa-copy"></i> Reuse
       </button>

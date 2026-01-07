@@ -16,7 +16,7 @@
           </a>
         </li>
 
-        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase() || authService.isEmployee()">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase()">
           <a routerLink="/orderAcknowledgement" routerLinkActive="active" class="nav-link">
             <mat-icon>receipt_long</mat-icon>
             <span>PO Details</span>
@@ -37,7 +37,7 @@
           </a>
         </li>
 
-        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase() || authService.isEmployee()">
+        <li class="menu-item" *ngIf="authService.isAdmin() || authService.isPurchase()">
           <a routerLink="/reports" routerLinkActive="active" class="nav-link">
             <mat-icon>assessment</mat-icon>
             <span>Reports</span>
@@ -99,7 +99,6 @@
       </ul>
     </nav>
 
-    <!-- User Profile Section -->
 <!-- User Profile Dropdown -->
 <div class="user-section" (click)="toggleUserMenu()" tabindex="0">
 
