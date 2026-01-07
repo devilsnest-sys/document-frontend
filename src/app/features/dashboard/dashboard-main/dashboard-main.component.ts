@@ -47,6 +47,7 @@ export class DashboardMainComponent {
   // User type tracking
   isVendorUser = false;
   userType: string | null = null;
+  userId: string | null = null;
 
   // Dashboard statistics - Updated to match API response
   dashboardStats: DashboardStats = {
@@ -108,6 +109,7 @@ export class DashboardMainComponent {
 
   private checkUserType(): void {
     this.userType = localStorage.getItem('userType');
+    this.userId = localStorage.getItem('userId');
     this.isVendorUser = this.userType === 'vendor';
   }
 
@@ -186,18 +188,39 @@ export class DashboardMainComponent {
     const token = localStorage.getItem('authToken');
     if (!token) return;
   
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
+    // Use the new user-specific endpoint if userId is available
+    let url: string;
+    if (this.userId) {
+      // Fetch user-specific POs and filter by vendor
+      url = `${environment.apiUrl}/v1/PurchaseOrder/by-user/${this.userId}`;
+    } else {
+      // Fallback to vendor-specific endpoint
+      url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
+    }
+    
     const headers = { Authorization: `Bearer ${token}` };
   
     this.purchaseOrders = [];
   
     this.http.get<any[]>(url, { headers }).subscribe({
       next: response => {
-        this.purchaseOrders = response;
+        // If using user-specific endpoint, filter by vendorCode
+        if (this.userId) {
+          const vendor = this.vendors.find(v => v.vendorCode === vendorCode);
+          if (vendor) {
+            this.purchaseOrders = response.filter(po => po.vendorId === vendor.id);
+          }
+        } else {
+          this.purchaseOrders = response;
+        }
+        
+        if (this.purchaseOrders.length === 0) {
+          this.toastService.showToast('warning', 'No POs assigned to you for this vendor');
+        }
       },
       error: err => {
         console.error('Error fetching purchase orders:', err);
-        this.toastService.showToast('error', 'No PO Found For Selected Vendor');
+        this.toastService.showToast('error', 'Error loading purchase orders');
       }
     });
   }  
@@ -283,7 +306,7 @@ export class DashboardMainComponent {
     }
   }
 
-  // Dashboard Methods - Simplified to use only summary API
+  // Dashboard Methods - Updated to use user-specific POs
   private loadDashboardStats(): void {
     this.isLoadingStats = true;
     const token = localStorage.getItem('authToken');
@@ -307,7 +330,7 @@ export class DashboardMainComponent {
           totalPendingPOs: summary.totalPendingPOs || 0
         };
 
-        // Load additional details for recent/overdue POs
+        // Load additional details for recent/overdue POs (user-specific)
         this.loadDetailedPOData();
       },
       error: (err) => {
@@ -320,15 +343,15 @@ export class DashboardMainComponent {
 
   private loadDetailedPOData(): void {
     const token = localStorage.getItem('authToken');
-    if (!token) {
+    if (!token || !this.userId) {
       this.isLoadingStats = false;
       return;
     }
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch all POs for detailed stats
-    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
+    // Fetch user-specific POs for detailed stats
+    this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder/by-user/${this.userId}`, { headers }).subscribe({
       next: (pos) => {
         this.identifyOverduePOs(pos);
         this.getRecentPOs(pos);

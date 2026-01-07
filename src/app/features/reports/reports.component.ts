@@ -602,56 +602,123 @@ export class ReportsComponent implements OnInit {
   }
 
   private fetchPurchaseOrderData(poId: number): void {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      this.toastService.showToast('error', 'Authentication token not found');
-      return;
-    }
-
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/${poId}`;
-    const headers = { Authorization: `Bearer ${token}` };
-
-    this.http.get<PurchaseOrderData>(url, { headers }).subscribe({
-      next: response => {
-        this.selectedPoData = response;
-        this.processPoStageData(response);
-      },
-      error: err => {
-        console.error('Error fetching PO data:', err);
-        this.toastService.showToast('error', 'Error loading purchase order data');
-        this.poStageRowData = [];
-        this.selectedPoData = null;
-      }
-    });
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    this.toastService.showToast('error', 'Authentication token not found');
+    return;
   }
+
+  const vendor = this.reportForm.get('vendor')?.value;
+  const fromDate = this.reportForm.get('fromDate')?.value;
+  const toDate = this.reportForm.get('toDate')?.value;
+
+  // Build query parameters
+  const params: any = {};
+  
+  if (vendor?.id) {
+    params.vendorId = vendor.id;
+  }
+  
+  if (fromDate) {
+    params.startDate = new Date(fromDate).toISOString();
+  }
+  
+  if (toDate) {
+    params.endDate = new Date(toDate).toISOString();
+  }
+
+  // Construct URL with query parameters
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/${poId}${queryString ? '?' + queryString : ''}`;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  this.http.get<PurchaseOrderData>(url, { headers }).subscribe({
+    next: response => {
+      this.selectedPoData = response;
+      this.processPoStageData(response);
+    },
+    error: err => {
+      console.error('Error fetching PO data:', err);
+      this.toastService.showToast('error', 'Error loading purchase order data');
+      this.poStageRowData = [];
+      this.selectedPoData = null;
+    }
+  });
+}
 
   private fetchAllPurchaseOrdersData(vendorCode: string): void {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      this.toastService.showToast('error', 'Authentication token not found');
-      return;
-    }
-
-    const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/0`;
-    const headers = { Authorization: `Bearer ${token}` };
-
-    this.http.get<PurchaseOrderData[]>(url, { headers }).subscribe({
-      next: response => {
-        const reportType = this.reportForm.get('reportType')?.value;
-        if (reportType === 'all_pos') {
-          this.processAllPosData(response);
-        } else if (reportType === 'stage_wise') {
-          this.processStageWiseData(response);
-        }
-      },
-      error: err => {
-        console.error('Error fetching all PO data:', err);
-        this.toastService.showToast('error', 'Error loading purchase orders data');
-        this.allPosRowData = [];
-        this.stageWiseRowData = [];
-      }
-    });
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    this.toastService.showToast('error', 'Authentication token not found');
+    return;
   }
+
+  const vendor = this.reportForm.get('vendor')?.value;
+  const fromDate = this.reportForm.get('fromDate')?.value;
+  const toDate = this.reportForm.get('toDate')?.value;
+  const reportType = this.reportForm.get('reportType')?.value;
+
+  // Build query parameters
+  const params: any = {};
+  
+  if (vendor?.id) {
+    params.vendorId = vendor.id;
+  }
+  
+  if (reportType) {
+    params.FlterType = reportType; // Note: keeping the typo from backend parameter name
+  }
+  
+  if (fromDate) {
+    params.startDate = new Date(fromDate).toISOString();
+  }
+  
+  if (toDate) {
+    params.endDate = new Date(toDate).toISOString();
+  }
+
+  // Construct URL with query parameters
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/0${queryString ? '?' + queryString : ''}`;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  this.http.get<PurchaseOrderData[]>(url, { headers }).subscribe({
+    next: response => {
+      if (reportType === 'all_pos') {
+        this.processAllPosData(response);
+      } else if (reportType === 'stage_wise') {
+        this.processStageWiseData(response);
+      }
+    },
+    error: err => {
+      console.error('Error fetching all PO data:', err);
+      this.toastService.showToast('error', 'Error loading purchase orders data');
+      this.allPosRowData = [];
+      this.stageWiseRowData = [];
+    }
+  });
+}
+private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterType?: string): any {
+  let params: any = {};
+  
+  if (vendor?.id) {
+    params['vendorId'] = vendor.id.toString();
+  }
+  
+  if (filterType) {
+    params['FlterType'] = filterType;
+  }
+  
+  if (fromDate) {
+    params['startDate'] = new Date(fromDate).toISOString();
+  }
+  
+  if (toDate) {
+    params['endDate'] = new Date(toDate).toISOString();
+  }
+  
+  return params;
+}
 
   private fetchAllVendorsData(): void {
     const token = localStorage.getItem('authToken');
