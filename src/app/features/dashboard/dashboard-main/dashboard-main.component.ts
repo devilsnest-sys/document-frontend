@@ -11,13 +11,10 @@ import { Router } from '@angular/router';
 interface DashboardStats {
   totalPOs: number;
   totalVendors: number;
-  completedStages: number;
-  pendingStages: number;
-  overduePos: number;
-  activePos: number;
-  totalUsers?: number;
-  totalCompletedPOs?: number;
-  totalPendingPOs?: number;
+  totalUsers: number;
+  totalCompletedPOs: number;
+  totalOverduePOs: number;
+  totalPendingPOs: number;
 }
 
 interface POStatus {
@@ -51,14 +48,14 @@ export class DashboardMainComponent {
   isVendorUser = false;
   userType: string | null = null;
 
-  // Dashboard statistics
+  // Dashboard statistics - Updated to match API response
   dashboardStats: DashboardStats = {
     totalPOs: 0,
     totalVendors: 0,
-    completedStages: 0,
-    pendingStages: 0,
-    overduePos: 0,
-    activePos: 0
+    totalUsers: 0,
+    totalCompletedPOs: 0,
+    totalOverduePOs: 0,
+    totalPendingPOs: 0
   };
 
   recentPOs: POStatus[] = [];
@@ -286,7 +283,7 @@ export class DashboardMainComponent {
     }
   }
 
-  // New Dashboard Methods - Updated to use summary API
+  // Dashboard Methods - Simplified to use only summary API
   private loadDashboardStats(): void {
     this.isLoadingStats = true;
     const token = localStorage.getItem('authToken');
@@ -297,19 +294,16 @@ export class DashboardMainComponent {
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch summary data from the new API
+    // Fetch summary data from API
     this.http.get<any>(`${environment.apiUrl}/v1/users/summary`, { headers }).subscribe({
       next: (summary) => {
-        // Map API response to dashboard stats
+        // Map API response directly to dashboard stats
         this.dashboardStats = {
           totalPOs: summary.totalPurchaseOrders || 0,
           totalVendors: summary.totalVendors || 0,
-          completedStages: 0, // Will be calculated from POs
-          pendingStages: 0,   // Will be calculated from POs
-          overduePos: summary.totalOverduePOs || 0,
-          activePos: summary.totalPendingPOs || 0,
           totalUsers: summary.totalUsers || 0,
           totalCompletedPOs: summary.totalCompletedPOs || 0,
+          totalOverduePOs: summary.totalOverduePOs || 0,
           totalPendingPOs: summary.totalPendingPOs || 0
         };
 
@@ -326,14 +320,16 @@ export class DashboardMainComponent {
 
   private loadDetailedPOData(): void {
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    if (!token) {
+      this.isLoadingStats = false;
+      return;
+    }
 
     const headers = { Authorization: `Bearer ${token}` };
 
     // Fetch all POs for detailed stats
     this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
       next: (pos) => {
-        this.calculateStageStats(pos);
         this.identifyOverduePOs(pos);
         this.getRecentPOs(pos);
         this.isLoadingStats = false;
@@ -343,24 +339,6 @@ export class DashboardMainComponent {
         this.isLoadingStats = false;
       }
     });
-  }
-
-  private calculateStageStats(pos: any[]): void {
-    let completedCount = 0;
-    let pendingCount = 0;
-
-    pos.forEach(po => {
-      if (po.stageStatuses) {
-        const completed = po.stageStatuses.filter((s: any) => s.status === 'Complete').length;
-        const pending = po.stageStatuses.filter((s: any) => s.status === 'Pending' || s.status === 'InProgress').length;
-        
-        completedCount += completed;
-        pendingCount += pending;
-      }
-    });
-
-    this.dashboardStats.completedStages = completedCount;
-    this.dashboardStats.pendingStages = pendingCount;
   }
 
   private identifyOverduePOs(pos: any[]): void {
@@ -416,6 +394,16 @@ export class DashboardMainComponent {
     const today = new Date();
     const diffTime = today.getTime() - dueDate.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  getCompletionRate(): number {
+    if (this.dashboardStats.totalPOs === 0) return 0;
+    return Math.round((this.dashboardStats.totalCompletedPOs / this.dashboardStats.totalPOs) * 100);
+  }
+
+  getAveragePOsPerVendor(): number {
+    if (this.dashboardStats.totalVendors === 0) return 0;
+    return parseFloat((this.dashboardStats.totalPOs / this.dashboardStats.totalVendors).toFixed(1));
   }
 
   refreshDashboard(): void {

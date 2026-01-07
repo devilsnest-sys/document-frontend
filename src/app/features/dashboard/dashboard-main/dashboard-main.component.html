@@ -41,8 +41,8 @@
         <span class="material-icons">check_circle</span>
       </div>
       <div class="stat-content">
-        <h3 class="stat-value">{{ dashboardStats.completedStages }}</h3>
-        <p class="stat-label">Completed Stages</p>
+        <h3 class="stat-value">{{ dashboardStats.totalCompletedPOs }}</h3>
+        <p class="stat-label">Completed POs</p>
       </div>
     </div>
 
@@ -51,8 +51,8 @@
         <span class="material-icons">pending</span>
       </div>
       <div class="stat-content">
-        <h3 class="stat-value">{{ dashboardStats.pendingStages }}</h3>
-        <p class="stat-label">Pending Stages</p>
+        <h3 class="stat-value">{{ dashboardStats.totalPendingPOs }}</h3>
+        <p class="stat-label">Pending POs</p>
       </div>
     </div>
 
@@ -61,18 +61,18 @@
         <span class="material-icons">warning</span>
       </div>
       <div class="stat-content">
-        <h3 class="stat-value">{{ dashboardStats.overduePos }}</h3>
+        <h3 class="stat-value">{{ dashboardStats.totalOverduePOs }}</h3>
         <p class="stat-label">Overdue POs</p>
       </div>
     </div>
 
-    <div class="stat-card stat-active">
+    <div class="stat-card stat-users">
       <div class="stat-icon">
-        <span class="material-icons">trending_up</span>
+        <span class="material-icons">people</span>
       </div>
       <div class="stat-content">
-        <h3 class="stat-value">{{ dashboardStats.activePos }}</h3>
-        <p class="stat-label">Active POs</p>
+        <h3 class="stat-value">{{ dashboardStats.totalUsers }}</h3>
+        <p class="stat-label">Total Users</p>
       </div>
     </div>
   </div>
@@ -219,22 +219,22 @@
       </div>
     </div>
 
-    <!-- Stage Progress Overview - Hidden for vendor users -->
+    <!-- PO Statistics Overview - Hidden for vendor users -->
     <div class="dashboard-card stages-card" *ngIf="!isVendorUser">
       <div class="card-header">
         <h3 class="card-title">
-          <span class="material-icons">assignment</span>
-          Stage Progress Summary
+          <span class="material-icons">analytics</span>
+          Purchase Order Statistics
         </h3>
       </div>
       <div class="card-body">
         <div class="stage-summary">
           <div class="summary-item">
             <div class="summary-circle completed">
-              <span class="material-icons">check</span>
+              <span class="material-icons">check_circle</span>
             </div>
             <div class="summary-info">
-              <h4>{{ dashboardStats.completedStages }}</h4>
+              <h4>{{ dashboardStats.totalCompletedPOs }}</h4>
               <p>Completed</p>
             </div>
           </div>
@@ -243,14 +243,18 @@
               <span class="material-icons">schedule</span>
             </div>
             <div class="summary-info">
-              <h4>{{ dashboardStats.pendingStages }}</h4>
+              <h4>{{ dashboardStats.totalPendingPOs }}</h4>
               <p>Pending</p>
             </div>
           </div>
-          <div class="summary-divider"></div>
-          <div class="summary-total">
-            <h3>{{ dashboardStats.completedStages + dashboardStats.pendingStages }}</h3>
-            <p>Total Stages</p>
+          <div class="summary-item">
+            <div class="summary-circle overdue">
+              <span class="material-icons">warning</span>
+            </div>
+            <div class="summary-info">
+              <h4>{{ dashboardStats.totalOverduePOs }}</h4>
+              <p>Overdue</p>
+            </div>
           </div>
         </div>
 
@@ -258,12 +262,12 @@
           <div class="rate-label">
             <span>Overall Completion Rate</span>
             <span class="rate-value">
-              {{ ((dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0) | number: '1.0-0' }}%
+              {{ getCompletionRate() }}%
             </span>
           </div>
           <div class="progress-bar large">
             <div class="progress-fill" 
-                 [style.width.%]="(dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0">
+                 [style.width.%]="getCompletionRate()">
             </div>
           </div>
         </div>
@@ -283,35 +287,31 @@
           <span class="material-icons stat-icon-small">assignment_turned_in</span>
           <div class="stat-details">
             <p class="stat-label-small">Completion Rate</p>
-            <p class="stat-value-small">
-              {{ ((dashboardStats.completedStages / (dashboardStats.completedStages + dashboardStats.pendingStages)) * 100 || 0) | number: '1.0-0' }}%
-            </p>
+            <p class="stat-value-small">{{ getCompletionRate() }}%</p>
           </div>
         </div>
 
         <div class="quick-stat-item">
           <span class="material-icons stat-icon-small">trending_up</span>
           <div class="stat-details">
-            <p class="stat-label-small">Active Projects</p>
-            <p class="stat-value-small">{{ dashboardStats.activePos }}</p>
+            <p class="stat-label-small">Active POs</p>
+            <p class="stat-value-small">{{ dashboardStats.totalPendingPOs }}</p>
           </div>
         </div>
 
         <div class="quick-stat-item">
-          <span class="material-icons stat-icon-small">people</span>
+          <span class="material-icons stat-icon-small">store</span>
           <div class="stat-details">
             <p class="stat-label-small">Avg POs per Vendor</p>
-            <p class="stat-value-small">
-              {{ dashboardStats.totalVendors > 0 ? (dashboardStats.totalPOs / dashboardStats.totalVendors | number: '1.0-1') : 0 }}
-            </p>
+            <p class="stat-value-small">{{ getAveragePOsPerVendor() }}</p>
           </div>
         </div>
 
-        <div class="quick-stat-item alert-item" *ngIf="dashboardStats.overduePos > 0">
+        <div class="quick-stat-item alert-item" *ngIf="dashboardStats.totalOverduePOs > 0">
           <span class="material-icons stat-icon-small">notification_important</span>
           <div class="stat-details">
             <p class="stat-label-small">Needs Attention</p>
-            <p class="stat-value-small">{{ dashboardStats.overduePos }} POs</p>
+            <p class="stat-value-small">{{ dashboardStats.totalOverduePOs }} POs</p>
           </div>
         </div>
       </div>
