@@ -150,7 +150,53 @@
       </div>
     </div>
 
-    <!-- My Assigned POs Card - NEW -->
+    <!-- Latest Progress POs Card -->
+    <div class="dashboard-card" *ngIf="!isVendorUser">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">trending_up</span>
+          Latest Purchase Orders Progress
+          <span class="po-count-badge">{{ latestProgressPOs.length }}</span>
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="po-list" *ngIf="latestProgressPOs.length > 0 && !isLoadingLatestProgress">
+          <div class="po-item progress-item" *ngFor="let po of latestProgressPOs" 
+               (click)="navigateToLatestProgressPO(po)">
+            <div class="po-info">
+              <h4 class="po-number">{{ po.poNo }}</h4>
+              <p class="po-date">
+                <span class="material-icons">event</span>
+                Created: {{ po.createdAt | date: 'MMM dd, yyyy' }}
+              </p>
+              <p class="po-stages">
+                <span class="material-icons">layers</span>
+                {{ po.completedStages }} / {{ po.totalStages }} stages completed
+              </p>
+            </div>
+            <div class="po-status">
+              <span class="status-badge" [ngClass]="getProgressStatusClass(po.completionPercentage)">
+                {{ getProgressStatusText(po.completionPercentage) }}
+              </span>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="po.completionPercentage"></div>
+              </div>
+              <span class="progress-text">{{ po.completionPercentage }}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="loading-spinner-small" *ngIf="isLoadingLatestProgress">
+          <span class="material-icons rotating">refresh</span>
+          <p>Loading latest progress...</p>
+        </div>
+        <div class="empty-state" *ngIf="latestProgressPOs.length === 0 && !isLoadingLatestProgress">
+          <span class="material-icons">inbox</span>
+          <p>No recent purchase orders found</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Assigned POs Card -->
     <div class="dashboard-card" *ngIf="!isVendorUser">
       <div class="card-header">
         <h3 class="card-title">
@@ -184,6 +230,10 @@
                 <span class="material-icons">event</span>
                 Due: {{ po.contractualDeliveryDate | date: 'MMM dd, yyyy' }}
               </p>
+              <p class="po-stages">
+                <span class="material-icons">layers</span>
+                {{ po.completedStages }} / {{ po.totalStages }} stages completed
+              </p>
               <p class="po-amount" *ngIf="po.totalAmount">
                 <span class="material-icons">attach_money</span>
                 {{ po.totalAmount | currency }}
@@ -194,9 +244,9 @@
                 {{ getPOStatus(po) }}
               </span>
               <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="calculateProgress(po.stageStatuses)"></div>
+                <div class="progress-fill" [style.width.%]="po.progress"></div>
               </div>
-              <span class="progress-text">{{ calculateProgress(po.stageStatuses) }}%</span>
+              <span class="progress-text">{{ po.progress }}%</span>
             </div>
           </div>
         </div>
@@ -229,6 +279,10 @@
               <p class="po-date">
                 <span class="material-icons">event</span>
                 Due: {{ po.dueDate | date: 'MMM dd, yyyy' }}
+              </p>
+              <p class="po-stages">
+                <span class="material-icons">layers</span>
+                {{ po.completedStages }} / {{ po.totalStages }} stages completed
               </p>
             </div>
             <div class="po-status">
@@ -268,8 +322,13 @@
                 <span class="material-icons">alarm</span>
                 Overdue by {{ getDaysOverdue(po.dueDate) }} days
               </p>
+              <p class="po-stages">
+                <span class="material-icons">layers</span>
+                {{ po.completedStages }} / {{ po.totalStages }} stages completed
+              </p>
             </div>
             <div class="po-status">
+              <span class="status-badge status-overdue">{{ po.status }}</span>
               <div class="progress-bar">
                 <div class="progress-fill danger" [style.width.%]="po.progress"></div>
               </div>
@@ -330,49 +389,6 @@
             <div class="progress-fill" 
                  [style.width.%]="getCompletionRate()">
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Stats - Hidden for vendor users -->
-    <div class="dashboard-card quick-stats-card" *ngIf="!isVendorUser">
-      <div class="card-header">
-        <h3 class="card-title">
-          <span class="material-icons">insights</span>
-          Quick Statistics
-        </h3>
-      </div>
-      <div class="card-body">
-        <div class="quick-stat-item">
-          <span class="material-icons stat-icon-small">assignment_turned_in</span>
-          <div class="stat-details">
-            <p class="stat-label-small">Completion Rate</p>
-            <p class="stat-value-small">{{ getCompletionRate() }}%</p>
-          </div>
-        </div>
-
-        <div class="quick-stat-item">
-          <span class="material-icons stat-icon-small">trending_up</span>
-          <div class="stat-details">
-            <p class="stat-label-small">Active POs</p>
-            <p class="stat-value-small">{{ dashboardStats.totalPendingPOs }}</p>
-          </div>
-        </div>
-
-        <div class="quick-stat-item">
-          <span class="material-icons stat-icon-small">store</span>
-          <div class="stat-details">
-            <p class="stat-label-small">Avg POs per Vendor</p>
-            <p class="stat-value-small">{{ getAveragePOsPerVendor() }}</p>
-          </div>
-        </div>
-
-        <div class="quick-stat-item alert-item" *ngIf="dashboardStats.totalOverduePOs > 0">
-          <span class="material-icons stat-icon-small">notification_important</span>
-          <div class="stat-details">
-            <p class="stat-label-small">Needs Attention</p>
-            <p class="stat-value-small">{{ dashboardStats.totalOverduePOs }} POs</p>
           </div>
         </div>
       </div>

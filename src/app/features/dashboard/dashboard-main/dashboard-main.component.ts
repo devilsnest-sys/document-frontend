@@ -23,6 +23,18 @@ interface POStatus {
   dueDate: Date;
   status: string;
   progress: number;
+  totalStages?: number;
+  completedStages?: number;
+}
+
+// Interface for latest progress API
+interface LatestPOProgress {
+  poId: number;
+  poNo: string;
+  createdAt: string;
+  totalStages: number;
+  completedStages: number;
+  completionPercentage: number;
 }
 
 @Component({
@@ -49,11 +61,15 @@ export class DashboardMainComponent {
   userType: string | null = null;
   userId: string | null = null;
 
-  // User assigned POs - NEW
+  // User assigned POs
   userAssignedPOs: any[] = [];
   isLoadingUserPOs = false;
   allUsers: any[] = [];
   selectedUserIdForPOs: string | null = null;
+
+  // Latest progress POs
+  latestProgressPOs: LatestPOProgress[] = [];
+  isLoadingLatestProgress = false;
 
   // Dashboard statistics
   dashboardStats: DashboardStats = {
@@ -103,9 +119,10 @@ export class DashboardMainComponent {
     // Load user-specific data for non-vendor users
     if (!this.isVendorUser) {
       this.loadDashboardStats();
-      this.loadAllUsers(); // NEW: Load all users for dropdown
-      this.selectedUserIdForPOs = this.userId; // Set default to current user
-      this.loadUserAssignedPOs(); // NEW
+      this.loadAllUsers();
+      this.selectedUserIdForPOs = this.userId;
+      this.loadUserAssignedPOs();
+      this.loadLatestProgressPOs();
     }
 
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
@@ -162,7 +179,91 @@ export class DashboardMainComponent {
     });
   }
 
-  // NEW: Load all POs assigned to a specific user
+  // Load latest top 5 progress POs
+  private loadLatestProgressPOs(): void {
+    this.isLoadingLatestProgress = true;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      this.isLoadingLatestProgress = false;
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/users/latest-top5-progress`;
+
+    this.http.get<LatestPOProgress[]>(url, { headers }).subscribe({
+      next: (progress) => {
+        this.latestProgressPOs = progress;
+        this.isLoadingLatestProgress = false;
+        console.log(`Loaded ${progress.length} latest progress POs`);
+      },
+      error: (err) => {
+        console.error('Error loading latest progress POs:', err);
+        this.toastService.showToast('error', 'Error loading latest PO progress');
+        this.isLoadingLatestProgress = false;
+        this.latestProgressPOs = [];
+      }
+    });
+  }
+
+  // Navigate to a PO from latest progress list
+  navigateToLatestProgressPO(po: LatestPOProgress): void {
+    const foundPO = this.purchaseOrders.find(p => p.id === po.poId);
+    if (foundPO) {
+      this.vendorPoForm.patchValue({ po: foundPO.id });
+      this.router.navigate(['/stages', 1, foundPO.id]);
+    } else {
+      this.loadPODetailsAndNavigate(po.poId);
+    }
+  }
+
+  // Helper to load PO details and navigate
+  private loadPODetailsAndNavigate(poId: number): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/${poId}`;
+
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (po) => {
+        const vendor = this.vendors.find(v => v.id === po.vendorId);
+        if (vendor) {
+          this.vendorPoForm.patchValue({ vendor: vendor });
+          this.vendorControl.setValue(vendor, { emitEvent: false });
+          this.onVendorChange(vendor.vendorCode);
+          
+          setTimeout(() => {
+            this.vendorPoForm.patchValue({ po: po.id });
+            this.router.navigate(['/stages', 1, po.id]);
+          }, 300);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading PO details:', err);
+        this.toastService.showToast('error', 'Error loading purchase order');
+      }
+    });
+  }
+
+  // Get status badge class for progress percentage
+  getProgressStatusClass(percentage: number): string {
+    if (percentage === 0) return 'status-not-started';
+    if (percentage === 100) return 'status-completed';
+    if (percentage >= 75) return 'status-near-complete';
+    if (percentage >= 50) return 'status-in-progress';
+    return 'status-started';
+  }
+
+  // Get status text for progress percentage
+  getProgressStatusText(percentage: number): string {
+    if (percentage === 0) return 'Not Started';
+    if (percentage === 100) return 'Completed';
+    if (percentage >= 75) return 'Near Complete';
+    if (percentage >= 50) return 'In Progress';
+    return 'Started';
+  }
+
   private loadUserAssignedPOs(userIdToLoad?: string): void {
     const targetUserId = userIdToLoad || this.selectedUserIdForPOs || this.userId;
     
@@ -183,7 +284,13 @@ export class DashboardMainComponent {
 
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (pos) => {
-        this.userAssignedPOs = pos;
+        // Enhance POs with stage completion data
+        this.userAssignedPOs = pos.map(po => ({
+          ...po,
+          completedStages: this.getCompletedStagesCount(po.stageStatuses),
+          totalStages: po.stageStatuses?.length || 15,
+          progress: this.calculateProgress(po.stageStatuses)
+        }));
         this.isLoadingUserPOs = false;
         console.log(`Loaded ${pos.length} POs for user ${targetUserId}`);
       },
@@ -196,7 +303,17 @@ export class DashboardMainComponent {
     });
   }
 
-  // NEW: Load all users for the dropdown
+  // NEW: Get completed stages count
+  getCompletedStagesCount(stageStatuses: any[]): number {
+    if (!stageStatuses || stageStatuses.length === 0) return 0;
+    return stageStatuses.filter(s => s.status === 'Complete').length;
+  }
+
+  // NEW: Get total stages count
+  getTotalStagesCount(stageStatuses: any[]): number {
+    return stageStatuses?.length || 15;
+  }
+
   private loadAllUsers(): void {
     const token = localStorage.getItem('authToken');
     if (!token) return;
@@ -206,7 +323,6 @@ export class DashboardMainComponent {
 
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (users) => {
-        // Filter out vendor users and current user from the list
         this.allUsers = users.filter(user => 
           user.userType !== 'vendor' && user.id.toString() !== this.userId
         );
@@ -219,12 +335,10 @@ export class DashboardMainComponent {
     });
   }
 
-  // NEW: Handle user filter selection change
   onUserFilterChange(selectedUserId: string): void {
     this.selectedUserIdForPOs = selectedUserId;
     this.loadUserAssignedPOs(selectedUserId);
     
-    // Get selected user name for toast message
     let userName = 'current user';
     if (selectedUserId === this.userId) {
       userName = 'your';
@@ -238,28 +352,20 @@ export class DashboardMainComponent {
     this.toastService.showToast('warning', `Loading ${userName} POs...`);
   }
 
-  // NEW: Navigate to a specific PO from user assigned list
   navigateToUserPO(po: any): void {
-    // First, find and set the vendor
     const vendor = this.vendors.find(v => v.id === po.vendorId);
     if (vendor) {
       this.vendorPoForm.patchValue({ vendor: vendor });
       this.vendorControl.setValue(vendor, { emitEvent: false });
-      
-      // Load POs for this vendor
       this.onVendorChange(vendor.vendorCode);
       
-      // Wait a bit for POs to load, then select the PO
       setTimeout(() => {
         this.vendorPoForm.patchValue({ po: po.id });
-        
-        // Navigate to stages view
         this.router.navigate(['/stages', 1, po.id]);
       }, 300);
     }
   }
 
-  // NEW: Get PO status from stage statuses
   getPOStatus(po: any): string {
     return this.getOverallStatus(po.stageStatuses);
   }
@@ -295,31 +401,30 @@ export class DashboardMainComponent {
   }
 
   onVendorChange(vendorCode: string | null): void {
-  if (!vendorCode) return;
+    if (!vendorCode) return;
 
-  const token = localStorage.getItem('authToken');
-  if (!token) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
 
-  const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
-  const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
+    const headers = { Authorization: `Bearer ${token}` };
 
-  this.purchaseOrders = [];
+    this.purchaseOrders = [];
 
-  this.http.get<any[]>(url, { headers }).subscribe({
-    next: (response) => {
-      this.purchaseOrders = response;
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (response) => {
+        this.purchaseOrders = response;
 
-      if (this.purchaseOrders.length === 0) {
-        this.toastService.showToast('warning', 'No POs found for this vendor');
+        if (this.purchaseOrders.length === 0) {
+          this.toastService.showToast('warning', 'No POs found for this vendor');
+        }
+      },
+      error: err => {
+        console.error('Error fetching purchase orders:', err);
+        this.toastService.showToast('error', 'Error loading purchase orders');
       }
-    },
-    error: err => {
-      console.error('Error fetching purchase orders:', err);
-      this.toastService.showToast('error', 'Error loading purchase orders');
-    }
-  });
-}
-
+    });
+  }
 
   isStepBarVisible(): boolean {
     return !!(this.vendorPoForm.get('vendor')?.value && this.vendorPoForm.get('po')?.value);
@@ -402,7 +507,6 @@ export class DashboardMainComponent {
     }
   }
 
-  // Dashboard Methods
   private loadDashboardStats(): void {
     this.isLoadingStats = true;
     const token = localStorage.getItem('authToken');
@@ -469,7 +573,9 @@ export class DashboardMainComponent {
         vendorName: this.getVendorName(po.vendorId),
         dueDate: new Date(po.contractualDeliveryDate),
         status: 'Overdue',
-        progress: this.calculateProgress(po.stageStatuses)
+        progress: this.calculateProgress(po.stageStatuses),
+        completedStages: this.getCompletedStagesCount(po.stageStatuses),
+        totalStages: this.getTotalStagesCount(po.stageStatuses)
       }))
       .slice(0, 5);
   }
@@ -483,7 +589,9 @@ export class DashboardMainComponent {
         vendorName: this.getVendorName(po.vendorId),
         dueDate: new Date(po.contractualDeliveryDate),
         status: this.getOverallStatus(po.stageStatuses),
-        progress: this.calculateProgress(po.stageStatuses)
+        progress: this.calculateProgress(po.stageStatuses),
+        completedStages: this.getCompletedStagesCount(po.stageStatuses),
+        totalStages: this.getTotalStagesCount(po.stageStatuses)
       }));
   }
 
@@ -525,8 +633,9 @@ export class DashboardMainComponent {
     this.loadVendors();
     if (!this.isVendorUser) {
       this.loadDashboardStats();
-      this.loadAllUsers(); // NEW: Refresh users list
-      this.loadUserAssignedPOs(); // NEW: Refresh user assigned POs
+      this.loadAllUsers();
+      this.loadUserAssignedPOs();
+      this.loadLatestProgressPOs();
     }
     this.toastService.showToast('success', 'Dashboard refreshed');
   }
