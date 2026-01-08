@@ -98,7 +98,7 @@
           <div class="form-row">
             <!-- Vendor Selection - Hidden for vendor users -->
             <div class="form-group" *ngIf="!isVendorUser">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field  class="full-width">
                 <mat-label>Select Vendor</mat-label>
                 <input appTrimInput 
                        type="text"
@@ -124,7 +124,7 @@
 
             <!-- PO Selection -->
             <div class="form-group" [class.full-width-vendor]="isVendorUser">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field  class="full-width">
                 <mat-label>Select Purchase Order</mat-label>
                 <mat-select formControlName="po" 
                            [disabled]="!vendorPoForm.get('vendor')?.value">
@@ -215,7 +215,7 @@
               <mat-icon matPrefix>person</mat-icon>
               <mat-option [value]="userId">My POs</mat-option>
               <mat-option *ngFor="let user of allUsers" [value]="user.id">
-                {{ user.name }} ({{ user.email }})
+                {{ user.username }} 
               </mat-option>
             </mat-select>
           </mat-form-field>
