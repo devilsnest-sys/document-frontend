@@ -49,7 +49,13 @@ export class DashboardMainComponent {
   userType: string | null = null;
   userId: string | null = null;
 
-  // Dashboard statistics - Updated to match API response
+  // User assigned POs - NEW
+  userAssignedPOs: any[] = [];
+  isLoadingUserPOs = false;
+  allUsers: any[] = [];
+  selectedUserIdForPOs: string | null = null;
+
+  // Dashboard statistics
   dashboardStats: DashboardStats = {
     totalPOs: 0,
     totalVendors: 0,
@@ -94,9 +100,12 @@ export class DashboardMainComponent {
     this.loadVendors();
     this.setupVendorFilter();
     
-    // Only load dashboard stats for non-vendor users
+    // Load user-specific data for non-vendor users
     if (!this.isVendorUser) {
       this.loadDashboardStats();
+      this.loadAllUsers(); // NEW: Load all users for dropdown
+      this.selectedUserIdForPOs = this.userId; // Set default to current user
+      this.loadUserAssignedPOs(); // NEW
     }
 
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
@@ -153,6 +162,108 @@ export class DashboardMainComponent {
     });
   }
 
+  // NEW: Load all POs assigned to a specific user
+  private loadUserAssignedPOs(userIdToLoad?: string): void {
+    const targetUserId = userIdToLoad || this.selectedUserIdForPOs || this.userId;
+    
+    if (!targetUserId) {
+      console.warn('No userId found, skipping user PO load');
+      return;
+    }
+
+    this.isLoadingUserPOs = true;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      this.isLoadingUserPOs = false;
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/by-user/${targetUserId}`;
+
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (pos) => {
+        this.userAssignedPOs = pos;
+        this.isLoadingUserPOs = false;
+        console.log(`Loaded ${pos.length} POs for user ${targetUserId}`);
+      },
+      error: (err) => {
+        console.error('Error loading user assigned POs:', err);
+        this.toastService.showToast('error', 'Error loading assigned POs');
+        this.isLoadingUserPOs = false;
+        this.userAssignedPOs = [];
+      }
+    });
+  }
+
+  // NEW: Load all users for the dropdown
+  private loadAllUsers(): void {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/users`;
+
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (users) => {
+        // Filter out vendor users and current user from the list
+        this.allUsers = users.filter(user => 
+          user.userType !== 'vendor' && user.id.toString() !== this.userId
+        );
+        console.log(`Loaded ${this.allUsers.length} users for filter`);
+      },
+      error: (err) => {
+        console.error('Error loading users:', err);
+        this.toastService.showToast('error', 'Error loading users list');
+      }
+    });
+  }
+
+  // NEW: Handle user filter selection change
+  onUserFilterChange(selectedUserId: string): void {
+    this.selectedUserIdForPOs = selectedUserId;
+    this.loadUserAssignedPOs(selectedUserId);
+    
+    // Get selected user name for toast message
+    let userName = 'current user';
+    if (selectedUserId === this.userId) {
+      userName = 'your';
+    } else {
+      const selectedUser = this.allUsers.find(u => u.id.toString() === selectedUserId);
+      if (selectedUser) {
+        userName = selectedUser.name + "'s";
+      }
+    }
+    
+    this.toastService.showToast('warning', `Loading ${userName} POs...`);
+  }
+
+  // NEW: Navigate to a specific PO from user assigned list
+  navigateToUserPO(po: any): void {
+    // First, find and set the vendor
+    const vendor = this.vendors.find(v => v.id === po.vendorId);
+    if (vendor) {
+      this.vendorPoForm.patchValue({ vendor: vendor });
+      this.vendorControl.setValue(vendor, { emitEvent: false });
+      
+      // Load POs for this vendor
+      this.onVendorChange(vendor.vendorCode);
+      
+      // Wait a bit for POs to load, then select the PO
+      setTimeout(() => {
+        this.vendorPoForm.patchValue({ po: po.id });
+        
+        // Navigate to stages view
+        this.router.navigate(['/stages', 1, po.id]);
+      }, 300);
+    }
+  }
+
+  // NEW: Get PO status from stage statuses
+  getPOStatus(po: any): string {
+    return this.getOverallStatus(po.stageStatuses);
+  }
+
   private filterVendors(value: string | null): any[] {
     if (!value) return this.vendors;
     const filterValue = value.toLowerCase();
@@ -184,46 +295,31 @@ export class DashboardMainComponent {
   }
 
   onVendorChange(vendorCode: string | null): void {
-    if (!vendorCode) return;
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
-  
-    // Use the new user-specific endpoint if userId is available
-    let url: string;
-    if (this.userId) {
-      // Fetch user-specific POs and filter by vendor
-      url = `${environment.apiUrl}/v1/PurchaseOrder/by-user/${this.userId}`;
-    } else {
-      // Fallback to vendor-specific endpoint
-      url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
-    }
-    
-    const headers = { Authorization: `Bearer ${token}` };
-  
-    this.purchaseOrders = [];
-  
-    this.http.get<any[]>(url, { headers }).subscribe({
-      next: response => {
-        // If using user-specific endpoint, filter by vendorCode
-        if (this.userId) {
-          const vendor = this.vendors.find(v => v.vendorCode === vendorCode);
-          if (vendor) {
-            this.purchaseOrders = response.filter(po => po.vendorId === vendor.id);
-          }
-        } else {
-          this.purchaseOrders = response;
-        }
-        
-        if (this.purchaseOrders.length === 0) {
-          this.toastService.showToast('warning', 'No POs assigned to you for this vendor');
-        }
-      },
-      error: err => {
-        console.error('Error fetching purchase orders:', err);
-        this.toastService.showToast('error', 'Error loading purchase orders');
+  if (!vendorCode) return;
+
+  const token = localStorage.getItem('authToken');
+  if (!token) return;
+
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/vendor/${vendorCode}`;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  this.purchaseOrders = [];
+
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (response) => {
+      this.purchaseOrders = response;
+
+      if (this.purchaseOrders.length === 0) {
+        this.toastService.showToast('warning', 'No POs found for this vendor');
       }
-    });
-  }  
+    },
+    error: err => {
+      console.error('Error fetching purchase orders:', err);
+      this.toastService.showToast('error', 'Error loading purchase orders');
+    }
+  });
+}
+
 
   isStepBarVisible(): boolean {
     return !!(this.vendorPoForm.get('vendor')?.value && this.vendorPoForm.get('po')?.value);
@@ -306,7 +402,7 @@ export class DashboardMainComponent {
     }
   }
 
-  // Dashboard Methods - Updated to use user-specific POs
+  // Dashboard Methods
   private loadDashboardStats(): void {
     this.isLoadingStats = true;
     const token = localStorage.getItem('authToken');
@@ -317,10 +413,8 @@ export class DashboardMainComponent {
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch summary data from API
     this.http.get<any>(`${environment.apiUrl}/v1/users/summary`, { headers }).subscribe({
       next: (summary) => {
-        // Map API response directly to dashboard stats
         this.dashboardStats = {
           totalPOs: summary.totalPurchaseOrders || 0,
           totalVendors: summary.totalVendors || 0,
@@ -330,7 +424,6 @@ export class DashboardMainComponent {
           totalPendingPOs: summary.totalPendingPOs || 0
         };
 
-        // Load additional details for recent/overdue POs (user-specific)
         this.loadDetailedPOData();
       },
       error: (err) => {
@@ -350,7 +443,6 @@ export class DashboardMainComponent {
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch user-specific POs for detailed stats
     this.http.get<any[]>(`${environment.apiUrl}/v1/PurchaseOrder/by-user/${this.userId}`, { headers }).subscribe({
       next: (pos) => {
         this.identifyOverduePOs(pos);
@@ -379,7 +471,7 @@ export class DashboardMainComponent {
         status: 'Overdue',
         progress: this.calculateProgress(po.stageStatuses)
       }))
-      .slice(0, 5); // Show top 5 overdue
+      .slice(0, 5);
   }
 
   private getRecentPOs(pos: any[]): void {
@@ -395,12 +487,12 @@ export class DashboardMainComponent {
       }));
   }
 
-  private getVendorName(vendorId: number): string {
+  getVendorName(vendorId: number): string {
     const vendor = this.vendors.find(v => v.id === vendorId);
     return vendor ? vendor.companyName : 'Unknown';
   }
 
-  private calculateProgress(stageStatuses: any[]): number {
+  calculateProgress(stageStatuses: any[]): number {
     if (!stageStatuses || stageStatuses.length === 0) return 0;
     const completed = stageStatuses.filter(s => s.status === 'Complete').length;
     return Math.round((completed / stageStatuses.length) * 100);
@@ -433,12 +525,13 @@ export class DashboardMainComponent {
     this.loadVendors();
     if (!this.isVendorUser) {
       this.loadDashboardStats();
+      this.loadAllUsers(); // NEW: Refresh users list
+      this.loadUserAssignedPOs(); // NEW: Refresh user assigned POs
     }
     this.toastService.showToast('success', 'Dashboard refreshed');
   }
 
   navigateToPO(poNumber: string): void {
-    // Find the PO and set it in the form
     const po = this.purchaseOrders.find(p => p.pO_NO === poNumber);
     if (po) {
       this.vendorPoForm.patchValue({ po: po.id });

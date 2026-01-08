@@ -176,42 +176,40 @@
                       {{ doc.reviewRemark || 'N/A' }}
                     </span>
                   </td>
-                  <td>
-                    <!-- BUG FIX: Action buttons with proper role checks -->
-                    <div class="action-buttons d-flex flex-wrap gap-1">
-                      <!-- View and Download available to all -->
-                      <button class="btn btn-sm btn-info" (click)="viewDocument(doc.id)" title="View">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      
-                      <button class="btn btn-sm btn-secondary" (click)="downloadDocument(doc.id)" title="Download">
-                        <i class="fas fa-download"></i>
-                      </button>
-                      
-                      <!-- BUG FIX: Approve Button - Only for vendor role -->
-                      <!-- Approve Button - Show based on who can review -->
-<button class="btn btn-sm btn-success" 
-        (click)="approveDocument(doc)" 
-        *ngIf="canReviewDocument(doc)"
-        [disabled]="doc.isApproved || doc.isRejected"
-        [title]="doc.isApproved ? 'Already approved' : 
-                 doc.isRejected ? 'Document was rejected' : 
-                 'Approve document'">
-  <i class="fas fa-check"></i>
-</button>
+<td>
+  <div class="action-buttons d-flex flex-wrap gap-1">
+    <!-- View and Download available to all -->
+    <button class="btn btn-sm btn-info" (click)="viewDocument(doc.id)" title="View">
+      <i class="fas fa-eye"></i>
+    </button>
+    
+    <button class="btn btn-sm btn-secondary" (click)="downloadDocument(doc.id)" title="Download">
+      <i class="fas fa-download"></i>
+    </button>
+    
+    <!-- ✅ Approve Button - Shows based on who uploaded -->
+    <button class="btn btn-sm btn-success" 
+            (click)="approveDocument(doc)" 
+            *ngIf="canReviewDocument(doc)"
+            [disabled]="doc.isApproved || doc.isRejected"
+            [title]="doc.isApproved ? 'Already approved' : 
+                     doc.isRejected ? 'Document was rejected' : 
+                     'Approve document'">
+      <i class="fas fa-check"></i>
+    </button>
 
-<!-- Reject Button - Show based on who can review -->
-<button class="btn btn-sm btn-danger" 
-        (click)="rejectDocument(doc)" 
-        *ngIf="canReviewDocument(doc)"
-        [disabled]="doc.isApproved || doc.isRejected"
-        [title]="doc.isRejected ? 'Already rejected' : 
-                 doc.isApproved ? 'Document was approved' : 
-                 'Reject document'">
-  <i class="fas fa-times"></i>
-</button>
-                    </div>
-                  </td>
+    <!-- ✅ Reject Button - Always visible for pending documents -->
+    <button class="btn btn-sm btn-danger" 
+            (click)="rejectDocument(doc)" 
+            *ngIf="canRejectDocument(doc)"
+            [disabled]="doc.isApproved || doc.isRejected"
+            [title]="doc.isRejected ? 'Already rejected' : 
+                     doc.isApproved ? 'Document was approved' : 
+                     'Reject document'">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</td>
                 </tr>
         
                 <!-- BUG FIX: No Documents or Rejected - Show Upload Row (Only for user role) -->

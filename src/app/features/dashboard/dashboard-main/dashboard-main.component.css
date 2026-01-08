@@ -1100,3 +1100,168 @@
     background: white;
   }
 }
+/* Add these styles to your existing dashboard-main.component.css */
+
+/* User Filter Section */
+.user-filter-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.user-select-field {
+  width: 100%;
+  max-width: 400px;
+}
+
+.user-select-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+/* PO Count Badge */
+.po-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  margin-left: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* PO Amount */
+.po-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.po-amount .material-icons {
+  font-size: 16px;
+}
+
+/* Loading Spinner Small */
+.loading-spinner-small {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.loading-spinner-small .material-icons {
+  font-size: 48px;
+  color: #667eea;
+  margin-bottom: 12px;
+}
+
+.loading-spinner-small .rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner-small p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Empty State for User POs */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+.empty-state .material-icons {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Status badge variations */
+.status-badge.status-not-started {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.status-badge.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-in-progress {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.status-overdue {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Clickable PO items - enhance hover effect */
+.po-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.po-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #f9fafb;
+}
+
+.po-item:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .po-count-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    margin-left: 8px;
+  }
+  
+  .po-amount {
+    font-size: 12px;
+  }
+  
+  .po-amount .material-icons {
+    font-size: 14px;
+  }
+}

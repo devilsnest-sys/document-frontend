@@ -917,20 +917,42 @@ downloadDocument(documentId: number): void {
   // Add this method to your component
 canReviewDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
+  const uploaderType = doc.docUploadedBy?.toLowerCase();
 
-  // ✅ Vendor: can review ALL pending documents (no stage restriction)
-  if (currentUserType === 'vendor') {
-    return !doc.isApproved && !doc.isRejected;
+  // Document must be pending (not already approved or rejected)
+  if (doc.isApproved || doc.isRejected) {
+    return false;
   }
 
-  // ✅ User: only assigned stages + vendor uploaded docs
+  // ✅ Vendor can approve documents uploaded by User
+  if (currentUserType === 'vendor' && uploaderType === 'user') {
+    return true;
+  }
+
+  // ✅ User can approve documents uploaded by Vendor (only in their assigned stages)
+  if (currentUserType === 'user' && uploaderType === 'vendor') {
+    return this.allowedStageId.includes(doc.stageId);
+  }
+
+  return false;
+}
+
+canRejectDocument(doc: UploadedDocument): boolean {
+  const currentUserType = this.userType?.toLowerCase();
+
+  // Document must be pending (not already approved or rejected)
+  if (doc.isApproved || doc.isRejected) {
+    return false;
+  }
+
+  // ✅ Vendor can reject ANY pending document
+  if (currentUserType === 'vendor') {
+    return true;
+  }
+
+  // ✅ User can reject documents in their assigned stages
   if (currentUserType === 'user') {
-    return (
-      this.allowedStageId.includes(doc.stageId) &&
-      doc.docUploadedBy?.toLowerCase() === 'vendor' &&
-      !doc.isApproved &&
-      !doc.isRejected
-    );
+    return this.allowedStageId.includes(doc.stageId);
   }
 
   return false;

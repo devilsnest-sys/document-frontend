@@ -150,6 +150,67 @@
       </div>
     </div>
 
+    <!-- My Assigned POs Card - NEW -->
+    <div class="dashboard-card" *ngIf="!isVendorUser">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="material-icons">assignment</span>
+          Assigned Purchase Orders
+          <span class="po-count-badge">{{ userAssignedPOs.length }}</span>
+        </h3>
+      </div>
+      <div class="card-body">
+        <!-- User Filter Dropdown -->
+        <div class="user-filter-section">
+          <mat-form-field appearance="outline" class="user-select-field">
+            <mat-label>Filter by User</mat-label>
+            <mat-select [(value)]="selectedUserIdForPOs" 
+                       (selectionChange)="onUserFilterChange($event.value)">
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-option [value]="userId">My POs</mat-option>
+              <mat-option *ngFor="let user of allUsers" [value]="user.id">
+                {{ user.name }} ({{ user.email }})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="po-list" *ngIf="userAssignedPOs.length > 0 && !isLoadingUserPOs">
+          <div class="po-item" *ngFor="let po of userAssignedPOs" 
+               (click)="navigateToUserPO(po)">
+            <div class="po-info">
+              <h4 class="po-number">{{ po.pO_NO }}</h4>
+              <p class="po-vendor">{{ getVendorName(po.vendorId) }}</p>
+              <p class="po-date">
+                <span class="material-icons">event</span>
+                Due: {{ po.contractualDeliveryDate | date: 'MMM dd, yyyy' }}
+              </p>
+              <p class="po-amount" *ngIf="po.totalAmount">
+                <span class="material-icons">attach_money</span>
+                {{ po.totalAmount | currency }}
+              </p>
+            </div>
+            <div class="po-status">
+              <span class="status-badge" [ngClass]="'status-' + getPOStatus(po).toLowerCase().replace(' ', '-')">
+                {{ getPOStatus(po) }}
+              </span>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="calculateProgress(po.stageStatuses)"></div>
+              </div>
+              <span class="progress-text">{{ calculateProgress(po.stageStatuses) }}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="loading-spinner-small" *ngIf="isLoadingUserPOs">
+          <span class="material-icons rotating">refresh</span>
+          <p>Loading your POs...</p>
+        </div>
+        <div class="empty-state" *ngIf="userAssignedPOs.length === 0 && !isLoadingUserPOs">
+          <span class="material-icons">assignment_late</span>
+          <p>No purchase orders assigned to you</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Recent POs Card - Hidden for vendor users -->
     <div class="dashboard-card" *ngIf="!isVendorUser">
       <div class="card-header">
