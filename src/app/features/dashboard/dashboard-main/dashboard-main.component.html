@@ -230,16 +230,16 @@
                 <span class="material-icons">event</span>
                 Due: {{ po.contractualDeliveryDate | date: 'MMM dd, yyyy' }}
               </p>
-              <p class="po-stages">
+              <!-- <p class="po-stages">
                 <span class="material-icons">layers</span>
                 {{ po.completedStages }} / {{ po.totalStages }} stages completed
-              </p>
-              <p class="po-amount" *ngIf="po.totalAmount">
+              </p> -->
+              <!-- <p class="po-amount" *ngIf="po.totalAmount">
                 <span class="material-icons">attach_money</span>
                 {{ po.totalAmount | currency }}
-              </p>
+              </p> -->
             </div>
-            <div class="po-status">
+            <!-- <div class="po-status">
               <span class="status-badge" [ngClass]="'status-' + getPOStatus(po).toLowerCase().replace(' ', '-')">
                 {{ getPOStatus(po) }}
               </span>
@@ -247,7 +247,7 @@
                 <div class="progress-fill" [style.width.%]="po.progress"></div>
               </div>
               <span class="progress-text">{{ po.progress }}%</span>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="loading-spinner-small" *ngIf="isLoadingUserPOs">
@@ -280,12 +280,12 @@
                 <span class="material-icons">event</span>
                 Due: {{ po.dueDate | date: 'MMM dd, yyyy' }}
               </p>
-              <p class="po-stages">
+              <!-- <p class="po-stages">
                 <span class="material-icons">layers</span>
                 {{ po.completedStages }} / {{ po.totalStages }} stages completed
-              </p>
+              </p> -->
             </div>
-            <div class="po-status">
+            <!-- <div class="po-status">
               <span class="status-badge" [ngClass]="'status-' + po.status.toLowerCase().replace(' ', '-')">
                 {{ po.status }}
               </span>
@@ -293,7 +293,7 @@
                 <div class="progress-fill" [style.width.%]="po.progress"></div>
               </div>
               <span class="progress-text">{{ po.progress }}%</span>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="empty-state" *ngIf="recentPOs.length === 0">

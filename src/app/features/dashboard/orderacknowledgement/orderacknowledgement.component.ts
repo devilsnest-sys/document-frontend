@@ -386,6 +386,12 @@ onEditSubmit(): void {
   // Prepare staggered data list if it's a staggered order
   let staggeredDataList: any[] = [];
   if (this.isEditStaggeredOrder) {
+    // Validate staggered data if enabled
+    if (this.editStaggeredDataList.length === 0) {
+      this.ToastserviceService.showToast('error', 'Please add at least one staggered delivery item');
+      return;
+    }
+    
     staggeredDataList = this.editStaggeredDataList.value.map((item: any) => ({
       id: item.id || 0,
       quantity: item.quantity.toString(),
@@ -412,8 +418,10 @@ onEditSubmit(): void {
       : null,
     modifiedAt: this.utilService.getISTISOString(),
     modifiedBy: parseInt(this.userId || '0'),
-    // Include staggered data list only if it's a staggered order
-    ...(this.isEditStaggeredOrder && { staggeredDataList })
+    // Always include staggeredOrder flag
+    staggeredOrder: this.isEditStaggeredOrder,
+    // Include staggered data list
+    staggeredDataList: staggeredDataList
   };
 
   console.log('Update payload:', updatePayload);
@@ -436,11 +444,13 @@ onEditSubmit(): void {
     });
 }
 
-  resetEditForm(): void {
-    this.editPoForm.reset();
-    this.selectedPoForEdit = null;
-    this.isEditMode = false;
-  }
+resetEditForm(): void {
+  this.editPoForm.reset();
+  this.selectedPoForEdit = null;
+  this.isEditMode = false;
+  this.isEditStaggeredOrder = false;
+  this.clearEditStaggeredItems();
+}
 
   onVendorSelect(selectedCode: string): void {
     const selectedVendor = this.vendors.find(vendor => vendor.vendorCode === selectedCode);
@@ -589,7 +599,19 @@ onEditSubmit(): void {
     this.markFormGroupTouched(this.poForm);
   }
 }
-
+onEditStaggeredChange(event: any): void {
+  this.isEditStaggeredOrder = event.checked;
+  
+  if (this.isEditStaggeredOrder) {
+    // If enabling staggered order and no items exist, add one
+    if (this.editStaggeredDataList.length === 0) {
+      this.addEditStaggeredItem();
+    }
+  } else {
+    // If disabling staggered order, clear all items
+    this.clearEditStaggeredItems();
+  }
+}
   resetForm(): void {
     this.poForm.reset();
     this.selectedFile = null;

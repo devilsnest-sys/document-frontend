@@ -533,7 +533,7 @@
 .dashboard-card:nth-child(2),
 .dashboard-card:nth-child(3) {
   grid-column: span 6;
-  height: fit-content;
+  /* height: fit-content; */
   max-height: 600px;
 }
 
