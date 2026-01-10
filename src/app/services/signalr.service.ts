@@ -9,7 +9,7 @@ export class SignalrService {
  constructor(private notificationService: NotificationService) {}
   public startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:44347/notificationhub')
+      .withUrl('https://pata-backend-solution-api.azurewebsites.net/notificationhub')
       .withAutomaticReconnect()
       .build();
 

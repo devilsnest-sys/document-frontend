@@ -16,7 +16,7 @@ export class NotificationService {
 
   private startConnection() {
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:44347/notificationhub') // Replace with your backend URL
+      .withUrl('https://pata-backend-solution-api.azurewebsites.net/notificationhub') // Replace with your backend URL
       .build();
 
     this.connection.on('ReceiveReminderNotification', (message: string) => {
