@@ -87,15 +87,17 @@ export class AllStagesDocumentsComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   userType: string | null = '';
+  userRole: string | null = '';
+  currentUserId: string | null = '';
   selectedFile: File | null = null;
   poID: string | null = null;
   poNumber: string = '';
+  poCreatedBy: number | null = null; // Track who created the PO
   stepStatuses: { [key: number]: string } = {};
   stageNames: { [key: number]: string } = {};
-allowedStageId: number[] = [];
+  allowedStageId: number[] = [];
 
-constructor(
-  
+  constructor(
     private http: HttpClient,
     private toastService: ToastserviceService,
     private route: ActivatedRoute,
@@ -105,28 +107,63 @@ constructor(
 
   ngOnInit(): void {
     this.userType = localStorage.getItem('userType');
+    this.userRole = localStorage.getItem('role');
+    this.currentUserId = localStorage.getItem('userId');
+    
     const stageStr = localStorage.getItem('userForStage');
-  this.allowedStageId = stageStr
-    ? stageStr.split(',').map(s => Number(s.trim()))
-    : [];
+    this.allowedStageId = stageStr
+      ? stageStr.split(',').map(s => Number(s.trim()))
+      : [];
 
-  console.log('User allowed stage:', this.allowedStageId);
+    console.log('User Type:', this.userType);
+    console.log('User Role:', this.userRole);
+    console.log('User ID:', this.currentUserId);
+    console.log('User allowed stages:', this.allowedStageId);
+    
     this.poID = this.route.snapshot.paramMap.get('poNumber');
-    console.log('PO ID:', this.poID);
-    console.log('User Type from localStorage:', this.userType);
     
     this.fetchStageNames();
     this.fetchPoDetails();
     this.fetchStepStatuses();
   }
 
-canAccessStage(stageId: number): boolean {
-    // ✅ Vendor has access to all stages
-  if (this.isVendor()) {
-    return true;
+  // ✅ NEW: Check if current user is Admin
+  isAdmin(): boolean {
+    return this.userRole === 'Admin';
   }
-  return this.allowedStageId.includes(stageId);
-}
+
+  // ✅ NEW: Check if current user created this PO
+  isPoCreator(): boolean {
+    if (!this.currentUserId || !this.poCreatedBy) return false;
+    return parseInt(this.currentUserId) === this.poCreatedBy;
+  }
+
+  // ✅ NEW: Check if user has access to manage this PO
+  canManagePO(): boolean {
+    // Admin can manage all POs
+    if (this.isAdmin()) return true;
+    
+    // User can only manage POs they created
+    if (this.isUser()) return this.isPoCreator();
+    
+    return false;
+  }
+
+  // ✅ UPDATED: Check stage access with PO ownership
+  canAccessStage(stageId: number): boolean {
+    // Vendor has access to all stages
+    if (this.isVendor()) return true;
+    
+    // Admin has access to all stages
+    if (this.isAdmin()) return true;
+    
+    // User must be PO creator AND have stage access
+    if (this.isUser()) {
+      return this.isPoCreator() && this.allowedStageId.includes(stageId);
+    }
+    
+    return false;
+  }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
@@ -172,7 +209,13 @@ canAccessStage(stageId: number): boolean {
         next: (response) => {
           console.log('Fetched PO details:', response);
           this.poNumber = response.pO_NO;
-          console.log('PO Number:', this.poNumber);
+          
+          // ✅ NEW: Store who created this PO
+          this.poCreatedBy = response.createdBy || response.userId || null;
+          console.log('PO Created By:', this.poCreatedBy);
+          console.log('Current User ID:', this.currentUserId);
+          console.log('Can Manage PO:', this.canManagePO());
+          
           this.fetchAllStageDocuments();
         },
       });
@@ -331,6 +374,16 @@ canAccessStage(stageId: number): boolean {
   }
 
   handleFileSelect(event: Event, stageId: number, documentTypeId: number): void {
+    // ✅ Check access before allowing file selection
+    if (!this.canAccessStage(stageId)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to upload documents for this PO.'
+      });
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     this.selectedFile = input.files?.[0] || null;
 
@@ -346,6 +399,16 @@ canAccessStage(stageId: number): boolean {
   ): Promise<void> {
     if (!this.selectedFile) {
       console.error('No file selected');
+      return;
+    }
+
+    // ✅ Double-check access
+    if (!this.canAccessStage(stageId)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to upload documents for this PO.'
+      });
       return;
     }
 
@@ -500,6 +563,16 @@ canAccessStage(stageId: number): boolean {
     isApproved: boolean,
     reviewRemark: string = ''
   ): Promise<void> {
+    // ✅ Check access before review
+    if (!this.canReviewDocument(document)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to review this document.'
+      });
+      return;
+    }
+
     try {
       this.isLoading = true;
       this.errorMessage = '';
@@ -607,129 +680,82 @@ canAccessStage(stageId: number): boolean {
     });
   }
 
-// viewDocument(documentId: number): void {
-//   const token = localStorage.getItem('authToken');
-  
-//   if (!token) {
-//     alert('Please log in to view documents.');
-//     return;
-//   }
+  viewDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
 
-//   const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view/${encodeURIComponent(documentId)}`;
-
-//   fetch(documentUrl, {
-//     headers: {
-//       'Authorization': `Bearer ${token}`
-//     }
-//   })
-//     .then(response => {
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-//       return response.blob();
-//     })
-//     .then(blob => {
-//       const blobUrl = URL.createObjectURL(blob);
-//       const newWindow = window.open(blobUrl, '_blank');
-      
-//       if (!newWindow) {
-//         alert('Please allow popups to view the document.');
-//         URL.revokeObjectURL(blobUrl);
-//         return;
-//       }
-      
-//       // Revoke the blob URL after the new window loads
-//       newWindow.addEventListener('load', () => {
-//         setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-//       });
-//     })
-//     .catch(error => {
-//       console.error('Error viewing document:', error);
-//       alert('Error viewing document. Please try again.');
-//     });
-// }
-viewDocument(documentId: number): void {
-  const token = localStorage.getItem('authToken');
-
-  if (!token) {
-    alert('Please log in to view documents.');
-    return;
-  }
-
-  // ✅ OPEN WINDOW FIRST (sync → popup allowed)
-  const newWindow = window.open('', '_blank');
-
-  if (!newWindow) {
-    alert('Please allow popups to view the document.');
-    return;
-  }
-
-  const documentUrl =
-    `${environment.apiUrl}/v1/PurchaseOrder/view-uploaded-document/${encodeURIComponent(documentId)}`;
-
-  fetch(documentUrl, {
-    headers: {
-      'Authorization': `Bearer ${token}`
+    if (!token) {
+      alert('Please log in to view documents.');
+      return;
     }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+    const newWindow = window.open('', '_blank');
+
+    if (!newWindow) {
+      alert('Please allow popups to view the document.');
+      return;
+    }
+
+    const documentUrl =
+      `${environment.apiUrl}/v1/PurchaseOrder/view-uploaded-document/${encodeURIComponent(documentId)}`;
+
+    fetch(documentUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-      return response.blob();
     })
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-
-      // ✅ Navigate already-opened window
-      newWindow.location.href = blobUrl;
-
-      // cleanup
-      newWindow.addEventListener('load', () => {
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        newWindow.location.href = blobUrl;
+        newWindow.addEventListener('load', () => {
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
+        });
+      })
+      .catch(error => {
+        console.error('Error viewing document:', error);
+        newWindow.close();
+        alert('Error viewing document. Please try again.');
       });
-    })
-    .catch(error => {
-      console.error('Error viewing document:', error);
-      newWindow.close();
-      alert('Error viewing document. Please try again.');
-    });
-}
-
-downloadDocument(documentId: number): void {
-  const token = localStorage.getItem('authToken');
-
-  if (!token) {
-    alert('Please log in to view documents.');
-    return;
   }
 
-  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${documentId}`;
+  downloadDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
 
-  this.http.get(documentUrl, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    }),
-    responseType: 'blob' // <--- important
-  })
-  .subscribe({
-    next: (fileBlob) => {
-      const blobUrl = window.URL.createObjectURL(fileBlob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `document_${documentId}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    },
-    error: (err) => {
-      console.error('Download failed:', err);
-      alert('Error downloading document');
+    if (!token) {
+      alert('Please log in to view documents.');
+      return;
     }
-  });
-}
 
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download-stage/${documentId}`;
+
+    this.http.get(documentUrl, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      }),
+      responseType: 'blob'
+    })
+    .subscribe({
+      next: (fileBlob) => {
+        const blobUrl = window.URL.createObjectURL(fileBlob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `document_${documentId}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        console.error('Download failed:', err);
+        alert('Error downloading document');
+      }
+    });
+  }
 
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -740,15 +766,15 @@ downloadDocument(documentId: number): void {
   }
 
   submitStage(stageId: number): void {
-    // BUG FIX: Check if user is allowed to submit
+    // ✅ Check access
     if (!this.canAccessStage(stageId)) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Unauthorized',
-      text: 'You are not allowed to submit this stage.'
-    });
-    return;
-  }
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to submit this stage for this PO.'
+      });
+      return;
+    }
 
     if (this.userType?.toLowerCase() !== 'user') {
       Swal.fire({
@@ -759,7 +785,6 @@ downloadDocument(documentId: number): void {
       return;
     }
 
-    // BUG FIX: Check if stage is already complete
     if (this.getStageStatus(stageId) === 'Complete') {
       Swal.fire({
         icon: 'info',
@@ -798,10 +823,10 @@ downloadDocument(documentId: number): void {
     this.isLoading = true;
 
     this.http.get(
-  `${environment.apiUrl}/v1/StageStatus/validate-submission` +
-  `?poId=${this.poID}` +
-  `&stageId=${stageId}` +
-  `&TncSelected=${tncAccepted}`,
+      `${environment.apiUrl}/v1/StageStatus/validate-submission` +
+      `?poId=${this.poID}` +
+      `&stageId=${stageId}` +
+      `&TncSelected=${tncAccepted}`,
       { headers: this.getHeaders() }
     )
     .pipe(
@@ -817,7 +842,6 @@ downloadDocument(documentId: number): void {
             text: response.Message || 'Stage submitted successfully.',
             confirmButtonText: 'OK'
           }).then(() => {
-            // BUG FIX: Refresh stage statuses after submission
             this.fetchStepStatuses();
             this.fetchAllUploadedDocuments();
           });
@@ -883,80 +907,81 @@ downloadDocument(documentId: number): void {
     const stage = this.stageGroups.find(s => s.stageId === stageId);
     if (!stage) return false;
 
-    // BUG FIX: Check if stage has documents
     if (stage.documents.length === 0) return false;
 
-    // BUG FIX: All document types must have at least one approved document
     return stage.documents.every(docGroup => 
       docGroup.uploadedDocuments.some(doc => doc.isApproved)
     );
   }
 
-  // BUG FIX: Helper method to determine submit button text
   getSubmitButtonText(stageId: number): string {
     const status = this.getStageStatus(stageId);
     return status === 'Complete' ? 'Submitted' : 'Submit';
   }
 
-  // BUG FIX: Helper method to determine if submit button should be disabled
   isSubmitDisabled(stageId: number): boolean {
     const status = this.getStageStatus(stageId);
     return status === 'Complete' || !this.canSubmitStage(stageId) || this.isLoading;
   }
 
-  // BUG FIX: Check if user can perform vendor actions
   isVendor(): boolean {
     return this.userType?.toLowerCase() === 'vendor';
   }
 
-  // BUG FIX: Check if user can perform user actions
   isUser(): boolean {
     return this.userType?.toLowerCase() === 'user';
   }
 
-  // Add this method to your component
-canReviewDocument(doc: UploadedDocument): boolean {
-  const currentUserType = this.userType?.toLowerCase();
-  const uploaderType = doc.docUploadedBy?.toLowerCase();
+  // ✅ UPDATED: Can review with PO ownership check
+  canReviewDocument(doc: UploadedDocument): boolean {
+    const currentUserType = this.userType?.toLowerCase();
+    const uploaderType = doc.docUploadedBy?.toLowerCase();
 
-  // Document must be pending (not already approved or rejected)
-  if (doc.isApproved || doc.isRejected) {
+    if (doc.isApproved || doc.isRejected) {
+      return false;
+    }
+
+    // ✅ Vendor can approve documents uploaded by User
+    if (currentUserType === 'vendor' && uploaderType === 'user') {
+      return true;
+    }
+
+    // ✅ Admin can approve any pending document
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    // ✅ User can approve documents uploaded by Vendor (only if they created this PO)
+    if (currentUserType === 'user' && uploaderType === 'vendor') {
+      return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
+    }
+
     return false;
   }
 
-  // ✅ Vendor can approve documents uploaded by User
-  if (currentUserType === 'vendor' && uploaderType === 'user') {
-    return true;
-  }
+  // ✅ UPDATED: Can reject with PO ownership check
+  canRejectDocument(doc: UploadedDocument): boolean {
+    const currentUserType = this.userType?.toLowerCase();
 
-  // ✅ User can approve documents uploaded by Vendor (only in their assigned stages)
-  if (currentUserType === 'user' && uploaderType === 'vendor') {
-    return this.allowedStageId.includes(doc.stageId);
-  }
+    if (doc.isApproved || doc.isRejected) {
+      return false;
+    }
 
-  return false;
-}
+    // ✅ Vendor can reject ANY pending document
+    if (currentUserType === 'vendor') {
+      return true;
+    }
 
-canRejectDocument(doc: UploadedDocument): boolean {
-  const currentUserType = this.userType?.toLowerCase();
+    // ✅ Admin can reject any pending document
+    if (this.isAdmin()) {
+      return true;
+    }
 
-  // Document must be pending (not already approved or rejected)
-  if (doc.isApproved || doc.isRejected) {
+    // ✅ User can reject documents in their assigned stages (only if they created this PO)
+    if (currentUserType === 'user') {
+      return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
+    }
+
     return false;
   }
-
-  // ✅ Vendor can reject ANY pending document
-  if (currentUserType === 'vendor') {
-    return true;
-  }
-
-  // ✅ User can reject documents in their assigned stages
-  if (currentUserType === 'user') {
-    return this.allowedStageId.includes(doc.stageId);
-  }
-
-  return false;
-}
-
-
 }

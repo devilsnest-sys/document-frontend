@@ -396,7 +396,9 @@
 .dashboard-main {
     flex: 1;
     /* margin-top: 20px; */
-    background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    background: url(../../public/assets/images/bg-new-login.jpg)!important;
+    background-repeat: no-repeat;
+    background-size: cover;
     min-height: calc(100vh - 70px);
     padding-bottom: 50px;
 }

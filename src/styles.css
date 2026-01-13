@@ -62,3 +62,9 @@
   padding: 10px;
   color: #888;
 }
+
+::ng-deep .dashboard-main{
+  background: url(../public/assets/images/bg-new-login.jpg)!important;
+  background-size: contain;
+  height: 100%;
+}
