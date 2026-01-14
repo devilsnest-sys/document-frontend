@@ -933,55 +933,75 @@ export class AllStagesDocumentsComponent implements OnInit {
   }
 
   // ✅ UPDATED: Can review with PO ownership check
-  canReviewDocument(doc: UploadedDocument): boolean {
-    const currentUserType = this.userType?.toLowerCase();
-    const uploaderType = doc.docUploadedBy?.toLowerCase();
+canReviewDocument(doc: UploadedDocument): boolean {
+  const currentUserType = this.userType?.toLowerCase();
+  const uploaderType = doc.docUploadedBy?.toLowerCase();
+  const currentUserIdNum = parseInt(this.currentUserId || '0');
 
-    if (doc.isApproved || doc.isRejected) {
-      return false;
-    }
-
-    // ✅ Vendor can approve documents uploaded by User
-    if (currentUserType === 'vendor' && uploaderType === 'user') {
-      return true;
-    }
-
-    // ✅ Admin can approve any pending document
-    if (this.isAdmin()) {
-      return true;
-    }
-
-    // ✅ User can approve documents uploaded by Vendor (only if they created this PO)
-    if (currentUserType === 'user' && uploaderType === 'vendor') {
-      return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
-    }
-
+  // Already processed documents cannot be reviewed
+  if (doc.isApproved || doc.isRejected) {
     return false;
   }
+
+  // ✅ Vendor can approve documents uploaded by User or Admin
+  if (currentUserType === 'vendor' && (uploaderType === 'user' || uploaderType === 'admin')) {
+    return true;
+  }
+
+  // ✅ Admin CANNOT approve their own documents - only Vendor can approve
+  // Admin can only approve documents uploaded by others
+  if (this.isAdmin()) {
+    // Admin cannot approve their own uploads
+    if (doc.uploadedBy === currentUserIdNum) {
+      return false;
+    }
+    // Admin can approve documents uploaded by User (not Vendor)
+    if (uploaderType === 'user') {
+      return true;
+    }
+    return false;
+  }
+
+  // ✅ User (including Purchase Department) can approve documents uploaded by Vendor
+  // Only if they created this PO and have stage access
+  if (currentUserType === 'user' && uploaderType === 'vendor') {
+    return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
+  }
+
+  return false;
+}
 
   // ✅ UPDATED: Can reject with PO ownership check
   canRejectDocument(doc: UploadedDocument): boolean {
-    const currentUserType = this.userType?.toLowerCase();
+  const currentUserType = this.userType?.toLowerCase();
+  const currentUserIdNum = parseInt(this.currentUserId || '0');
 
-    if (doc.isApproved || doc.isRejected) {
-      return false;
-    }
-
-    // ✅ Vendor can reject ANY pending document
-    if (currentUserType === 'vendor') {
-      return true;
-    }
-
-    // ✅ Admin can reject any pending document
-    if (this.isAdmin()) {
-      return true;
-    }
-
-    // ✅ User can reject documents in their assigned stages (only if they created this PO)
-    if (currentUserType === 'user') {
-      return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
-    }
-
+  // Already processed documents cannot be rejected
+  if (doc.isApproved || doc.isRejected) {
     return false;
   }
+
+  // ✅ Vendor can reject ANY pending document
+  if (currentUserType === 'vendor') {
+    return true;
+  }
+
+  // ✅ Admin can reject any pending document (including their own)
+  if (this.isAdmin()) {
+    return true;
+  }
+
+  // ✅ User (including Purchase Department) can reject documents in their assigned stages
+  // This includes their own uploads AND documents from vendors
+  // Only if they created this PO
+  if (currentUserType === 'user') {
+    const hasStageAccess = this.allowedStageId.includes(doc.stageId);
+    const isPoOwner = this.isPoCreator();
+    
+    // User can reject if they own the PO and have stage access
+    return isPoOwner && hasStageAccess;
+  }
+
+  return false;
+}
 }
