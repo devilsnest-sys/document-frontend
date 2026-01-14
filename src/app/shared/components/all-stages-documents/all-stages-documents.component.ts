@@ -564,14 +564,26 @@ export class AllStagesDocumentsComponent implements OnInit {
     reviewRemark: string = ''
   ): Promise<void> {
     // ✅ Check access before review
-    if (!this.canReviewDocument(document)) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Access Denied',
-        text: 'You do not have permission to review this document.'
-      });
-      return;
-    }
+if (isApproved) {
+  if (!this.canReviewDocument(document)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Access Denied',
+      text: 'You do not have permission to approve this document.'
+    });
+    return;
+  }
+} else {
+  if (!this.canRejectDocument(document)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Access Denied',
+      text: 'You do not have permission to reject this document.'
+    });
+    return;
+  }
+}
+
 
     try {
       this.isLoading = true;
@@ -976,32 +988,25 @@ canReviewDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
   const currentUserIdNum = parseInt(this.currentUserId || '0');
 
-  // Already processed documents cannot be rejected
-  if (doc.isApproved || doc.isRejected) {
-    return false;
+  // Already processed docs can't be rejected
+  if (doc.isApproved || doc.isRejected) return false;
+
+  // Admin can reject ANY pending document
+  if (currentUserType === 'admin') {
+    return true;
   }
 
-  // ✅ Vendor can reject ANY pending document
+  // Vendor can reject ANY pending document
   if (currentUserType === 'vendor') {
     return true;
   }
 
-  // ✅ Admin can reject any pending document (including their own)
-  if (this.isAdmin()) {
-    return true;
-  }
-
-  // ✅ User (including Purchase Department) can reject documents in their assigned stages
-  // This includes their own uploads AND documents from vendors
-  // Only if they created this PO
+  // User (Purchase Dept) can reject ONLY their own uploaded docs
   if (currentUserType === 'user') {
-    const hasStageAccess = this.allowedStageId.includes(doc.stageId);
-    const isPoOwner = this.isPoCreator();
-    
-    // User can reject if they own the PO and have stage access
-    return isPoOwner && hasStageAccess;
+    return doc.uploadedBy === currentUserIdNum;
   }
 
   return false;
 }
+
 }
