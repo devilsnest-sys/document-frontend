@@ -60,6 +60,7 @@ export class DashboardMainComponent {
   isVendorUser = false;
   userType: string | null = null;
   userId: string | null = null;
+userRole: string | null = null;  
 
   // User assigned POs
   userAssignedPOs: any[] = [];
@@ -137,6 +138,7 @@ export class DashboardMainComponent {
     this.userType = localStorage.getItem('userType');
     this.userId = localStorage.getItem('userId');
     this.isVendorUser = this.userType === 'vendor';
+    this.userRole = localStorage.getItem('role'); 
   }
 
   private initializeForm(): void {
@@ -646,4 +648,19 @@ export class DashboardMainComponent {
       this.vendorPoForm.patchValue({ po: po.id });
     }
   }
+  isVendorDashboardUser(): boolean {
+  // Only pure Vendor & Employee should see vendor-style dashboard
+  return (
+    this.userType?.toLowerCase() === 'vendor' ||
+    this.userRole === 'Employees'
+  );
+}
+canSelectVendor(): boolean {
+  // Vendor cannot select vendor
+  return !this.isActualVendor();
+}
+isActualVendor(): boolean {
+  return this.userType?.toLowerCase() === 'vendor';
+}
+
 }

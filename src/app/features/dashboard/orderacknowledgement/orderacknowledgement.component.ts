@@ -163,8 +163,8 @@ export class OrderacknowledgementComponent {
       vendorCode: ['', Validators.required],
       orderValue: ['', Validators.required],
 shippingDate: ['', [noPastDateValidator]],
-cpbgDueDate: ['', [noPastDateValidator]],
-dlpDueDate: ['', [noPastDateValidator]],
+cpbgDueDate: [null],
+dlpDueDate: [null],
       isStaggered: [false],
       staggeredDataList: this.fb.array([])
     });
@@ -567,8 +567,14 @@ resetEditForm(): void {
       staggeredOrder: this.isStaggeredOrder,
       orderValue: this.poForm.value.orderValue,
       shippingDate: this.poForm.value.shippingDate.toISOString(),
-      cpbgDueDate: this.poForm.value.cpbgDueDate.toISOString(),
-      dlpDueDate: this.poForm.value.dlpDueDate.toISOString(),
+cpbgDueDate: this.poForm.value.cpbgDueDate
+  ? new Date(this.poForm.value.cpbgDueDate).toISOString()
+  : null,
+
+dlpDueDate: this.poForm.value.dlpDueDate
+  ? new Date(this.poForm.value.dlpDueDate).toISOString()
+  : null,
+
       stageStatuses: [],
       staggeredDataList: staggeredData,
       uploadedDocumentFlow: []

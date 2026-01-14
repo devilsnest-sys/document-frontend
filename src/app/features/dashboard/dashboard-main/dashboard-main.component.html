@@ -1,7 +1,7 @@
 <!-- dashboard-main.component.html -->
 <div class="dashboard-container">
   <!-- Header Section - Hidden for vendor users -->
-  <div class="dashboard-header" *ngIf="!isVendorUser">
+  <div class="dashboard-header" *ngIf="!isVendorDashboardUser()">
     <div class="header-content">
       <h1 class="dashboard-title">
         <span class="material-icons">dashboard</span>
@@ -15,7 +15,7 @@
   </div>
 
   <!-- Statistics Cards - Hidden for vendor users -->
-  <div class="stats-grid" *ngIf="!isLoadingStats && !isVendorUser">
+  <div class="stats-grid" *ngIf="!isLoadingStats && !isVendorDashboardUser()">
     <div class="stat-card stat-primary">
       <div class="stat-icon">
         <span class="material-icons">description</span>
@@ -78,7 +78,7 @@
   </div>
 
   <!-- Loading Spinner - Hidden for vendor users -->
-  <div class="loading-spinner" *ngIf="isLoadingStats && !isVendorUser">
+  <div class="loading-spinner" *ngIf="isLoadingStats && !isVendorDashboardUser()">
     <p>Loading dashboard data...</p>
   </div>
 
@@ -89,15 +89,15 @@
       <div class="card-header">
         <h3 class="card-title">
           <span class="material-icons">search</span>
-          <span *ngIf="!isVendorUser">Select Vendor & Purchase Order</span>
-          <span *ngIf="isVendorUser">Select Purchase Order</span>
+          <span *ngIf="!isVendorDashboardUser()">Select Vendor & Purchase Order</span>
+          <span *ngIf="isVendorDashboardUser()">Select Purchase Order</span>
         </h3>
       </div>
       <div class="card-body">
         <form [formGroup]="vendorPoForm">
           <div class="form-row">
             <!-- Vendor Selection - Hidden for vendor users -->
-            <div class="form-group" *ngIf="!isVendorUser">
+            <div class="form-group" *ngIf="canSelectVendor()">
               <mat-form-field  class="full-width">
                 <mat-label>Select Vendor</mat-label>
                 <input appTrimInput 
@@ -123,11 +123,11 @@
             </div>
 
             <!-- PO Selection -->
-            <div class="form-group" [class.full-width-vendor]="isVendorUser">
+            <div class="form-group" [class.full-width-vendor]="isVendorDashboardUser()">
               <mat-form-field  class="full-width">
                 <mat-label>Select Purchase Order</mat-label>
                 <mat-select formControlName="po" 
-                           [disabled]="!vendorPoForm.get('vendor')?.value">
+                           [disabled]="canSelectVendor() && !vendorPoForm.get('vendor')?.value">
                   <mat-icon matPrefix>description</mat-icon>
                   <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
                     {{ po.pO_NO }}
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Latest Progress POs Card -->
-    <div class="dashboard-card" *ngIf="!isVendorUser">
+    <div class="dashboard-card" *ngIf="!isVendorDashboardUser()">
       <div class="card-header">
         <h3 class="card-title">
           <span class="material-icons">trending_up</span>
@@ -197,7 +197,7 @@
     </div>
 
     <!-- My Assigned POs Card -->
-    <div class="dashboard-card" *ngIf="!isVendorUser">
+    <div class="dashboard-card" *ngIf="!isVendorDashboardUser()">
       <div class="card-header">
         <h3 class="card-title">
           <span class="material-icons">assignment</span>
@@ -262,7 +262,7 @@
     </div>
 
     <!-- Recent POs Card - Hidden for vendor users -->
-    <div class="dashboard-card" *ngIf="!isVendorUser">
+    <div class="dashboard-card" *ngIf="!isVendorDashboardUser()">
       <div class="card-header">
         <h3 class="card-title">
           <span class="material-icons">schedule</span>
@@ -304,7 +304,7 @@
     </div>
 
     <!-- Overdue POs Card - Hidden for vendor users -->
-    <div class="dashboard-card" *ngIf="overduePOs.length > 0 && !isVendorUser">
+    <div class="dashboard-card" *ngIf="overduePOs.length > 0 && !isVendorDashboardUser()">
       <div class="card-header alert-header">
         <h3 class="card-title">
           <span class="material-icons">warning</span>
@@ -340,7 +340,7 @@
     </div>
 
     <!-- PO Statistics Overview - Hidden for vendor users -->
-    <div class="dashboard-card stages-card" *ngIf="!isVendorUser">
+    <div class="dashboard-card stages-card" *ngIf="!isVendorDashboardUser()">
       <div class="card-header">
         <h3 class="card-title">
           <span class="material-icons">analytics</span>
@@ -397,4 +397,4 @@
 </div>
 
 <!-- Include reports component - Hidden for vendor users -->
-<app-reports *ngIf="!isVendorUser"></app-reports>
+<app-reports *ngIf="!isVendorDashboardUser()"></app-reports>

@@ -943,70 +943,233 @@ if (isApproved) {
   isUser(): boolean {
     return this.userType?.toLowerCase() === 'user';
   }
-
+private toBoolean(value: any): boolean {
+  return value === true || value === 'true' || value === 1 || value === '1';
+}
   // ✅ UPDATED: Can review with PO ownership check
+// canReviewDocument(doc: UploadedDocument): boolean {
+//   const currentUserType = this.userType?.toLowerCase();
+//   const uploaderType = doc.docUploadedBy?.toLowerCase();
+//   const currentUserIdNum = parseInt(this.currentUserId || '0');
+
+//   if (doc.isApproved || doc.isRejected) {
+//     return false;
+//   }
+
+//   // ✅ Vendor can approve/reject documents uploaded by User or Admin
+//   if (currentUserType === 'vendor' && (uploaderType === 'user' || uploaderType === 'admin')) {
+//     return true;
+//   }
+
+//   // Admin can approve/reject documents uploaded by others user also if he uploadedany doc he can reject at the same time
+//   //Admin cannot approve their own uploads
+//   if (this.isAdmin()) {
+//     // Admin cannot approve their own uploads
+//     if (doc.uploadedBy === currentUserIdNum) {
+//       return false;
+//     }
+
+//     // Admin can approve documents uploaded by User (not Vendor)-->this is wrong admin can approve documents uploaded by user and vendor both
+//     if (uploaderType === 'user') {
+//       return true;
+//     }
+//     return false;
+//   }
+
+//   // ✅ User (including Purchase Department) can approve documents uploaded by Vendor-->here user can approve/reject documents uploaded by vendor
+//   // Only if they created this PO and have stage access
+//   if (currentUserType === 'user' && uploaderType === 'vendor') {
+//     return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
+//   }
+
+//   return false;
+// }
+// canReviewDocument(doc: UploadedDocument): boolean {
+//   const currentUserType = this.userType?.toLowerCase();
+//   const uploaderType = doc.docUploadedBy?.toLowerCase();
+//   const currentUserIdNum = parseInt(this.currentUserId || '0');
+
+//   // Already processed
+//   if (doc.isApproved || doc.isRejected) {
+//     return false;
+//   }
+
+//   // ---------------- VENDOR ----------------
+//   // Vendor can approve User/Admin docs
+//   if (currentUserType === 'vendor') {
+//     return uploaderType !== 'vendor';
+//   }
+
+//   // ---------------- ADMIN ----------------
+//   // Admin can approve any doc except own
+//   if (currentUserType === 'admin') {
+//     return doc.uploadedBy !== currentUserIdNum;
+//   }
+
+//   // ---------------- USER (PO Dept) ----------------
+//   // User-1 (PO creator) can approve Vendor docs
+//   if (
+//     currentUserType === 'user' &&
+//     uploaderType === 'vendor' &&
+//     this.isPoCreator() &&
+//     this.allowedStageId.includes(doc.stageId)
+//   ) {
+//     return true;
+//   }
+
+//   return false;
+// }
 canReviewDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
   const uploaderType = doc.docUploadedBy?.toLowerCase();
-  const currentUserIdNum = parseInt(this.currentUserId || '0');
+  const userRole = this.userRole;  
+  const isApproved = this.toBoolean(doc.isApproved);
+  const isRejected = this.toBoolean(doc.isRejected);
 
-  // Already processed documents cannot be reviewed
-  if (doc.isApproved || doc.isRejected) {
+  if (isApproved || isRejected) {
     return false;
   }
-
-  // ✅ Vendor can approve documents uploaded by User or Admin
-  if (currentUserType === 'vendor' && (uploaderType === 'user' || uploaderType === 'admin')) {
+if (currentUserType ==uploaderType ) {
+    return false;
+  }
+  // ---------------- ADMIN ----------------
+  if (userRole === 'Admin') {
     return true;
   }
 
-  // ✅ Admin CANNOT approve their own documents - only Vendor can approve
-  // Admin can only approve documents uploaded by others
-  if (this.isAdmin()) {
-    // Admin cannot approve their own uploads
-    if (doc.uploadedBy === currentUserIdNum) {
-      return false;
-    }
-    // Admin can approve documents uploaded by User (not Vendor)
-    if (uploaderType === 'user') {
-      return true;
-    }
-    return false;
+  // ---------------- VENDOR ----------------
+  if (currentUserType === 'vendor') {
+    return uploaderType !== 'vendor';
   }
 
-  // ✅ User (including Purchase Department) can approve documents uploaded by Vendor
-  // Only if they created this PO and have stage access
-  if (currentUserType === 'user' && uploaderType === 'vendor') {
-    return this.isPoCreator() && this.allowedStageId.includes(doc.stageId);
+  // ---------------- USER (PO Dept) ----------------
+  if (
+    currentUserType === 'user' &&
+    uploaderType === 'vendor' &&
+    this.isPoCreator() &&
+    this.allowedStageId.includes(doc.stageId)
+  ) {
+    return true;
   }
 
   return false;
 }
 
+
+
   // ✅ UPDATED: Can reject with PO ownership check
-  canRejectDocument(doc: UploadedDocument): boolean {
+//   canRejectDocument(doc: UploadedDocument): boolean {
+//   const currentUserType = this.userType?.toLowerCase();
+//   const currentUserIdNum = parseInt(this.currentUserId || '0');
+
+//   // Already processed docs can't be rejected
+//   if (doc.isApproved || doc.isRejected) return false;
+
+//   // Admin can reject ANY pending document
+//   if (currentUserType === 'admin') {
+//     return true;
+//   }
+
+//   // Vendor can reject ANY pending document
+//   if (currentUserType === 'vendor') {
+//     return true;
+//   }
+
+//   // User (Purchase Dept) can reject ONLY their own uploaded docs
+//   if (currentUserType === 'user') {
+//     return doc.uploadedBy === currentUserIdNum;
+//   }
+
+//   return false;
+// }
+// canRejectDocument(doc: UploadedDocument): boolean {
+//   const currentUserType = this.userType?.toLowerCase();
+//   const uploaderType = doc.docUploadedBy?.toLowerCase();
+//   const currentUserIdNum = parseInt(this.currentUserId || '0');
+
+//   // Already processed
+//   if (doc.isApproved || doc.isRejected) {
+//     return false;
+//   }
+
+//   // ---------------- ADMIN ----------------
+//   // Admin can reject any pending doc
+//   if (currentUserType === 'admin') {
+//     return true;
+//   }
+
+//   // ---------------- VENDOR ----------------
+//   // Vendor can reject any pending doc
+//   if (currentUserType === 'vendor') {
+//     return true;
+//   }
+
+//   // ---------------- USER (PO Dept) ----------------
+//   if (currentUserType === 'user') {
+
+//     // User-1 rejecting Vendor doc
+//     if (
+//       uploaderType === 'vendor' &&
+//       this.isPoCreator() &&
+//       this.allowedStageId.includes(doc.stageId)
+//     ) {
+//       return true;
+//     }
+
+//     // User-1 rejecting own uploaded doc
+//     if (doc.uploadedBy === currentUserIdNum) {
+//       return true;
+//     }
+//   }
+
+//   return false;
+// }
+canRejectDocument(doc: UploadedDocument): boolean {
   const currentUserType = this.userType?.toLowerCase();
+  const uploaderType = doc.docUploadedBy?.toLowerCase();
   const currentUserIdNum = parseInt(this.currentUserId || '0');
+const userRole = this.userRole;  
+  const isApproved = this.toBoolean(doc.isApproved);
+  const isRejected = this.toBoolean(doc.isRejected);
 
-  // Already processed docs can't be rejected
-  if (doc.isApproved || doc.isRejected) return false;
-
-  // Admin can reject ANY pending document
-  if (currentUserType === 'admin') {
+  if (isApproved || isRejected) {
+    return false;
+  }
+if ((currentUserType == uploaderType) && this.isPoCreator() ) {
+    return true;
+  }
+  // ---------------- ADMIN ----------------
+  if (userRole === 'Admin') {
     return true;
   }
 
-  // Vendor can reject ANY pending document
+  // ---------------- VENDOR ----------------
   if (currentUserType === 'vendor') {
     return true;
   }
 
-  // User (Purchase Dept) can reject ONLY their own uploaded docs
+  // ---------------- USER (PO Dept) ----------------
   if (currentUserType === 'user') {
-    return doc.uploadedBy === currentUserIdNum;
+
+    // Vendor doc
+    if (
+      uploaderType === 'vendor' &&
+      this.isPoCreator() &&
+      this.allowedStageId.includes(doc.stageId)
+    ) {
+      return true;
+    }
+
+    // Own doc
+    if (doc.uploadedBy === currentUserIdNum) {
+      return true;
+    }
   }
 
   return false;
 }
+
+
+
 
 }
