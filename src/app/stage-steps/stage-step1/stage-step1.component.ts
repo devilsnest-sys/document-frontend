@@ -139,7 +139,7 @@ fetchVendorByCode(vendorCode: string): void {
     Accept: 'application/octet-stream',
   });
 
-  const url = `${environment.apiUrl}/v1/PurchaseOrder/view/${poId}`;
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/view-po-file/${poId}`;
 
   this.http.get(url, { headers, responseType: 'blob' }).subscribe({
     next: (blob) => {
@@ -152,34 +152,75 @@ fetchVendorByCode(vendorCode: string): void {
     },
   });
   }
-
-  downloadPoFile(poId: number): void {
+downloadPoFile(poId: number): void {
   const token = localStorage.getItem('authToken');
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/octet-stream',
-  });
+
+  if (!token) {
+    alert('Please log in to download PO.');
+    return;
+  }
 
   const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${poId}`;
- window.open(url, '_blank');
-  // this.http.get(url, { headers, responseType: 'blob' }).subscribe({
-  //   next: (blob) => {
-  //     const a = document.createElement('a');
-  //     const objectUrl = URL.createObjectURL(blob);
-  //     a.href = objectUrl;
 
-  //     const filename = this.poData[0]?.poFilePath?.split('\\').pop() || `PO_${poId}.pdf`;
-  //     a.download = filename;
+  this.http.get(url, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/octet-stream'
+    }),
+    responseType: 'blob'
+  })
+  .subscribe({
+    next: (fileBlob) => {
+      const blobUrl = window.URL.createObjectURL(fileBlob);
 
-  //     a.click();
-  //     URL.revokeObjectURL(objectUrl);
-  //   },
-  //   error: (err) => {
-  //     console.error('Error downloading PO file:', err);
-  //     this.toastservice.showToast('error','Failed to download PO file');
-  //   },
-  // });
-  }
+      const a = document.createElement('a');
+      a.href = blobUrl;
+
+      const filename =
+        this.poData?.[0]?.poFilePath?.split('\\').pop() || `PO_${poId}.pdf`;
+
+      a.download = filename;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(blobUrl);
+    },
+    error: (err) => {
+      console.error('PO download failed:', err);
+      alert('Error downloading PO file');
+    }
+  });
+}
+
+//   downloadPoFile(poId: number): void {
+//   const token = localStorage.getItem('authToken');
+//   const headers = new HttpHeaders({
+//     Authorization: `Bearer ${token}`,
+//     Accept: 'application/octet-stream',
+//   });
+
+//   const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${poId}`;
+//  window.open(url, '_blank');
+//   // this.http.get(url, { headers, responseType: 'blob' }).subscribe({
+//   //   next: (blob) => {
+//   //     const a = document.createElement('a');
+//   //     const objectUrl = URL.createObjectURL(blob);
+//   //     a.href = objectUrl;
+
+//   //     const filename = this.poData[0]?.poFilePath?.split('\\').pop() || `PO_${poId}.pdf`;
+//   //     a.download = filename;
+
+//   //     a.click();
+//   //     URL.revokeObjectURL(objectUrl);
+//   //   },
+//   //   error: (err) => {
+//   //     console.error('Error downloading PO file:', err);
+//   //     this.toastservice.showToast('error','Failed to download PO file');
+//   //   },
+//   // });
+//   }
 
   downloadAllDocuments(poId: number): void {
     this.downloadingAll = true;

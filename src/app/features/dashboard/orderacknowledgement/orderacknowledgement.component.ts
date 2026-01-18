@@ -566,7 +566,7 @@ resetEditForm(): void {
       vendName: 'purchaseOrder.vendName',
       staggeredOrder: this.isStaggeredOrder,
       orderValue: this.poForm.value.orderValue,
-      shippingDate: this.poForm.value.shippingDate.toISOString(),
+      shippingDate: this.poForm.value.shippingDate ? new Date(this.poForm.value.shippingDate).toISOString() : null,
 cpbgDueDate: this.poForm.value.cpbgDueDate
   ? new Date(this.poForm.value.cpbgDueDate).toISOString()
   : null,
@@ -705,57 +705,127 @@ onEditStaggeredChange(event: any): void {
       console.log('No bulk PO file selected');
     }
   }
+viewDocument(documentId: number): void {
+  const token = localStorage.getItem('authToken');
 
-  viewDocument(documentId: number): void {
-    const token = localStorage.getItem('authToken');
-    const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
-  
-    fetch(documentUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.blob();
-      })
-      .then(blob => {
-        const blobUrl = URL.createObjectURL(blob);
-        const newWindow = window.open(blobUrl, '_blank');
-        if (newWindow) {
-          newWindow.addEventListener('unload', () => {
-            URL.revokeObjectURL(blobUrl);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error viewing document:', error);
-        alert('Error viewing document. Please ensure you are logged in and try again.');
-      });
+  if (!token) {
+    alert('Please log in to view document.');
+    return;
   }
+
+  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view-po-file/${documentId}`;
+
+  this.http.get(documentUrl, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/pdf'
+    }),
+    responseType: 'blob'
+  })
+  .subscribe({
+    next: (blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Open PDF in new tab
+      window.open(blobUrl, '_blank');
+
+      // Optional cleanup after some time
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    },
+    error: (err) => {
+      console.error('View document failed:', err);
+      alert('Error viewing document');
+    }
+  });
+}
+
+  // viewDocument(documentId: number): void {
+  //   const token = localStorage.getItem('authToken');
+  //   const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
   
-  downloadDocument(documentName: number): void {
-    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentName)}`;
-  
-    fetch(documentUrl)
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.blob();
-      })
-      .then(blob => {
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `document_${documentName}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      })
-      .catch(error => {
-        console.error('Error downloading document:', error);
-      });
+  //   fetch(documentUrl, {
+  //     headers: {
+  //       'Authorization': `Bearer ${token}`
+  //     }
+  //   })
+  //     .then(response => {
+  //       if (!response.ok) throw new Error('Network response was not ok');
+  //       return response.blob();
+  //     })
+  //     .then(blob => {
+  //       const blobUrl = URL.createObjectURL(blob);
+  //       const newWindow = window.open(blobUrl, '_blank');
+  //       if (newWindow) {
+  //         newWindow.addEventListener('unload', () => {
+  //           URL.revokeObjectURL(blobUrl);
+  //         });
+  //       }
+  //     })
+  //     .catch(error => {
+  //       console.error('Error viewing document:', error);
+  //       alert('Error viewing document. Please ensure you are logged in and try again.');
+  //     });
+  // }
+  downloadDocument(documentId: number): void {
+  const token = localStorage.getItem('authToken');
+
+  if (!token) {
+    alert('Please log in to download document.');
+    return;
   }
+
+  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${documentId}`;
+
+  this.http.get(documentUrl, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/octet-stream'
+    }),
+    responseType: 'blob'
+  })
+  .subscribe({
+    next: (blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `document_${documentId}.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(blobUrl);
+    },
+    error: (err) => {
+      console.error('Document download failed:', err);
+      alert('Error downloading document');
+    }
+  });
+}
+
+  // downloadDocument(documentName: number): void {
+  //   const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentName)}`;
+  
+  //   fetch(documentUrl)
+  //     .then(response => {
+  //       if (!response.ok) throw new Error('Network response was not ok');
+  //       return response.blob();
+  //     })
+  //     .then(blob => {
+  //       const blobUrl = URL.createObjectURL(blob);
+  //       const link = document.createElement('a');
+  //       link.href = blobUrl;
+  //       link.download = `document_${documentName}.pdf`;
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+  //       URL.revokeObjectURL(blobUrl);
+  //     })
+  //     .catch(error => {
+  //       console.error('Error downloading document:', error);
+  //     });
+  // }
 }
 
 export function noPastDateValidator(control: any) {

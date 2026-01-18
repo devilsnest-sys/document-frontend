@@ -22,6 +22,7 @@ interface StageStatus {
 interface PurchaseOrderData {
   vendName: string | null;
   id: number;
+  totalassignedstages: number;
   pO_NO: string;
   poDescription: string;
   poType: number;
@@ -47,6 +48,10 @@ interface PurchaseOrderData {
   cpbgDueDate?: string;
   dlpDueDate?: string;
   shippingDate?: string;
+  orderValue: string;
+  remainingDays: string;
+  daysComplete: number;
+  isClosed: boolean;
 }
 
 // Report 1: STATUS OF PO STAGE
@@ -323,13 +328,13 @@ export class ReportsComponent implements OnInit {
       minWidth: 130,
       width: 150
     },
-    {
-      headerName: 'Date of Receipt',
-      field: 'dateOfReceipt',
-      minWidth: 130,
-      width: 150,
-      headerTooltip: 'Shipping document date - when document type is receipt and approved'
-    },
+    // {
+    //   headerName: 'Date of Receipt',
+    //   field: 'dateOfReceipt',
+    //   minWidth: 130,
+    //   width: 150,
+    //   headerTooltip: 'Shipping document date - when document type is receipt and approved'
+    // },
     {
       headerName: 'ACD/CCD',
       field: 'acdCcd',
@@ -764,20 +769,26 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
     const cpbgStatus = poData.cpbgDueDate ? 'Received' : 'Not Received';
     const shippingStatus = this.calculateShippingDocumentStatus(poData.stageStatuses, poData.uploadedDocumentFlow);
     const dlpDueDateText = poData.dlpDueDate ? this.formatDate(poData.dlpDueDate) : 'N/A';
-    const orderStatus = this.calculateOrderStatus(dlpDate);
+    const orderStatus = completedStages === poData.totalassignedstages ? 'Completed' : 'In Progress';
 
     const reportData: PoStageReportData = {
       vendorName: vendor?.companyName || 'N/A',
       vendorCode: poData.vendorCode || 'N/A',
       poNumber: poData.pO_NO || 'N/A',
-      orderValue: 'To be calculated',
-      stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${totalStages}` : 'No stages',
+      orderValue: poData.orderValue,
+      stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${poData.totalassignedstages}` : 'No stages',
       acdCcd: this.formatDate(poData.actualDeliveryDate),
-      numberOfDaysComplete: Math.max(0, daysDifference),
-      remainingDays: remainingDaysText,
-      cpbgDueDate: cpbgStatus,
-      receiptOfShipping: shippingStatus,
-      dlpDueDate: dlpDueDateText,
+      numberOfDaysComplete: poData.daysComplete,
+      remainingDays: poData.remainingDays,
+      cpbgDueDate: poData.cpbgDueDate
+  ? this.formatDate(poData.cpbgDueDate)
+  : 'N/A',
+      receiptOfShipping: poData.shippingDate
+  ? this.formatDate(poData.shippingDate)
+  : 'N/A',
+      dlpDueDate: poData.dlpDueDate
+  ? this.formatDate(poData.dlpDueDate)
+  : 'N/A',
       orderStatus: orderStatus
     };
 
@@ -801,18 +812,19 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
       
       const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
       const totalStages = poData.stageStatuses?.length || 0;
-      const orderStatus = this.calculateOrderStatus(dlpDate);
+     // const orderStatus = this.calculateOrderStatus(dlpDate);
+      const orderStatus = poData.isClosed ? 'Closed' : 'Open';
       const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
 
       return {
         vendorName: vendorName,
         vendorCode: poData.vendorCode || 'N/A',
         purchaseOrders: poData.pO_NO || 'N/A',
-        orderValue: 'To be calculated',
+        orderValue: poData.orderValue,
         stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${totalStages}` : 'No stages',
         acdCcd: this.formatDate(poData.actualDeliveryDate),
-        numberOfDaysComplete: Math.max(0, daysDifference),
-        remainingDays: remainingDaysText,
+        numberOfDaysComplete: poData.daysComplete,
+        remainingDays: poData.remainingDays,
         orderStatus: orderStatus
       };
     });
@@ -837,7 +849,8 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
       
       const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
       const totalStages = poData.stageStatuses?.length || 0;
-      const orderStatus = this.calculateOrderStatus(dlpDate);
+      //const orderStatus = this.calculateOrderStatus(dlpDate);
+      const orderStatus = poData.isClosed ? 'Closed' : 'Open';
       const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
 
       poData.stageStatuses?.forEach(stage => {
@@ -850,7 +863,7 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
           vendorName: vendorName,
           vendorCode: poData.vendorCode || 'N/A',
           purchaseOrders: poData.pO_NO || 'N/A',
-          orderValue: 'To be calculated',
+          orderValue: poData.orderValue,
           statusOfStage: this.getStageTypeName(stage.stageId),
           action: stageAction,
           pendingWith: pendingWith,
@@ -858,8 +871,8 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
           dateOfReturnByVendor: returnInfo.vendorReturn,
           dateOfReceipt: receiptDate,
           acdCcd: this.formatDate(poData.actualDeliveryDate),
-          numberOfDaysComplete: Math.max(0, daysDifference),
-          remainingDays: remainingDaysText,
+          numberOfDaysComplete: poData.daysComplete,
+          remainingDays: poData.remainingDays,
           orderStatus: orderStatus
         });
       });
