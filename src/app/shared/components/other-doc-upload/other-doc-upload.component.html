@@ -138,7 +138,7 @@
               <th>Document Name</th>
               <th>Uploaded By</th>
               <th>Upload Date</th>
-              <th>Status</th>
+              <!-- <th>Status</th> -->
               <th>Document Type</th>
               <th>Actions</th>
             </tr>
@@ -156,13 +156,13 @@
                 </span>
               </td>
               <td>{{ formatDate(doc.uploadedDate) }}</td>
-              <td>
+              <!-- <td>
                 <span 
                   class="badges"
                   [ngClass]="getStatusBadgeClass(doc.status)">
                   {{ doc.status }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span 
                   class="badges"
