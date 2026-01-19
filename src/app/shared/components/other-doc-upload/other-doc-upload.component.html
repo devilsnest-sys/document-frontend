@@ -146,7 +146,15 @@
           <tbody>
             <tr *ngFor="let doc of uploadedDocuments">
               <td>{{ doc.uploadedDocumentName }}</td>
-              <td>{{ doc.docUploadedBy || 'N/A' }}</td>
+              <td>
+                <!-- Display in format: userType - userName -->
+                <span *ngIf="doc.userNameAccToUploadDoc">
+                  {{ doc.docUploadedBy }} - {{ doc.userNameAccToUploadDoc }}
+                </span>
+                <span *ngIf="!doc.userNameAccToUploadDoc">
+                  {{ doc.docUploadedBy || 'N/A' }}
+                </span>
+              </td>
               <td>{{ formatDate(doc.uploadedDate) }}</td>
               <td>
                 <span 

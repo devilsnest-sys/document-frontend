@@ -33,6 +33,8 @@ interface UploadedDocument {
   isDocSubmited: boolean;
   docUploadedBy: string;
   docReviewedBy: string;
+  userNameAccToUploadDoc: string;  // Added: Actual user name who uploaded
+  vendorNameAccToReviewDoc: string; // Added: Actual reviewer name
 }
 
 @Component({
@@ -61,15 +63,13 @@ export class OtherDocUploadComponent implements OnInit {
     this.userType = localStorage.getItem('userType');
     console.log('OtherDocUpload initialized with PO ID:', this.poId, 'Stage ID:', this.stageId);
     console.log('Current User Type:', this.userType);
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-  if (changes['poId'] && changes['poId'].currentValue) {
-    this.fetchUploadedDocuments();
+    if (changes['poId'] && changes['poId'].currentValue) {
+      this.fetchUploadedDocuments();
+    }
   }
-}
-
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
@@ -366,6 +366,24 @@ export class OtherDocUploadComponent implements OnInit {
     }
     
     return 'Document';
+  }
+
+  // NEW: Get the actual uploader name
+  getUploaderName(doc: UploadedDocument): string {
+    // Use the actual user name if available, otherwise fall back to user type
+    if (doc.userNameAccToUploadDoc) {
+      return doc.userNameAccToUploadDoc;
+    }
+    return doc.docUploadedBy || 'N/A';
+  }
+
+  // NEW: Get the actual reviewer name
+  getReviewerName(doc: UploadedDocument): string {
+    // Use the actual reviewer name if available
+    if (doc.vendorNameAccToReviewDoc) {
+      return doc.vendorNameAccToReviewDoc;
+    }
+    return doc.docReviewedBy || 'N/A';
   }
 
   // View document
