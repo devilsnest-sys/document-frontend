@@ -45,6 +45,14 @@ interface Vendor {
   companyName: string;
 }
 
+// Updated Stage interface to match API response
+interface Stage {
+  id: number;
+  sequence: number;
+  stageName: string;
+  stageStatuses: any[];
+}
+
 @Component({
   selector: 'app-documentselection',
   standalone: false,
@@ -58,8 +66,7 @@ export class DocumentselectionComponent implements OnInit {
   // Vendor related properties
   vendors: Vendor[] = [];
   selectedVendor: Vendor | null = null;
-  //vendorControl = new FormControl<string>('');
-   vendorControl = new FormControl<Vendor | null>(null);
+  vendorControl = new FormControl<Vendor | null>(null);
   filteredVendors$ = new BehaviorSubject<Vendor[]>([]);
   
   // PO related properties
@@ -91,7 +98,7 @@ export class DocumentselectionComponent implements OnInit {
 
   constructor(private http: HttpClient, private utilService: UtilService) {}
   
-  allStages: any;
+  allStages: Stage[] = [];
   allDocumentTypes: any;
 
   ngOnInit(): void {
@@ -104,18 +111,7 @@ export class DocumentselectionComponent implements OnInit {
     setTimeout(() => this.checkUserTypeAndSetVendor(), 500);
   }
 
-// private setupVendorFilter(): void {
-//   this.vendorControl.valueChanges.pipe(
-//     startWith(''),
-//     map(value => {
-//       // Since we're using string-based FormControl, value should always be a string
-//       const filterValue = value || '';
-//       return this.filterVendors(filterValue);
-//     })
-//   ).subscribe(filtered => this.filteredVendors$.next(filtered));
-// }
-
-private setupVendorFilter(): void {
+  private setupVendorFilter(): void {
     this.vendorControl.valueChanges.pipe(
       startWith(''),
       map(value => {
@@ -151,22 +147,22 @@ private setupVendorFilter(): void {
     );
   }
 
-onVendorSelect(event: any): void {
-  const selectedVendorId = event.option.value;
-  const selectedVendor = this.vendors.find(v => v.id === selectedVendorId);
+  onVendorSelect(event: any): void {
+    const selectedVendorId = event.option.value;
+    const selectedVendor = this.vendors.find(v => v.id === selectedVendorId);
 
-   if (selectedVendor) {
+    if (selectedVendor) {
       this.selectedVendor = selectedVendor;
-    this.vendorControl.setValue(selectedVendor); // ✅ vendor object
-    this.onVendorChange(selectedVendor.vendorCode);
+      this.vendorControl.setValue(selectedVendor);
+      this.onVendorChange(selectedVendor.vendorCode);
 
-    this.selectedPoNumber = '';
-    this.rowData = [];
-    this.responseData = [];
+      this.selectedPoNumber = '';
+      this.rowData = [];
+      this.responseData = [];
     }
-}
+  }
 
-    displayVendor(vendor: Vendor): string {
+  displayVendor(vendor: Vendor): string {
     return vendor && vendor.vendorCode && vendor.companyName
       ? `${vendor.vendorCode} - ${vendor.companyName}`
       : '';
@@ -203,27 +199,25 @@ onVendorSelect(event: any): void {
   }
 
   private loadVendorById(vendorId: number): void {
-  const token = localStorage.getItem('authToken');
-  if (!token) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
 
-  const url = `${environment.apiUrl}/v1/vendors/${vendorId}`;
-  const headers = { Authorization: `Bearer ${token}` };
+    const url = `${environment.apiUrl}/v1/vendors/${vendorId}`;
+    const headers = { Authorization: `Bearer ${token}` };
 
-  this.http.get<Vendor>(url, { headers }).subscribe({
-    next: vendor => {
-      if (vendor) {
-        this.selectedVendor = vendor;
-        // Set the FormControl to the display string instead of the object
-        const displayString = this.displayVendor(vendor);
-        this.vendorControl.setValue(vendor);
-        this.onVendorChange(vendor.vendorCode);
+    this.http.get<Vendor>(url, { headers }).subscribe({
+      next: vendor => {
+        if (vendor) {
+          this.selectedVendor = vendor;
+          this.vendorControl.setValue(vendor);
+          this.onVendorChange(vendor.vendorCode);
+        }
+      },
+      error: err => {
+        console.error('Error fetching vendor:', err);
       }
-    },
-    error: err => {
-      console.error('Error fetching vendor:', err);
-    }
-  });
-}
+    });
+  }
 
   private checkUserTypeAndSetVendor(): void {
     const userType = localStorage.getItem('userType');
@@ -235,12 +229,9 @@ onVendorSelect(event: any): void {
   }
 
   onPoSelectionChange(): void {
-    // Refresh document selection data when PO is changed
     if (this.selectedPoNumber && this.allStages) {
-      // First fetch document selection data, then fetch document types
       this.fetchDocumentSelectionData();
     } else {
-      // Clear data if no PO is selected
       this.rowData = [];
       this.responseData = [];
     }
@@ -254,13 +245,11 @@ onVendorSelect(event: any): void {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     
-    // Add poNumber as query parameter
     const url = `${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`;
     
     this.http.get(url, { headers }).subscribe({
       next: (response: any) => {
         this.responseData = response;
-        // After getting document selection data, fetch document types and build the grid
         if (this.allStages) {
           this.fetchDocumentTypes(this.allStages);
         }
@@ -276,7 +265,7 @@ onVendorSelect(event: any): void {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    this.http.get<{ id: number; name: string }[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
+    this.http.get<Stage[]>(`${environment.apiUrl}/v1/stages`, { headers }).subscribe({
       next: (stages) => {
         this.allStages = stages;
         this.setupGridColumns(stages);
@@ -291,7 +280,7 @@ onVendorSelect(event: any): void {
     });
   }
 
-  setupGridColumns(stages: { id: number; name: string }[]): void {
+  setupGridColumns(stages: Stage[]): void {
     this.columnDefs = [
       { field: 'id', headerName: 'Sr. No', valueGetter: 'node.rowIndex + 1', sortable: false },
       { field: 'documentName', headerName: 'Document Name', filter: 'agTextColumnFilter' },
@@ -299,7 +288,7 @@ onVendorSelect(event: any): void {
 
     stages.forEach((stage) => {
       this.columnDefs.push({
-        headerName: stage.name,
+        headerName: stage.stageName, // Changed from stage.name to stage.stageName
         field: `stage${stage.id}`,
         cellRenderer: this.checkboxRenderer,
         editable: false,
@@ -310,7 +299,7 @@ onVendorSelect(event: any): void {
     });
   }
 
-  fetchDocumentTypes(stages: { id: number; name: string }[]): void {
+  fetchDocumentTypes(stages: Stage[]): void {
     if (!this.selectedPoNumber) {
       console.warn('No PO selected');
       return;
@@ -325,7 +314,6 @@ onVendorSelect(event: any): void {
 
         this.http.get<any[]>(`${environment.apiUrl}/v1/document-selection?poNumber=${encodeURIComponent(this.selectedPoNumber)}`, { headers }).subscribe({
           next: (selections) => {
-            // Filter selections by selected PO number
             const filteredSelections = selections.filter(sel => sel.pono === this.selectedPoNumber);
             
             this.rowData = data.map((item) => {
@@ -373,8 +361,7 @@ onVendorSelect(event: any): void {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
     if (!targetRecord) {
-      // Create new record if it doesn't exist
-      if (value) { // Only create if checkbox is being checked
+      if (value) {
         const payload = {
           createdUserId: Number(this.userId),
           updatedUserId: Number(this.userId),
@@ -389,7 +376,6 @@ onVendorSelect(event: any): void {
         this.http.post(url, payload, { headers }).subscribe({
           next: (response: any) => {
             console.log('New document selection created successfully:', response);
-            // Add the new record to local responseData
             this.responseData.push({
               id: response.id,
               createdUserId: Number(this.userId),
@@ -404,7 +390,6 @@ onVendorSelect(event: any): void {
           },
           error: (error) => {
             console.error('Error creating new document selection:', error);
-            // Revert checkbox state on error
             params.value = false;
             const checkbox = params.eGridCell.querySelector('input[type="checkbox"]');
             if (checkbox) {
@@ -416,7 +401,6 @@ onVendorSelect(event: any): void {
       return;
     }
 
-    // Update existing record
     const recordId = targetRecord.id;
     const payload = {
       updatedUserId: Number(this.userId),
@@ -429,7 +413,6 @@ onVendorSelect(event: any): void {
     this.http.patch(url, payload, { headers }).subscribe({
       next: (response) => {
         console.log('Checkbox state updated successfully:', response);
-        // Update local responseData to reflect the change
         if (targetRecord) {
           targetRecord.isDelete = value ? 0 : 1;
           targetRecord.updatedUserId = Number(this.userId);
@@ -437,7 +420,6 @@ onVendorSelect(event: any): void {
       },
       error: (error) => {
         console.error('Error updating checkbox state:', error);
-        // Revert checkbox state on error
         params.value = !value;
         const checkbox = params.eGridCell.querySelector('input[type="checkbox"]');
         if (checkbox) {

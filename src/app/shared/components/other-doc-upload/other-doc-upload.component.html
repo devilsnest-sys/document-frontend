@@ -150,14 +150,14 @@
               <td>{{ formatDate(doc.uploadedDate) }}</td>
               <td>
                 <span 
-                  class="badge"
+                  class="badges"
                   [ngClass]="getStatusBadgeClass(doc.status)">
                   {{ doc.status }}
                 </span>
               </td>
               <td>
                 <span 
-                  class="badge"
+                  class="badges"
                   [ngClass]="doc.docUploadedBy?.toLowerCase() === 'vendor' ? 'badge-info' : 'badge-primary'">
                   {{ getDocumentVisibilityLabel(doc) }}
                 </span>
