@@ -141,7 +141,7 @@ export class ReportsComponent implements OnInit {
   reportTypes = [
     { value: 'po_stage', label: 'STATUS OF PO STAGE' },
     { value: 'all_pos', label: 'STATUS OF All POs' },
-    { value: 'stage_wise', label: 'STAGE WISE ACTIONS' },
+    { value: 'stage_wise', label: 'VENDOR WISE ACTIONS' },
     { value: 'all_vendors', label: 'ALL VENDORS LIST' }
   ];
 
@@ -850,7 +850,7 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
       const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
       const totalStages = poData.stageStatuses?.length || 0;
       //const orderStatus = this.calculateOrderStatus(dlpDate);
-      const orderStatus = poData.isClosed ? 'Closed' : 'Open';
+      const orderStatus = poData.isClosed ? 'Completed' : 'Open';
       const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
 
       poData.stageStatuses?.forEach(stage => {

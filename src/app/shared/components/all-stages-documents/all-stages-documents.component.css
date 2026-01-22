@@ -524,11 +524,11 @@
 
 .stage-header-row.status-inprogress {
   background-color: #d1ecf1 !important;
-  border-left: 4px solid #17a2b8;
+  border-left: 4px solid #fbd410;
 }
 
 .stage-header-row.status-inprogress .stage-header-cell {
-  background-color: #429bab !important;
+  background-color: #fbd410 !important;
 }
 
 .stage-header-row.status-inprogress:hover {
@@ -563,7 +563,7 @@
 }
 
 .stage-status-badge.status-inprogress {
-  background-color: #17a2b8;
+  background-color: #fbd410;
   color: white;
 }
 
