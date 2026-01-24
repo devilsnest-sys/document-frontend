@@ -193,6 +193,27 @@ export class AllStagesDocumentsComponent implements OnInit {
     });
   }
 
+// isPerformaInvoiceApproved(): boolean {
+//   return this.stageGroups.some(stage =>
+//     stage.documents.some(docGroup =>
+//       docGroup.documentType.documentName.toLowerCase() === 'performa invoice' &&
+//       docGroup.uploadedDocuments.some(doc => doc.isApproved === true)
+//     )
+//   );
+// }
+isPerformaInvoiceApproved(): boolean {
+  const targetDocs = ['performa invoice', 'order accept.'];
+
+  return this.stageGroups.some(stage =>
+    stage.documents.some(docGroup => {
+      const docName = docGroup.documentType.documentName.toLowerCase();
+
+      return targetDocs.includes(docName) &&
+        docGroup.uploadedDocuments.some(doc => doc.isApproved === true);
+    })
+  );
+}
+
   fetchPoDetails(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -209,7 +230,7 @@ export class AllStagesDocumentsComponent implements OnInit {
         next: (response) => {
           console.log('Fetched PO details:', response);
           this.poNumber = response.pO_NO;
-          
+          this.poID = response.id;  
           // ✅ NEW: Store who created this PO
           this.poCreatedBy = response.createdBy || response.userId || null;
           console.log('PO Created By:', this.poCreatedBy);
@@ -1054,7 +1075,68 @@ if (currentUserType ==uploaderType ) {
 
   return false;
 }
+downloadPO(): void {
+  const token = localStorage.getItem('authToken');
 
+  if (!token || !this.poID) {
+    this.toastService.showToast('error', 'PO not found');
+    return;
+  }
+
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${this.poID}`;
+
+  this.http.get(url, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/octet-stream'
+    }),
+    responseType: 'blob'
+  }).subscribe({
+    next: (blob) => {
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `PO_${this.poNumber || this.poID}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(blobUrl);
+    },
+    error: (err) => {
+      console.error('PO download failed:', err);
+      this.toastService.showToast('error', 'Failed to download PO');
+    }
+  });
+}
+
+// downloadPO(): void {
+//   const token = localStorage.getItem('authToken');
+
+//   if (!token || !this.poID) {
+//     this.toastService.showToast('error', 'PO not found');
+//     return;
+//   }
+
+//   const url = `${environment.apiUrl}/v1/PurchaseOrder/view/${this.poID}`;
+
+//   this.http.get(url, {
+//     headers: new HttpHeaders({
+//       Authorization: `Bearer ${token}`
+//     }),
+//     responseType: 'blob'
+//   }).subscribe({
+//     next: (blob) => {
+//       const fileURL = URL.createObjectURL(blob);
+//       window.open(fileURL, '_blank');
+//       setTimeout(() => URL.revokeObjectURL(fileURL), 500);
+//     },
+//     error: () => {
+//       this.toastService.showToast('error', 'Failed to download PO');
+//     }
+//   });
+// }
 
 
   // ✅ UPDATED: Can reject with PO ownership check

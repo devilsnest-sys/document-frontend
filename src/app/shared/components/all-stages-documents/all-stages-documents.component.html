@@ -19,6 +19,17 @@
       <i class="fas fa-folder-open"></i>
       All Stages Document Management
     </h5>
+    <div class="po-download-cta" *ngIf="isVendor() && !isPerformaInvoiceApproved()" (click)="downloadPO()">
+      <i class="fas fa-hand-point-right hand-icon"></i>
+  <i class="fas fa-file-download"></i>
+ Click here to download the Purchase Order and upload the signed copy
+</div>
+    <!-- <button
+  class="btn btn-sm btn-dark"
+  (click)="downloadPO()"
+  title="Download Purchase Order">
+  <i class="fas fa-file-download"></i>
+</button> -->
    </div>
   <!-- <div class="card mb-4">
    

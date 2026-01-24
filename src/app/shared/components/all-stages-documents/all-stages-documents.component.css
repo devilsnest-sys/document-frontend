@@ -401,6 +401,81 @@
 .empty-state i {
   animation: float 3s ease-in-out infinite;
 }
+.po-download-cta {
+  margin-top: 8px;
+  padding: 14px 22px;
+
+  /* 🔥 Bigger & clearer font */
+  font-size: 22px;          /* ⬅ main change */
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+
+  text-align: center;
+  cursor: pointer;
+  border-radius: 8px;
+
+  /* Zig-zag animated gradient */
+  background: linear-gradient(
+    120deg,
+    #0d6efd,
+    #20c997,
+    
+    #904ab3
+  );
+  background-size: 300% 300%;
+
+  color: #ffffff;
+
+  /* Smooth animations */
+  animation: zigzagGradient 4s ease infinite,
+             softBlink 1.8s ease-in-out infinite;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.hand-icon {
+  font-size: 28px;            /* 👈 BIG hand */
+  color: #ff1e1e;             /* 🔴 Strong red */
+  margin-right: 4px;
+
+  animation: handPulse 1.2s ease-in-out infinite;
+}
+
+/* Strong attention animation */
+@keyframes handPulse {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(6px) scale(1.15);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+
+/* Hover effect */
+.po-download-cta:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+
+/* Gradient movement (zig-zag feel) */
+@keyframes zigzagGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Soft blink (not aggressive) */
+@keyframes softBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
 
 @keyframes float {
   0%, 100% {
