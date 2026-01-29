@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { catchError, finalize } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
 import { UtilService } from '../../../core/services/util.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface StaggeredData {
   id: number;
@@ -74,7 +75,7 @@ interface QuantityRowData {
 export class StaggerdPoComponent implements OnInit, OnChanges {
   @Input() poId!: number;
   @Input() poNumber = '';
-
+stageGroups: StageGroup[] = [];
   staggeredData: StaggeredData[] = [];
   tableData: QuantityRowData[] = [];
   stageNames: { [key: number]: string } = {};
@@ -86,11 +87,14 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
   userType = localStorage.getItem('userType');
   selectedFile: File | null = null;
   userForStages: number[] = [];
+ poID: string | null = null;
 
   constructor(
     private http: HttpClient,
     private toastservice: ToastserviceService,
-    private utilService: UtilService
+    private utilService: UtilService,
+     private route: ActivatedRoute,
+     private toastService: ToastserviceService,
   ) { }
 
   ngOnInit(): void {
@@ -102,6 +106,7 @@ export class StaggerdPoComponent implements OnInit, OnChanges {
     if (this.poId && this.poNumber) {
       this.loadAllData();
     }
+     this.poID = this.route.snapshot.paramMap.get('poNumber');
     console.log("Staggered PO - poId:", this.poId, "poNumber:", this.poNumber);
   }
 
@@ -860,4 +865,56 @@ shouldShowReuseButton(row: QuantityRowData, stage: StageGroup, docGroup: Documen
   private getQuantityByDoc(doc: UploadedDocument): QuantityRowData | undefined {
     return this.tableData.find(row => row.quantityId === doc.quantityId);
   }
+
+  // --download po
+  isPerformaInvoiceApproved(): boolean {
+  const targetDocs = ['performa invoice', 'order accept.'];
+
+  return this.tableData.some(row =>
+    row.stages.some(stage =>
+      stage.documents.some(docGroup => {
+        const docName = docGroup.documentType.documentName.toLowerCase();
+        return targetDocs.includes(docName) &&
+               docGroup.uploadedDocuments.some(doc => doc.isApproved === true);
+      })
+    )
+  );
+}
+
+
+downloadPO(): void {
+  const token = localStorage.getItem('authToken');
+
+  if (!token || !this.poID) {
+    this.toastService.showToast('error', 'PO not found');
+    return;
+  }
+
+  const url = `${environment.apiUrl}/v1/PurchaseOrder/download/${this.poID}`;
+
+  this.http.get(url, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/octet-stream'
+    }),
+    responseType: 'blob'
+  }).subscribe({
+    next: (blob) => {
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `PO_${this.poNumber || this.poID}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(blobUrl);
+    },
+    error: (err) => {
+      console.error('PO download failed:', err);
+      this.toastService.showToast('error', 'Failed to download PO');
+    }
+  });
+}
 }
