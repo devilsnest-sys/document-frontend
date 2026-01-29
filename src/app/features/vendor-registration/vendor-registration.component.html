@@ -43,22 +43,39 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           
-          <!-- Vendor Code Field - Dropdown in edit mode, Input in create mode -->
+          <!-- Vendor Code Field - Searchable autocomplete in edit mode, Input in create mode -->
           <div class="col-lg-4">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Vendor Code</mat-label>
               <mat-icon matPrefix>code</mat-icon>
               
-              <!-- Edit Mode: Dropdown -->
-              <mat-select 
-                *ngIf="isEditMode" 
-                formControlName="vendorCode" 
-                (selectionChange)="onVendorCodeSelected($event.value)">
-                <mat-option value="">Select Vendor Code</mat-option>
-                <mat-option *ngFor="let vendor of vendorList" [value]="vendor.vendorCode">
+              <!-- Edit Mode: Searchable Autocomplete -->
+              <input 
+                *ngIf="isEditMode"
+                matInput 
+                type="text" 
+                [(ngModel)]="vendorSearchInput" 
+                [ngModelOptions]="{standalone: true}"
+                (ngModelChange)="filterVendors()"
+                placeholder="Type vendor code or name to search..."
+                [matAutocomplete]="autoVendor"
+                required
+              />
+              <mat-autocomplete 
+                #autoVendor="matAutocomplete"
+                (optionSelected)="onVendorCodeSelected($event.option.value)"
+                [displayWith]="displayVendor.bind(this)"
+              >
+                <mat-option 
+                  *ngFor="let vendor of filteredVendors" 
+                  [value]="vendor.vendorCode"
+                >
                   {{ vendor.vendorCode }} - {{ vendor.companyName }}
                 </mat-option>
-              </mat-select>
+                <mat-option *ngIf="filteredVendors.length === 0" disabled>
+                  No matching vendors found
+                </mat-option>
+              </mat-autocomplete>
               
               <!-- Create Mode: User Input Field -->
               <input 

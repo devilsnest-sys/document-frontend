@@ -17,9 +17,13 @@ export class VendorRegistrationComponent implements OnInit {
   isSubmitting = false;
   selectedFile: File | null = null;
   vendorList: Array<{ username: string; vendorCode: string; companyName: string; id?: number; [key: string]: any }> = [];
+  filteredVendors: Array<{ username: string; vendorCode: string; companyName: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedVendorId: number | null = null;
   originalEmail: string = ''; // Track original email to avoid unnecessary validation
+  
+  // For searchable autocomplete
+  vendorSearchInput: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -59,10 +63,12 @@ export class VendorRegistrationComponent implements OnInit {
       this.initializeForm();
       this.registrationForm.get('vendorCode')?.enable();
       this.originalEmail = '';
+      this.vendorSearchInput = ''; // Clear search
     } else {
       this.registrationForm.reset();
       this.selectedVendorId = null;
       this.originalEmail = '';
+      this.vendorSearchInput = ''; // Clear search
       this.initializeForm();
     }
   }
@@ -71,12 +77,34 @@ export class VendorRegistrationComponent implements OnInit {
     this.vendorService.getAllVendors().subscribe({
       next: (data) => {
         this.vendorList = data;
+        this.filteredVendors = data; // Initialize filtered vendors
       },
       error: (err) => {
         console.error(err);
         this.toastservice.showToast('error', 'Failed to load vendors');
       },
     });
+  }
+
+  // Filter vendors based on search input
+  filterVendors(): void {
+    const searchTerm = this.vendorSearchInput.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      this.filteredVendors = this.vendorList;
+    } else {
+      this.filteredVendors = this.vendorList.filter(vendor => 
+        vendor.vendorCode.toLowerCase().includes(searchTerm) ||
+        vendor.companyName.toLowerCase().includes(searchTerm)
+      );
+    }
+  }
+
+  // Helper method to display vendor in autocomplete input
+  displayVendor(vendorCode: string): string {
+    if (!vendorCode) return '';
+    const vendor = this.vendorList.find(v => v.vendorCode === vendorCode);
+    return vendor ? `${vendor.vendorCode} - ${vendor.companyName}` : vendorCode;
   }
 
   onVendorCodeSelected(vendorCode: string): void {
@@ -212,6 +240,7 @@ export class VendorRegistrationComponent implements OnInit {
     this.isEditMode = false;
     this.selectedVendorId = null;
     this.originalEmail = '';
+    this.vendorSearchInput = ''; // Clear search
   }
 
   /**
