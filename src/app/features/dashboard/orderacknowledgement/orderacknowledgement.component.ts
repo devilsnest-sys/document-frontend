@@ -91,8 +91,10 @@ export class OrderacknowledgementComponent {
   
   // Edit functionality properties
   allPurchaseOrders: PurchaseOrder[] = [];
+  filteredPurchaseOrders: PurchaseOrder[] = [];
   selectedPoForEdit: number | null = null;
   isEditMode: boolean = false;
+  poSearchInput: string = '';
 
   isEditStaggeredOrder: boolean = false;
 
@@ -100,6 +102,7 @@ export class OrderacknowledgementComponent {
 
   
   columnDefs: ColDef[] = [
+    { field: 'pO_NO', headerName: 'PO Number' },
     { field: 'poDescription', headerName: 'PO Description' },
     { field: 'poTypeName', headerName: 'PO Type' },
     { field: 'incotermName', headerName: 'Incoterms' },
@@ -269,12 +272,34 @@ get editStaggeredDataList() {
     this.http.get<PurchaseOrder[]>(`${environment.apiUrl}/v1/PurchaseOrder`, { headers }).subscribe({
       next: (response) => {
         this.allPurchaseOrders = response;
+        this.filteredPurchaseOrders = response;
       },
       error: (error) => {
         console.error('Error fetching all purchase orders:', error);
         this.ToastserviceService.showToast('error', 'Error fetching purchase orders');
       }
     });
+  }
+
+  // Filter PO dropdown based on search input
+  filterPurchaseOrders(): void {
+    const searchTerm = this.poSearchInput.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      this.filteredPurchaseOrders = this.allPurchaseOrders;
+    } else {
+      this.filteredPurchaseOrders = this.allPurchaseOrders.filter(po => 
+        po.pO_NO.toLowerCase().includes(searchTerm) || 
+        po.poDescription.toLowerCase().includes(searchTerm)
+      );
+    }
+  }
+
+  // Helper method to display PO in autocomplete input
+  displayPO(poId: number): string {
+    if (!poId) return '';
+    const po = this.allPurchaseOrders.find(p => p.id === poId);
+    return po ? `${po.pO_NO} - ${po.poDescription}` : '';
   }
 
   // Fetch specific PO by ID and populate edit form
@@ -449,6 +474,8 @@ resetEditForm(): void {
   this.selectedPoForEdit = null;
   this.isEditMode = false;
   this.isEditStaggeredOrder = false;
+  this.poSearchInput = '';
+  this.filteredPurchaseOrders = this.allPurchaseOrders;
   this.clearEditStaggeredItems();
 }
 
@@ -739,33 +766,6 @@ viewDocument(documentId: number): void {
   });
 }
 
-  // viewDocument(documentId: number): void {
-  //   const token = localStorage.getItem('authToken');
-  //   const documentUrl = `${environment.apiUrl}/v1/UploadedDocument/view/${encodeURIComponent(documentId)}`;
-  
-  //   fetch(documentUrl, {
-  //     headers: {
-  //       'Authorization': `Bearer ${token}`
-  //     }
-  //   })
-  //     .then(response => {
-  //       if (!response.ok) throw new Error('Network response was not ok');
-  //       return response.blob();
-  //     })
-  //     .then(blob => {
-  //       const blobUrl = URL.createObjectURL(blob);
-  //       const newWindow = window.open(blobUrl, '_blank');
-  //       if (newWindow) {
-  //         newWindow.addEventListener('unload', () => {
-  //           URL.revokeObjectURL(blobUrl);
-  //         });
-  //       }
-  //     })
-  //     .catch(error => {
-  //       console.error('Error viewing document:', error);
-  //       alert('Error viewing document. Please ensure you are logged in and try again.');
-  //     });
-  // }
   downloadDocument(documentId: number): void {
   const token = localStorage.getItem('authToken');
 
@@ -803,29 +803,6 @@ viewDocument(documentId: number): void {
     }
   });
 }
-
-  // downloadDocument(documentName: number): void {
-  //   const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${encodeURIComponent(documentName)}`;
-  
-  //   fetch(documentUrl)
-  //     .then(response => {
-  //       if (!response.ok) throw new Error('Network response was not ok');
-  //       return response.blob();
-  //     })
-  //     .then(blob => {
-  //       const blobUrl = URL.createObjectURL(blob);
-  //       const link = document.createElement('a');
-  //       link.href = blobUrl;
-  //       link.download = `document_${documentName}.pdf`;
-  //       document.body.appendChild(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-  //       URL.revokeObjectURL(blobUrl);
-  //     })
-  //     .catch(error => {
-  //       console.error('Error downloading document:', error);
-  //     });
-  // }
 }
 
 export function noPastDateValidator(control: any) {

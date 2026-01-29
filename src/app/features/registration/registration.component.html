@@ -12,19 +12,38 @@
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <div class="col-md-6">
-            <!-- Username - Simple input in create mode, dropdown in edit mode -->
+            <!-- Username - Simple input in create mode, searchable dropdown in edit mode -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Username</mat-label>
               <mat-icon matPrefix>person</mat-icon>
 
-              <!-- Dropdown for edit mode -->
-              <mat-select *ngIf="isEditMode" id="username" formControlName="username" required
-                (selectionChange)="onUsernameSelected($event.value)">
-                <mat-option value="" disabled>Select Username</mat-option>
-                <mat-option *ngFor="let user of userList" [value]="user.username">
+              <!-- Searchable autocomplete for edit mode -->
+              <input 
+                *ngIf="isEditMode"
+                matInput 
+                type="text" 
+                [(ngModel)]="usernameSearchInput" 
+                [ngModelOptions]="{standalone: true}"
+                (ngModelChange)="filterUsers()"
+                placeholder="Type username to search..."
+                [matAutocomplete]="auto"
+                required
+              />
+              <mat-autocomplete 
+                #auto="matAutocomplete"
+                (optionSelected)="onUsernameSelected($event.option.value)"
+                [displayWith]="displayUsername.bind(this)"
+              >
+                <mat-option 
+                  *ngFor="let user of filteredUsers" 
+                  [value]="user.username"
+                >
                   {{ user.username }}
                 </mat-option>
-              </mat-select>
+                <mat-option *ngIf="filteredUsers.length === 0" disabled>
+                  No matching users found
+                </mat-option>
+              </mat-autocomplete>
 
               <!-- Simple input field in create mode -->
               <input *ngIf="!isEditMode" appTrimInput matInput id="username" formControlName="username" 
@@ -118,26 +137,26 @@
           <div class="col-md-6">
             <!-- User Designation For Stage - Editable in both modes -->
             <mat-form-field appearance="fill" class="full-width">
-  <mat-label>User Designation For Stage</mat-label>
-  <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
-    [placeholder]="'Select Stages'" [required]="true">
+              <mat-label>User Designation For Stage</mat-label>
+              <mat-select id="UserDesignationForstageId" formControlName="UserDesignationForstageId" multiple
+                [placeholder]="'Select Stages'" [required]="true">
 
-    <!-- Select All Option with proper checked state -->
-    <mat-option [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()"
-      [class.mat-selected]="isAllSelected()">
-      Select All
-    </mat-option>
+                <!-- Select All Option with proper checked state -->
+                <mat-option [value]="'selectAll'" (click)="toggleAllSelection(); $event.stopPropagation()"
+                  [class.mat-selected]="isAllSelected()">
+                  Select All
+                </mat-option>
 
-    <!-- Individual Stage Options -->
-    <mat-option *ngFor="let stage of stages" [value]="stage.id">
-      {{ stage.stageName }}
-    </mat-option>
-  </mat-select>
-  <mat-error
-    *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid">
-    <small>User Designation For Stage is required.</small>
-  </mat-error>
-</mat-form-field>
+                <!-- Individual Stage Options -->
+                <mat-option *ngFor="let stage of stages" [value]="stage.id">
+                  {{ stage.stageName }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="registrationForm.get('UserDesignationForstageId')?.touched && registrationForm.get('UserDesignationForstageId')?.invalid">
+                <small>User Designation For Stage is required.</small>
+              </mat-error>
+            </mat-form-field>
           </div>
         </div>
 

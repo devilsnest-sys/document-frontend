@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { RegistrationService } from './registration.service';
 import { ToastserviceService } from '../../core/services/toastservice.service';
 import { HttpClient } from '@angular/common/http';
@@ -16,9 +16,13 @@ export class RegistrationComponent implements OnInit {
   registrationForm!: FormGroup;
   stages: Array<{ id: number; stageName: string }> = [];
   userList: Array<{ username: string; id?: number; [key: string]: any }> = [];
+  filteredUsers: Array<{ username: string; id?: number; [key: string]: any }> = [];
   isEditMode: boolean = false;
   selectedUserId: number | null = null;
   generatedPassword: string = ''; // Store generated password internally
+  
+  // For searchable autocomplete (similar to PO component)
+  usernameSearchInput: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -96,12 +100,31 @@ export class RegistrationComponent implements OnInit {
     this.registrationService.getAllUsers().subscribe({
       next: (data) => {
         this.userList = data;
+        this.filteredUsers = data; // Initialize filtered users
       },
       error: (err) => {
         console.error(err);
         this.toastservice.showToast('error', 'Failed to load users');
       },
     });
+  }
+
+  // Filter users based on search input (similar to PO component)
+  filterUsers(): void {
+    const searchTerm = this.usernameSearchInput.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      this.filteredUsers = this.userList;
+    } else {
+      this.filteredUsers = this.userList.filter(user => 
+        user.username.toLowerCase().includes(searchTerm)
+      );
+    }
+  }
+
+  // Helper method to display username in autocomplete input
+  displayUsername(username: string): string {
+    return username || '';
   }
 
   toggleEditMode(): void {
@@ -112,11 +135,13 @@ export class RegistrationComponent implements OnInit {
       this.registrationForm.reset(); // Clear form
       this.initializeForm(); // Reinitialize form
       this.generatedPassword = '';
+      this.usernameSearchInput = ''; // Clear search
       this.enableEditModeFields();
     } else {
       this.registrationForm.reset(); // Reset form when exiting edit mode
       this.selectedUserId = null;
       this.initializeForm(); // Reinitialize form
+      this.usernameSearchInput = ''; // Clear search
       this.generatePassword(); // Generate new password
     }
   }
@@ -192,32 +217,33 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm.get('UserDesignationForstageId')?.enable();
   }
 
-toggleAllSelection(): void {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  
-  // Filter out 'selectAll' if it exists in the array
-  const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
-  
-  if (actualStages.length === this.stages.length) {
-    // Deselect all
-    this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
-  } else {
-    // Select all stages (without 'selectAll' value)
-    const allStageIds = this.stages.map(stage => stage.id);
-    this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
+  toggleAllSelection(): void {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    
+    // Filter out 'selectAll' if it exists in the array
+    const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
+    
+    if (actualStages.length === this.stages.length) {
+      // Deselect all
+      this.registrationForm.get('UserDesignationForstageId')?.setValue([]);
+    } else {
+      // Select all stages (without 'selectAll' value)
+      const allStageIds = this.stages.map(stage => stage.id);
+      this.registrationForm.get('UserDesignationForstageId')?.setValue(allStageIds);
+    }
+    
+    // Trigger change detection
+    this.registrationForm.get('UserDesignationForstageId')?.updateValueAndValidity();
   }
-  
-  // Trigger change detection
-  this.registrationForm.get('UserDesignationForstageId')?.updateValueAndValidity();
-}
+
   /**
    * Check if all stages are selected
    */
-isAllSelected(): boolean {
-  const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
-  const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
-  return actualStages.length === this.stages.length && this.stages.length > 0;
-}
+  isAllSelected(): boolean {
+    const currentValue = this.registrationForm.get('UserDesignationForstageId')?.value || [];
+    const actualStages = currentValue.filter((val: any) => val !== 'selectAll');
+    return actualStages.length === this.stages.length && this.stages.length > 0;
+  }
 
   /**
    * Check if selection is indeterminate (some but not all selected)
@@ -332,6 +358,7 @@ isAllSelected(): boolean {
     this.selectedUserId = null;
     this.generatedPassword = '';
     this.isEditMode = false;
+    this.usernameSearchInput = ''; // Clear search
     this.initializeForm();
     this.generatePassword(); // Generate new password
   }
