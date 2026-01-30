@@ -126,13 +126,25 @@
             <div class="form-group" [class.full-width-vendor]="isVendorDashboardUser()">
               <mat-form-field  class="full-width">
                 <mat-label>Select Purchase Order</mat-label>
-                <mat-select formControlName="po" 
-                           [disabled]="canSelectVendor() && !vendorPoForm.get('vendor')?.value">
-                  <mat-icon matPrefix>description</mat-icon>
-                  <mat-option *ngFor="let po of purchaseOrders" [value]="po.id">
-                    {{ po.pO_NO }}
+                <input appTrimInput 
+                       type="text"
+                       placeholder="Search purchase order..."
+                       matInput
+                       [formControl]="poControl"
+                       [matAutocomplete]="poAuto"
+                       [disabled]="canSelectVendor() && !vendorPoForm.get('vendor')?.value"
+                       (focus)="showAllPOs()">
+                <mat-icon matPrefix>description</mat-icon>
+                <mat-autocomplete #poAuto="matAutocomplete"
+                                 (optionSelected)="onPOSelect($event)"
+                                 [displayWith]="displayPO">
+                  <mat-option *ngFor="let po of filteredPOs$ | async" 
+                              [value]="po.id">
+                    <div class="po-option">
+                      <span class="po-number">{{ po.pO_NO }}</span>
+                    </div>
                   </mat-option>
-                </mat-select>
+                </mat-autocomplete>
               </mat-form-field>
             </div>
           </div>
@@ -230,24 +242,7 @@
                 <span class="material-icons">event</span>
                 Due: {{ po.contractualDeliveryDate | date: 'MMM dd, yyyy' }}
               </p>
-              <!-- <p class="po-stages">
-                <span class="material-icons">layers</span>
-                {{ po.completedStages }} / {{ po.totalStages }} stages completed
-              </p> -->
-              <!-- <p class="po-amount" *ngIf="po.totalAmount">
-                <span class="material-icons">attach_money</span>
-                {{ po.totalAmount | currency }}
-              </p> -->
             </div>
-            <!-- <div class="po-status">
-              <span class="status-badge" [ngClass]="'status-' + getPOStatus(po).toLowerCase().replace(' ', '-')">
-                {{ getPOStatus(po) }}
-              </span>
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="po.progress"></div>
-              </div>
-              <span class="progress-text">{{ po.progress }}%</span>
-            </div> -->
           </div>
         </div>
         <div class="loading-spinner-small" *ngIf="isLoadingUserPOs">
@@ -280,20 +275,7 @@
                 <span class="material-icons">event</span>
                 Due: {{ po.dueDate | date: 'MMM dd, yyyy' }}
               </p>
-              <!-- <p class="po-stages">
-                <span class="material-icons">layers</span>
-                {{ po.completedStages }} / {{ po.totalStages }} stages completed
-              </p> -->
             </div>
-            <!-- <div class="po-status">
-              <span class="status-badge" [ngClass]="'status-' + po.status.toLowerCase().replace(' ', '-')">
-                {{ po.status }}
-              </span>
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="po.progress"></div>
-              </div>
-              <span class="progress-text">{{ po.progress }}%</span>
-            </div> -->
           </div>
         </div>
         <div class="empty-state" *ngIf="recentPOs.length === 0">

@@ -359,6 +359,10 @@
             <div class="col-lg-12 mt-4">
               <mat-divider></mat-divider>
               <h4 class="text-primary mt-3">Editable Date Fields</h4>
+              <p class="text-muted" *ngIf="minEditDate">
+                <mat-icon class="align-middle" style="font-size: 18px;">info</mat-icon>
+                Note: Dates cannot be before the PO creation date ({{ minEditDate | date:'mediumDate' }})
+              </p>
             </div>
 
             <!-- EDITABLE DATES -->
@@ -366,9 +370,12 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Contractual Delivery Date</mat-label>
                 <mat-icon matPrefix>calendar_today</mat-icon>
-                <input matInput [matDatepicker]="cdp" formControlName="contractualDeliveryDate">
+                <input matInput [min]="minEditDate" [matDatepicker]="cdp" formControlName="contractualDeliveryDate">
                 <mat-datepicker-toggle matSuffix [for]="cdp"></mat-datepicker-toggle>
                 <mat-datepicker #cdp></mat-datepicker>
+                <mat-error *ngIf="editPoForm.get('contractualDeliveryDate')?.hasError('beforeCreationDate')">
+                  Date cannot be before PO creation date ({{ minEditDate | date:'shortDate' }})
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -376,9 +383,12 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Actual Delivery Date</mat-label>
                 <mat-icon matPrefix>receipt</mat-icon>
-                <input matInput [matDatepicker]="adp" formControlName="actualDeliveryDate">
+                <input matInput [min]="minEditDate" [matDatepicker]="adp" formControlName="actualDeliveryDate">
                 <mat-datepicker-toggle matSuffix [for]="adp"></mat-datepicker-toggle>
                 <mat-datepicker #adp></mat-datepicker>
+                <mat-error *ngIf="editPoForm.get('actualDeliveryDate')?.hasError('beforeCreationDate')">
+                  Date cannot be before PO creation date ({{ minEditDate | date:'shortDate' }})
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -386,9 +396,12 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Shipping / Receive Date</mat-label>
                 <mat-icon matPrefix>local_shipping</mat-icon>
-                <input matInput [matDatepicker]="sdp" formControlName="shippingDate">
+                <input matInput [min]="minEditDate" [matDatepicker]="sdp" formControlName="shippingDate">
                 <mat-datepicker-toggle matSuffix [for]="sdp"></mat-datepicker-toggle>
                 <mat-datepicker #sdp></mat-datepicker>
+                <mat-error *ngIf="editPoForm.get('shippingDate')?.hasError('beforeCreationDate')">
+                  Date cannot be before PO creation date ({{ minEditDate | date:'shortDate' }})
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -396,9 +409,12 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>CPBG Due Date</mat-label>
                 <mat-icon matPrefix>event</mat-icon>
-                <input matInput [matDatepicker]="cpdp" formControlName="cpbgDueDate">
+                <input matInput [min]="minEditDate" [matDatepicker]="cpdp" formControlName="cpbgDueDate">
                 <mat-datepicker-toggle matSuffix [for]="cpdp"></mat-datepicker-toggle>
                 <mat-datepicker #cpdp></mat-datepicker>
+                <mat-error *ngIf="editPoForm.get('cpbgDueDate')?.hasError('beforeCreationDate')">
+                  Date cannot be before PO creation date ({{ minEditDate | date:'shortDate' }})
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -406,9 +422,12 @@
               <mat-form-field appearance="fill" class="full-width">
                 <mat-label>DLP Due Date</mat-label>
                 <mat-icon matPrefix>event_note</mat-icon>
-                <input matInput [matDatepicker]="ddp" formControlName="dlpDueDate">
+                <input matInput [min]="minEditDate" [matDatepicker]="ddp" formControlName="dlpDueDate">
                 <mat-datepicker-toggle matSuffix [for]="ddp"></mat-datepicker-toggle>
                 <mat-datepicker #ddp></mat-datepicker>
+                <mat-error *ngIf="editPoForm.get('dlpDueDate')?.hasError('beforeCreationDate')">
+                  Date cannot be before PO creation date ({{ minEditDate | date:'shortDate' }})
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -448,11 +467,12 @@
                     </td>
                     <td>
                       <mat-form-field appearance="outline" class="full-width">
-                        <input matInput [matDatepicker]="sdp2" formControlName="deliveryDateOfQuantity" required />
+                        <input matInput [min]="minEditDate" [matDatepicker]="sdp2" formControlName="deliveryDateOfQuantity" required />
                         <mat-datepicker-toggle matSuffix [for]="sdp2"></mat-datepicker-toggle>
                         <mat-datepicker #sdp2></mat-datepicker>
                         <mat-error *ngIf="row.get('deliveryDateOfQuantity')?.touched && row.get('deliveryDateOfQuantity')?.invalid">
                           <span *ngIf="row.get('deliveryDateOfQuantity')?.hasError('required')">Delivery Date is required.</span>
+                          <span *ngIf="row.get('deliveryDateOfQuantity')?.hasError('beforeCreationDate')">Date cannot be before PO creation date</span>
                         </mat-error>
                       </mat-form-field>
                     </td>

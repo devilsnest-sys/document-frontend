@@ -52,7 +52,9 @@ export class DashboardMainComponent {
   vendors: any[] = [];
   purchaseOrders: any[] = [];
   vendorControl = new FormControl('');
+  poControl = new FormControl('');
   filteredVendors$ = new BehaviorSubject<any[]>([]);
+  filteredPOs$ = new BehaviorSubject<any[]>([]);
   isSubmitting = false;
   selectedPoNumber: string | null = null;
 
@@ -60,7 +62,7 @@ export class DashboardMainComponent {
   isVendorUser = false;
   userType: string | null = null;
   userId: string | null = null;
-userRole: string | null = null;  
+  userRole: string | null = null;  
 
   // User assigned POs
   userAssignedPOs: any[] = [];
@@ -116,6 +118,7 @@ userRole: string | null = null;
     this.initializeForm();
     this.loadVendors();
     this.setupVendorFilter();
+    this.setupPOFilter();
     
     // Load user-specific data for non-vendor users
     if (!this.isVendorUser) {
@@ -153,6 +156,39 @@ userRole: string | null = null;
       startWith(''),
       map(value => this.filterVendors(value))
     ).subscribe(filtered => this.filteredVendors$.next(filtered));
+  }
+
+  private setupPOFilter(): void {
+    this.poControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this.filterPOs(value))
+    ).subscribe(filtered => this.filteredPOs$.next(filtered));
+  }
+
+  private filterPOs(value: string | null): any[] {
+    if (!value) return this.purchaseOrders;
+    const filterValue = value.toString().toLowerCase();
+    return this.purchaseOrders.filter(po =>
+      po.pO_NO?.toLowerCase().includes(filterValue)
+    );
+  }
+
+  showAllPOs(): void {
+    this.filteredPOs$.next(this.purchaseOrders);
+  }
+
+  onPOSelect(event: any): void {
+    const selectedPOId = event.option.value;
+    const selectedPO = this.purchaseOrders.find(p => p.id === selectedPOId);
+  
+    if (selectedPO) {
+      this.vendorPoForm.patchValue({ po: selectedPO.id });
+      this.poControl.setValue(selectedPO, { emitEvent: false });
+    }
+  }
+
+  displayPO(po: any): string {
+    return po && po.pO_NO ? po.pO_NO : '';
   }
 
   private loadVendors(): void {
@@ -213,6 +249,7 @@ userRole: string | null = null;
     const foundPO = this.purchaseOrders.find(p => p.id === po.poId);
     if (foundPO) {
       this.vendorPoForm.patchValue({ po: foundPO.id });
+      this.poControl.setValue(foundPO, { emitEvent: false });
       this.router.navigate(['/stages', 1, foundPO.id]);
     } else {
       this.loadPODetailsAndNavigate(po.poId);
@@ -237,6 +274,7 @@ userRole: string | null = null;
           
           setTimeout(() => {
             this.vendorPoForm.patchValue({ po: po.id });
+            this.poControl.setValue(po, { emitEvent: false });
             this.router.navigate(['/stages', 1, po.id]);
           }, 300);
         }
@@ -363,6 +401,7 @@ userRole: string | null = null;
       
       setTimeout(() => {
         this.vendorPoForm.patchValue({ po: po.id });
+        this.poControl.setValue(po, { emitEvent: false });
         this.router.navigate(['/stages', 1, po.id]);
       }, 300);
     }
@@ -412,10 +451,13 @@ userRole: string | null = null;
     const headers = { Authorization: `Bearer ${token}` };
 
     this.purchaseOrders = [];
+    this.filteredPOs$.next([]);
+    this.poControl.setValue('', { emitEvent: false });
 
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (response) => {
         this.purchaseOrders = response;
+        this.filteredPOs$.next(this.purchaseOrders);
 
         if (this.purchaseOrders.length === 0) {
           this.toastService.showToast('warning', 'No POs found for this vendor');
@@ -442,7 +484,9 @@ userRole: string | null = null;
   onCancel(): void {
     this.vendorPoForm.reset();
     this.purchaseOrders = [];
+    this.filteredPOs$.next([]);
     this.selectedPoNumber = null;
+    this.poControl.setValue('', { emitEvent: false });
   }
 
   private loadVendorById(vendorId: number): void {
@@ -646,21 +690,24 @@ userRole: string | null = null;
     const po = this.purchaseOrders.find(p => p.pO_NO === poNumber);
     if (po) {
       this.vendorPoForm.patchValue({ po: po.id });
+      this.poControl.setValue(po, { emitEvent: false });
     }
   }
-  isVendorDashboardUser(): boolean {
-  // Only pure Vendor & Employee should see vendor-style dashboard
-  return (
-    this.userType?.toLowerCase() === 'vendor' ||
-    this.userRole === 'Employees'
-  );
-}
-canSelectVendor(): boolean {
-  // Vendor cannot select vendor
-  return !this.isActualVendor();
-}
-isActualVendor(): boolean {
-  return this.userType?.toLowerCase() === 'vendor';
-}
 
+  isVendorDashboardUser(): boolean {
+    // Only pure Vendor & Employee should see vendor-style dashboard
+    return (
+      this.userType?.toLowerCase() === 'vendor' ||
+      this.userRole === 'Employees'
+    );
+  }
+
+  canSelectVendor(): boolean {
+    // Vendor cannot select vendor
+    return !this.isActualVendor();
+  }
+
+  isActualVendor(): boolean {
+    return this.userType?.toLowerCase() === 'vendor';
+  }
 }

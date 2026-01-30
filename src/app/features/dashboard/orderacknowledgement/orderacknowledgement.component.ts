@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { ColDef, ICellRendererParams, Module } from '@ag-grid-community/core';
@@ -99,6 +99,9 @@ export class OrderacknowledgementComponent {
   isEditStaggeredOrder: boolean = false;
 
   today = new Date();
+  
+  // Store the minimum date for edit form (PO creation date)
+  minEditDate: Date | null = null;
 
   
   columnDefs: ColDef[] = [
@@ -155,7 +158,7 @@ export class OrderacknowledgementComponent {
       poDescription: ['', Validators.required],
       poType: ['', Validators.required],
       incoterms: ['', Validators.required],
-      contractualDeliveryDate: ['', Validators.required, noPastDateValidator],
+      contractualDeliveryDate: ['', [Validators.required, noPastDateValidator]],
       actualDeliveryDate: ['', [noPastDateValidator]],
 
       contactPersonName: ['', Validators.required],
@@ -165,34 +168,34 @@ export class OrderacknowledgementComponent {
       poNo: ['', [Validators.required]],
       vendorCode: ['', Validators.required],
       orderValue: ['', Validators.required],
-shippingDate: ['', [noPastDateValidator]],
-cpbgDueDate: [null],
-dlpDueDate: [null],
+      shippingDate: ['', [noPastDateValidator]],
+      cpbgDueDate: [null],
+      dlpDueDate: [null],
       isStaggered: [false],
       staggeredDataList: this.fb.array([])
     });
 
- // Update the editPoForm initialization in constructor
-this.editPoForm = this.fb.group({
-  id: [{ value: '', disabled: true }],
-  poNo: [{ value: '', disabled: true }],
-  poDescription: [{ value: '', disabled: true }],
-  poType: [{ value: '', disabled: true }],
-  incoterms: [{ value: '', disabled: true }],
-  contactPersonName: [{ value: '', disabled: true }],
-  contactPersonEmailId: [{ value: '', disabled: true }],
-  contactNumber: [{ value: '', disabled: true }],
-  vendorCode: [{ value: '', disabled: true }],
-  orderValue: [{ value: '', disabled: true }],
-  // Editable date fields
-  contractualDeliveryDate: [''],
-  actualDeliveryDate: [''],
-  shippingDate: [''],
-  cpbgDueDate: [''],
-  dlpDueDate: [''],
-  // Add staggered data list
-  editStaggeredDataList: this.fb.array([])
-});
+    // Initialize editPoForm without validators first
+    this.editPoForm = this.fb.group({
+      id: [{ value: '', disabled: true }],
+      poNo: [{ value: '', disabled: true }],
+      poDescription: [{ value: '', disabled: true }],
+      poType: [{ value: '', disabled: true }],
+      incoterms: [{ value: '', disabled: true }],
+      contactPersonName: [{ value: '', disabled: true }],
+      contactPersonEmailId: [{ value: '', disabled: true }],
+      contactNumber: [{ value: '', disabled: true }],
+      vendorCode: [{ value: '', disabled: true }],
+      orderValue: [{ value: '', disabled: true }],
+      // Editable date fields - validators will be added dynamically
+      contractualDeliveryDate: [''],
+      actualDeliveryDate: [''],
+      shippingDate: [''],
+      cpbgDueDate: [''],
+      dlpDueDate: [''],
+      // Add staggered data list
+      editStaggeredDataList: this.fb.array([])
+    });
   }
 
   ngOnInit(): void {
@@ -224,9 +227,11 @@ this.editPoForm = this.fb.group({
       this.clearStaggeredItems();
     }
   }
-get editStaggeredDataList() {
-  return this.editPoForm.get('editStaggeredDataList') as FormArray;
-}
+
+  get editStaggeredDataList() {
+    return this.editPoForm.get('editStaggeredDataList') as FormArray;
+  }
+
   addStaggeredItem(): void {
     const staggeredGroup = this.fb.group({
       id: [0],
@@ -324,166 +329,243 @@ get editStaggeredDataList() {
     });
   }
 
-populateEditForm(po: PurchaseOrder): void {
-  // Convert date strings to Date objects for form
-  const contractualDate = po.contractualDeliveryDate ? new Date(po.contractualDeliveryDate) : null;
-  const actualDate = po.actualDeliveryDate ? new Date(po.actualDeliveryDate) : null;
-  const shippingDate = po.shippingDate ? new Date(po.shippingDate) : null;
-  const cpbgDate = po.cpbgDueDate ? new Date(po.cpbgDueDate) : null;
-  const dlpDate = po.dlpDueDate ? new Date(po.dlpDueDate) : null;
+  populateEditForm(po: PurchaseOrder): void {
+    // Set the minimum date to the PO creation date
+    this.minEditDate = new Date(po.createdAt);
+    this.minEditDate.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    // Store the selected PO ID
+    this.selectedPoForEdit = po.id;
 
-  this.editPoForm.patchValue({
-    id: po.id,
-    poNo: po.pO_NO,
-    poDescription: po.poDescription,
-    poType: po.poTypeName,
-    incoterms: po.incotermName,
-    contactPersonName: po.contactPersonName,
-    contactPersonEmailId: po.contactPersonEmailId,
-    contactNumber: po.contactNo,
-    vendorCode: po.vendorCode,
-    orderValue: po.orderValue || '',
-    // Editable date fields
-    contractualDeliveryDate: contractualDate,
-    actualDeliveryDate: actualDate,
-    shippingDate: shippingDate,
-    cpbgDueDate: cpbgDate,
-    dlpDueDate: dlpDate
-  });
+    // Convert date strings to Date objects for form
+    const contractualDate = po.contractualDeliveryDate ? new Date(po.contractualDeliveryDate) : null;
+    const actualDate = po.actualDeliveryDate ? new Date(po.actualDeliveryDate) : null;
+    const shippingDate = po.shippingDate ? new Date(po.shippingDate) : null;
+    const cpbgDate = po.cpbgDueDate ? new Date(po.cpbgDueDate) : null;
+    const dlpDate = po.dlpDueDate ? new Date(po.dlpDueDate) : null;
 
-  // Handle staggered data
-  this.isEditStaggeredOrder = po.staggeredOrder;
-  
-  // Clear existing staggered items
-  this.clearEditStaggeredItems();
-  
-  // Populate staggered data if exists
-  if (this.isEditStaggeredOrder && po.staggeredDataList && po.staggeredDataList.length > 0) {
-    po.staggeredDataList.forEach(item => {
-      const staggeredGroup = this.fb.group({
-        id: [item.id],
-        quantity: [item.quantity, [Validators.required, Validators.min(1)]],
-        deliveryDateOfQuantity: [new Date(item.deliveryDateOfQuantity), Validators.required],
-        poId: [item.poId]
-      });
-      this.editStaggeredDataList.push(staggeredGroup);
+    // Update validators for date fields based on creation date
+    const noBeforeCreationValidator = this.createNoBeforeCreationDateValidator(this.minEditDate);
+    
+    this.editPoForm.get('contractualDeliveryDate')?.setValidators([noBeforeCreationValidator]);
+    this.editPoForm.get('actualDeliveryDate')?.setValidators([noBeforeCreationValidator]);
+    this.editPoForm.get('shippingDate')?.setValidators([noBeforeCreationValidator]);
+    this.editPoForm.get('cpbgDueDate')?.setValidators([noBeforeCreationValidator]);
+    this.editPoForm.get('dlpDueDate')?.setValidators([noBeforeCreationValidator]);
+
+    this.editPoForm.patchValue({
+      id: po.id,
+      poNo: po.pO_NO,
+      poDescription: po.poDescription,
+      poType: po.poTypeName,
+      incoterms: po.incotermName,
+      contactPersonName: po.contactPersonName,
+      contactPersonEmailId: po.contactPersonEmailId,
+      contactNumber: po.contactNo,
+      vendorCode: po.vendorCode,
+      orderValue: po.orderValue || '',
+      // Editable date fields
+      contractualDeliveryDate: contractualDate,
+      actualDeliveryDate: actualDate,
+      shippingDate: shippingDate,
+      cpbgDueDate: cpbgDate,
+      dlpDueDate: dlpDate
     });
-  }
-}
 
-addEditStaggeredItem(): void {
-  const staggeredGroup = this.fb.group({
-    id: [0],
-    quantity: ['', [Validators.required, Validators.min(1)]],
-    deliveryDateOfQuantity: ['', Validators.required],
-    poId: [this.selectedPoForEdit || 0]
-  });
-  
-  this.editStaggeredDataList.push(staggeredGroup);
-}
+    // Update validity of all date fields
+    this.editPoForm.get('contractualDeliveryDate')?.updateValueAndValidity();
+    this.editPoForm.get('actualDeliveryDate')?.updateValueAndValidity();
+    this.editPoForm.get('shippingDate')?.updateValueAndValidity();
+    this.editPoForm.get('cpbgDueDate')?.updateValueAndValidity();
+    this.editPoForm.get('dlpDueDate')?.updateValueAndValidity();
 
-removeEditStaggeredItem(index: number): void {
-  if (this.editStaggeredDataList.length > 1) {
-    this.editStaggeredDataList.removeAt(index);
-  } else {
-    this.ToastserviceService.showToast('warning', 'At least one staggered item is required');
-  }
-}
-
-clearEditStaggeredItems(): void {
-  while (this.editStaggeredDataList.length !== 0) {
-    this.editStaggeredDataList.removeAt(0);
-  }
-}
-
-onEditSubmit(): void {
-  if (!this.editPoForm.valid || !this.selectedPoForEdit) {
-    this.markFormGroupTouched(this.editPoForm);
-    this.ToastserviceService.showToast('error', 'Please fill all required fields');
-    return;
+    // Handle staggered data
+    this.isEditStaggeredOrder = po.staggeredOrder;
+    
+    // Clear existing staggered items
+    this.clearEditStaggeredItems();
+    
+    // Populate staggered data if exists
+    if (this.isEditStaggeredOrder && po.staggeredDataList && po.staggeredDataList.length > 0) {
+      po.staggeredDataList.forEach(item => {
+        const staggeredGroup = this.fb.group({
+          id: [item.id],
+          quantity: [item.quantity, [Validators.required, Validators.min(1)]],
+          deliveryDateOfQuantity: [new Date(item.deliveryDateOfQuantity), [Validators.required, noBeforeCreationValidator]],
+          poId: [item.poId]
+        });
+        this.editStaggeredDataList.push(staggeredGroup);
+      });
+    }
   }
 
-  const token = localStorage.getItem('authToken');
-  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  // Custom validator factory to check if date is before creation date
+  createNoBeforeCreationDateValidator(creationDate: Date) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null; // Don't validate empty values
+      }
 
-  const formValues = this.editPoForm.getRawValue();
-  
-  // Prepare staggered data list if it's a staggered order
-  let staggeredDataList: any[] = [];
-  if (this.isEditStaggeredOrder) {
-    // Validate staggered data if enabled
-    if (this.editStaggeredDataList.length === 0) {
-      this.ToastserviceService.showToast('error', 'Please add at least one staggered delivery item');
+      const selectedDate = new Date(control.value);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      const minDate = new Date(creationDate);
+      minDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < minDate) {
+        return { beforeCreationDate: true };
+      }
+
+      return null;
+    };
+  }
+
+  addEditStaggeredItem(): void {
+    const noBeforeCreationValidator = this.minEditDate 
+      ? this.createNoBeforeCreationDateValidator(this.minEditDate)
+      : null;
+
+    const staggeredGroup = this.fb.group({
+      id: [0],
+      quantity: ['', [Validators.required, Validators.min(1)]],
+      deliveryDateOfQuantity: ['', noBeforeCreationValidator ? [Validators.required, noBeforeCreationValidator] : [Validators.required]],
+      poId: [this.selectedPoForEdit || 0]
+    });
+    
+    this.editStaggeredDataList.push(staggeredGroup);
+  }
+
+  removeEditStaggeredItem(index: number): void {
+    if (this.editStaggeredDataList.length > 1) {
+      this.editStaggeredDataList.removeAt(index);
+    } else {
+      this.ToastserviceService.showToast('warning', 'At least one staggered item is required');
+    }
+  }
+
+  clearEditStaggeredItems(): void {
+    while (this.editStaggeredDataList.length !== 0) {
+      this.editStaggeredDataList.removeAt(0);
+    }
+  }
+
+  onEditSubmit(): void {
+    if (!this.editPoForm.valid || !this.selectedPoForEdit) {
+      this.markFormGroupTouched(this.editPoForm);
+      this.ToastserviceService.showToast('error', 'Please fill all required fields correctly');
       return;
     }
+
+    // Validate staggered data if enabled
+    if (this.isEditStaggeredOrder) {
+      if (this.editStaggeredDataList.length === 0) {
+        this.ToastserviceService.showToast('error', 'Please add at least one staggered delivery item');
+        return;
+      }
+      
+      // Mark all staggered items as touched to show validation errors
+      this.editStaggeredDataList.controls.forEach(control => {
+        if (control instanceof FormGroup) {
+          this.markFormGroupTouched(control);
+        }
+      });
+
+      // Check if any staggered item is invalid
+      if (this.editStaggeredDataList.invalid) {
+        this.ToastserviceService.showToast('error', 'Please correct errors in staggered delivery items');
+        return;
+      }
+    }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    const formValues = this.editPoForm.getRawValue();
     
-    staggeredDataList = this.editStaggeredDataList.value.map((item: any) => ({
-      id: item.id || 0,
-      quantity: item.quantity.toString(),
-      deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
-      poId: this.selectedPoForEdit || 0
-    }));
+    // Prepare staggered data list if it's a staggered order
+    let staggeredDataList: any[] = [];
+    if (this.isEditStaggeredOrder) {
+      staggeredDataList = this.editStaggeredDataList.value.map((item: any) => ({
+        id: item.id || 0,
+        quantity: item.quantity.toString(),
+        deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
+        poId: this.selectedPoForEdit || 0
+      }));
+    }
+
+    const updatePayload = {
+      contractualDeliveryDate: formValues.contractualDeliveryDate 
+        ? new Date(formValues.contractualDeliveryDate).toISOString() 
+        : null,
+      actualDeliveryDate: formValues.actualDeliveryDate 
+        ? new Date(formValues.actualDeliveryDate).toISOString() 
+        : null,
+      shippingDate: formValues.shippingDate 
+        ? new Date(formValues.shippingDate).toISOString() 
+        : null,
+      cpbgDueDate: formValues.cpbgDueDate 
+        ? new Date(formValues.cpbgDueDate).toISOString() 
+        : null,
+      dlpDueDate: formValues.dlpDueDate 
+        ? new Date(formValues.dlpDueDate).toISOString() 
+        : null,
+      modifiedAt: this.utilService.getISTISOString(),
+      modifiedBy: parseInt(this.userId || '0'),
+      // Always include staggeredOrder flag
+      staggeredOrder: this.isEditStaggeredOrder,
+      // Include staggered data list
+      staggeredDataList: staggeredDataList
+    };
+
+    console.log('Update payload:', updatePayload);
+
+    this.http.patch(`${environment.apiUrl}/v1/PurchaseOrder/dates/update?poId=${this.selectedPoForEdit}`, 
+      updatePayload, 
+      { headers })
+      .subscribe({
+        next: (response) => {
+          console.log('PO updated successfully:', response);
+          this.ToastserviceService.showToast('success', 'PO Updated Successfully');
+          this.fetchPo(); // Refresh the main PO list
+          this.fetchAllPurchaseOrders(); // Refresh the edit dropdown list
+          this.resetEditForm();
+        },
+        error: (error) => {
+          console.error('Error updating PO:', error);
+          this.ToastserviceService.showToast('error', error?.error?.message || 'Error updating PO');
+        }
+      });
   }
 
-  const updatePayload = {
-    contractualDeliveryDate: formValues.contractualDeliveryDate 
-      ? new Date(formValues.contractualDeliveryDate).toISOString() 
-      : null,
-    actualDeliveryDate: formValues.actualDeliveryDate 
-      ? new Date(formValues.actualDeliveryDate).toISOString() 
-      : null,
-    shippingDate: formValues.shippingDate 
-      ? new Date(formValues.shippingDate).toISOString() 
-      : null,
-    cpbgDueDate: formValues.cpbgDueDate 
-      ? new Date(formValues.cpbgDueDate).toISOString() 
-      : null,
-    dlpDueDate: formValues.dlpDueDate 
-      ? new Date(formValues.dlpDueDate).toISOString() 
-      : null,
-    modifiedAt: this.utilService.getISTISOString(),
-    modifiedBy: parseInt(this.userId || '0'),
-    // Always include staggeredOrder flag
-    staggeredOrder: this.isEditStaggeredOrder,
-    // Include staggered data list
-    staggeredDataList: staggeredDataList
-  };
-
-  console.log('Update payload:', updatePayload);
-
-  this.http.patch(`${environment.apiUrl}/v1/PurchaseOrder/dates/update?poId=${this.selectedPoForEdit}`, 
-    updatePayload, 
-    { headers })
-    .subscribe({
-      next: (response) => {
-        console.log('PO updated successfully:', response);
-        this.ToastserviceService.showToast('success', 'PO Updated Successfully');
-        this.fetchPo(); // Refresh the main PO list
-        this.fetchAllPurchaseOrders(); // Refresh the edit dropdown list
-        this.resetEditForm();
-      },
-      error: (error) => {
-        console.error('Error updating PO:', error);
-        this.ToastserviceService.showToast('error', error?.error?.message || 'Error updating PO');
-      }
-    });
-}
-
-resetEditForm(): void {
-  this.editPoForm.reset();
-  this.selectedPoForEdit = null;
-  this.isEditMode = false;
-  this.isEditStaggeredOrder = false;
-  this.poSearchInput = '';
-  this.filteredPurchaseOrders = this.allPurchaseOrders;
-  this.clearEditStaggeredItems();
-}
+  resetEditForm(): void {
+    this.editPoForm.reset();
+    this.selectedPoForEdit = null;
+    this.isEditMode = false;
+    this.isEditStaggeredOrder = false;
+    this.poSearchInput = '';
+    this.filteredPurchaseOrders = this.allPurchaseOrders;
+    this.clearEditStaggeredItems();
+    this.minEditDate = null;
+    
+    // Clear validators
+    this.editPoForm.get('contractualDeliveryDate')?.clearValidators();
+    this.editPoForm.get('actualDeliveryDate')?.clearValidators();
+    this.editPoForm.get('shippingDate')?.clearValidators();
+    this.editPoForm.get('cpbgDueDate')?.clearValidators();
+    this.editPoForm.get('dlpDueDate')?.clearValidators();
+    
+    this.editPoForm.get('contractualDeliveryDate')?.updateValueAndValidity();
+    this.editPoForm.get('actualDeliveryDate')?.updateValueAndValidity();
+    this.editPoForm.get('shippingDate')?.updateValueAndValidity();
+    this.editPoForm.get('cpbgDueDate')?.updateValueAndValidity();
+    this.editPoForm.get('dlpDueDate')?.updateValueAndValidity();
+  }
 
   onVendorSelect(selectedCode: string): void {
     const selectedVendor = this.vendors.find(vendor => vendor.vendorCode === selectedCode);
     this.selectedVendorId = selectedVendor ? selectedVendor.id : null;
 
-       if (selectedVendor) {
+    if (selectedVendor) {
       this.poForm.patchValue({
         contactPersonName: selectedVendor.contactNameTitle || '',
         contactPersonEmailId: selectedVendor.contactEmail || selectedVendor.email || '',
@@ -554,97 +636,97 @@ resetEditForm(): void {
   }
 
   onSubmit(): void {
-  if (this.selectedFile) {
-    const token = localStorage.getItem('authToken');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    if (this.selectedFile) {
+      const token = localStorage.getItem('authToken');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    const staggeredData = this.isStaggeredOrder
-      ? this.staggeredDataList.value.map((item: any) => ({
-          id: 0,
-          quantity: parseInt(item.quantity),
-          deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
-          poId: 0
-        }))
-      : []; 
+      const staggeredData = this.isStaggeredOrder
+        ? this.staggeredDataList.value.map((item: any) => ({
+            id: 0,
+            quantity: parseInt(item.quantity),
+            deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
+            poId: 0
+          }))
+        : []; 
 
-    // Create the JSON payload matching your required format
-    const jsonPayload = {
-      id: 0,
-      po_NO: this.poForm.value.poNo,
-      poDescription: this.poForm.value.poDescription,
-      poType: parseInt(this.poForm.value.poType),
-      incoterms: parseInt(this.poForm.value.incoterms),
-      poTypeName: 'purchaseOrder.poTypeName',
-      incotermName: 'purchaseOrder.incotermName',
-      contractualDeliveryDate: this.poForm.value.contractualDeliveryDate.toISOString(),
-      actualDeliveryDate: this.poForm.value.actualDeliveryDate.toISOString(),
-      contactPersonName: this.poForm.value.contactPersonName,
-      contactPersonEmailId: this.poForm.value.contactPersonEmailId,
-      contactNo: this.poForm.value.contactNumber,
-      createdAt: this.utilService.getISTISOString(),
-      createdBy: this.userId ?? 0,
-      updatedAt: this.utilService.getISTISOString(),
-      updatedBy: this.userId ?? 0,
-      isDeleted: false,
-      vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,
-      poFilePath: 'purchaseOrder.poFilePath',
-      vendorCode: this.poForm.value.vendorCode,
-      reminderSent: false,
-      vendName: 'purchaseOrder.vendName',
-      staggeredOrder: this.isStaggeredOrder,
-      orderValue: this.poForm.value.orderValue,
-      shippingDate: this.poForm.value.shippingDate ? new Date(this.poForm.value.shippingDate).toISOString() : null,
-cpbgDueDate: this.poForm.value.cpbgDueDate
-  ? new Date(this.poForm.value.cpbgDueDate).toISOString()
-  : null,
+      // Create the JSON payload matching your required format
+      const jsonPayload = {
+        id: 0,
+        po_NO: this.poForm.value.poNo,
+        poDescription: this.poForm.value.poDescription,
+        poType: parseInt(this.poForm.value.poType),
+        incoterms: parseInt(this.poForm.value.incoterms),
+        poTypeName: 'purchaseOrder.poTypeName',
+        incotermName: 'purchaseOrder.incotermName',
+        contractualDeliveryDate: this.poForm.value.contractualDeliveryDate.toISOString(),
+        actualDeliveryDate: this.poForm.value.actualDeliveryDate.toISOString(),
+        contactPersonName: this.poForm.value.contactPersonName,
+        contactPersonEmailId: this.poForm.value.contactPersonEmailId,
+        contactNo: this.poForm.value.contactNumber,
+        createdAt: this.utilService.getISTISOString(),
+        createdBy: this.userId ?? 0,
+        updatedAt: this.utilService.getISTISOString(),
+        updatedBy: this.userId ?? 0,
+        isDeleted: false,
+        vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,
+        poFilePath: 'purchaseOrder.poFilePath',
+        vendorCode: this.poForm.value.vendorCode,
+        reminderSent: false,
+        vendName: 'purchaseOrder.vendName',
+        staggeredOrder: this.isStaggeredOrder,
+        orderValue: this.poForm.value.orderValue,
+        shippingDate: this.poForm.value.shippingDate ? new Date(this.poForm.value.shippingDate).toISOString() : null,
+        cpbgDueDate: this.poForm.value.cpbgDueDate
+          ? new Date(this.poForm.value.cpbgDueDate).toISOString()
+          : null,
+        dlpDueDate: this.poForm.value.dlpDueDate
+          ? new Date(this.poForm.value.dlpDueDate).toISOString()
+          : null,
+        stageStatuses: [],
+        staggeredDataList: staggeredData,
+        uploadedDocumentFlow: []
+      };
 
-dlpDueDate: this.poForm.value.dlpDueDate
-  ? new Date(this.poForm.value.dlpDueDate).toISOString()
-  : null,
+      // Build FormData
+      const formData = new FormData();
+      formData.append('file', this.selectedFile, this.selectedFile.name);
+      formData.append('purchaseOrderJson', JSON.stringify(jsonPayload));
 
-      stageStatuses: [],
-      staggeredDataList: staggeredData,
-      uploadedDocumentFlow: []
-    };
+      this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers })
+        .subscribe({
+          next: (response) => {
+            console.log('PO submitted successfully:', response);
+            this.ToastserviceService.showToast('success', 'PO Created Successfully');
+            this.fetchPo();
+            this.fetchAllPurchaseOrders(); // Refresh edit dropdown
+            this.resetForm();
+          },
+          error: (error) => {
+            console.error('Error submitting PO:', error);
+            this.ToastserviceService.showToast('error', 'PO Creation Error');
+          },
+        });
 
-    // Build FormData
-    const formData = new FormData();
-    formData.append('file', this.selectedFile, this.selectedFile.name);
-    formData.append('purchaseOrderJson', JSON.stringify(jsonPayload));
-
-    this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers })
-      .subscribe({
-        next: (response) => {
-          console.log('PO submitted successfully:', response);
-          this.ToastserviceService.showToast('success', 'PO Created Successfully');
-          this.fetchPo();
-          this.fetchAllPurchaseOrders(); // Refresh edit dropdown
-          this.resetForm();
-        },
-        error: (error) => {
-          console.error('Error submitting PO:', error);
-          this.ToastserviceService.showToast('error', 'PO Creation Error');
-        },
-      });
-
-  } else {
-    console.log('Form is invalid or file not selected');
-    this.markFormGroupTouched(this.poForm);
-  }
-}
-onEditStaggeredChange(event: any): void {
-  this.isEditStaggeredOrder = event.checked;
-  
-  if (this.isEditStaggeredOrder) {
-    // If enabling staggered order and no items exist, add one
-    if (this.editStaggeredDataList.length === 0) {
-      this.addEditStaggeredItem();
+    } else {
+      console.log('Form is invalid or file not selected');
+      this.markFormGroupTouched(this.poForm);
     }
-  } else {
-    // If disabling staggered order, clear all items
-    this.clearEditStaggeredItems();
   }
-}
+
+  onEditStaggeredChange(event: any): void {
+    this.isEditStaggeredOrder = event.checked;
+    
+    if (this.isEditStaggeredOrder) {
+      // If enabling staggered order and no items exist, add one
+      if (this.editStaggeredDataList.length === 0) {
+        this.addEditStaggeredItem();
+      }
+    } else {
+      // If disabling staggered order, clear all items
+      this.clearEditStaggeredItems();
+    }
+  }
+
   resetForm(): void {
     this.poForm.reset();
     this.selectedFile = null;
@@ -732,77 +814,78 @@ onEditStaggeredChange(event: any): void {
       console.log('No bulk PO file selected');
     }
   }
-viewDocument(documentId: number): void {
-  const token = localStorage.getItem('authToken');
 
-  if (!token) {
-    alert('Please log in to view document.');
-    return;
-  }
+  viewDocument(documentId: number): void {
+    const token = localStorage.getItem('authToken');
 
-  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view-po-file/${documentId}`;
-
-  this.http.get(documentUrl, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/pdf'
-    }),
-    responseType: 'blob'
-  })
-  .subscribe({
-    next: (blob) => {
-      const blobUrl = URL.createObjectURL(blob);
-
-      // Open PDF in new tab
-      window.open(blobUrl, '_blank');
-
-      // Optional cleanup after some time
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-    },
-    error: (err) => {
-      console.error('View document failed:', err);
-      alert('Error viewing document');
+    if (!token) {
+      alert('Please log in to view document.');
+      return;
     }
-  });
-}
+
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/view-po-file/${documentId}`;
+
+    this.http.get(documentUrl, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/pdf'
+      }),
+      responseType: 'blob'
+    })
+    .subscribe({
+      next: (blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Open PDF in new tab
+        window.open(blobUrl, '_blank');
+
+        // Optional cleanup after some time
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      },
+      error: (err) => {
+        console.error('View document failed:', err);
+        alert('Error viewing document');
+      }
+    });
+  }
 
   downloadDocument(documentId: number): void {
-  const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
 
-  if (!token) {
-    alert('Please log in to download document.');
-    return;
-  }
-
-  const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${documentId}`;
-
-  this.http.get(documentUrl, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/octet-stream'
-    }),
-    responseType: 'blob'
-  })
-  .subscribe({
-    next: (blob) => {
-      const blobUrl = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `document_${documentId}.pdf`;
-
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      URL.revokeObjectURL(blobUrl);
-    },
-    error: (err) => {
-      console.error('Document download failed:', err);
-      alert('Error downloading document');
+    if (!token) {
+      alert('Please log in to download document.');
+      return;
     }
-  });
-}
+
+    const documentUrl = `${environment.apiUrl}/v1/PurchaseOrder/download/${documentId}`;
+
+    this.http.get(documentUrl, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/octet-stream'
+      }),
+      responseType: 'blob'
+    })
+    .subscribe({
+      next: (blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `document_${documentId}.pdf`;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        console.error('Document download failed:', err);
+        alert('Error downloading document');
+      }
+    });
+  }
 }
 
 export function noPastDateValidator(control: any) {
