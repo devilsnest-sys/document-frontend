@@ -72,6 +72,8 @@ export class DocumentselectionComponent implements OnInit {
   // PO related properties
   selectedPoNumber: string = '';
   purchaseOrders: PurchaseOrder[] = [];
+  poControl = new FormControl('');
+  filteredPOs$ = new BehaviorSubject<PurchaseOrder[]>([]);
   
   responseData: Array<{
     id: number;
@@ -105,6 +107,7 @@ export class DocumentselectionComponent implements OnInit {
     this.fetchStages();
     this.loadVendors();
     this.setupVendorFilter();
+    this.setupPOFilter();
     this.userId = localStorage.getItem('userId');
     
     // Auto-set vendor for vendor users
@@ -119,6 +122,44 @@ export class DocumentselectionComponent implements OnInit {
         return this.filterVendors(filterValue.toString());
       })
     ).subscribe(filtered => this.filteredVendors$.next(filtered));
+  }
+
+  private setupPOFilter(): void {
+    this.poControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this.filterPOs(value))
+    ).subscribe(filtered => this.filteredPOs$.next(filtered));
+  }
+
+  private filterPOs(value: string | null): PurchaseOrder[] {
+    if (!value) return this.purchaseOrders;
+    const filterValue = value.toString().toLowerCase();
+    return this.purchaseOrders.filter(po =>
+      po.pO_NO?.toLowerCase().includes(filterValue) ||
+      po.poDescription?.toLowerCase().includes(filterValue)
+    );
+  }
+
+  showAllPOs(): void {
+    this.filteredPOs$.next(this.purchaseOrders);
+  }
+
+  onPOSelect(event: any): void {
+    const selectedPONumber = event.option.value;
+    const selectedPO = this.purchaseOrders.find(p => p.pO_NO === selectedPONumber);
+  
+    if (selectedPO) {
+      this.selectedPoNumber = selectedPO.pO_NO;
+      this.poControl.setValue(selectedPO.pO_NO, { emitEvent: false });
+      this.onPoSelectionChange();
+    }
+  }
+
+  displayPO(po: string | PurchaseOrder): string {
+    if (typeof po === 'string') {
+      return po;
+    }
+    return po && po.pO_NO ? po.pO_NO : '';
   }
 
   private loadVendors(): void {
@@ -156,7 +197,9 @@ export class DocumentselectionComponent implements OnInit {
       this.vendorControl.setValue(selectedVendor);
       this.onVendorChange(selectedVendor.vendorCode);
 
+      // Reset PO selection
       this.selectedPoNumber = '';
+      this.poControl.setValue('', { emitEvent: false });
       this.rowData = [];
       this.responseData = [];
     }
@@ -181,6 +224,7 @@ export class DocumentselectionComponent implements OnInit {
     const headers = { Authorization: `Bearer ${token}` };
 
     this.purchaseOrders = [];
+    this.filteredPOs$.next([]);
 
     this.http.get<PurchaseOrder[]>(url, { headers }).subscribe({
       next: response => {
@@ -191,6 +235,7 @@ export class DocumentselectionComponent implements OnInit {
           createdAt: new Date(item.createdAt).toLocaleDateString(),
           updatedAt: new Date(item.updatedAt).toLocaleDateString()
         }));
+        this.filteredPOs$.next(this.purchaseOrders);
       },
       error: err => {
         console.error('Error fetching purchase orders:', err);
