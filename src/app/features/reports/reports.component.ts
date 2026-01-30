@@ -607,123 +607,102 @@ export class ReportsComponent implements OnInit {
   }
 
   private fetchPurchaseOrderData(poId: number): void {
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    this.toastService.showToast('error', 'Authentication token not found');
-    return;
-  }
-
-  const vendor = this.reportForm.get('vendor')?.value;
-  const fromDate = this.reportForm.get('fromDate')?.value;
-  const toDate = this.reportForm.get('toDate')?.value;
-
-  // Build query parameters
-  const params: any = {};
-  
-  if (vendor?.id) {
-    params.vendorId = vendor.id;
-  }
-  
-  if (fromDate) {
-    params.startDate = new Date(fromDate).toISOString();
-  }
-  
-  if (toDate) {
-    params.endDate = new Date(toDate).toISOString();
-  }
-
-  // Construct URL with query parameters
-  const queryString = new URLSearchParams(params).toString();
-  const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/${poId}${queryString ? '?' + queryString : ''}`;
-  const headers = { Authorization: `Bearer ${token}` };
-
-  this.http.get<PurchaseOrderData>(url, { headers }).subscribe({
-    next: response => {
-      this.selectedPoData = response;
-      this.processPoStageData(response);
-    },
-    error: err => {
-      console.error('Error fetching PO data:', err);
-      this.toastService.showToast('error', 'Error loading purchase order data');
-      this.poStageRowData = [];
-      this.selectedPoData = null;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      this.toastService.showToast('error', 'Authentication token not found');
+      return;
     }
-  });
-}
+
+    const vendor = this.reportForm.get('vendor')?.value;
+    const fromDate = this.reportForm.get('fromDate')?.value;
+    const toDate = this.reportForm.get('toDate')?.value;
+
+    // Build query parameters
+    const params: any = {};
+    
+    if (vendor?.id) {
+      params.vendorId = vendor.id;
+    }
+    
+    if (fromDate) {
+      params.startDate = new Date(fromDate).toISOString();
+    }
+    
+    if (toDate) {
+      params.endDate = new Date(toDate).toISOString();
+    }
+
+    // Construct URL with query parameters
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/${poId}${queryString ? '?' + queryString : ''}`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    this.http.get<PurchaseOrderData>(url, { headers }).subscribe({
+      next: response => {
+        this.selectedPoData = response;
+        this.processPoStageData(response);
+      },
+      error: err => {
+        console.error('Error fetching PO data:', err);
+        this.toastService.showToast('error', 'Error loading purchase order data');
+        this.poStageRowData = [];
+        this.selectedPoData = null;
+      }
+    });
+  }
 
   private fetchAllPurchaseOrdersData(vendorCode: string): void {
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    this.toastService.showToast('error', 'Authentication token not found');
-    return;
-  }
-
-  const vendor = this.reportForm.get('vendor')?.value;
-  const fromDate = this.reportForm.get('fromDate')?.value;
-  const toDate = this.reportForm.get('toDate')?.value;
-  const reportType = this.reportForm.get('reportType')?.value;
-
-  // Build query parameters
-  const params: any = {};
-  
-  if (vendor?.id) {
-    params.vendorId = vendor.id;
-  }
-  
-  if (reportType) {
-    params.FlterType = reportType; // Note: keeping the typo from backend parameter name
-  }
-  
-  if (fromDate) {
-    params.startDate = new Date(fromDate).toISOString();
-  }
-  
-  if (toDate) {
-    params.endDate = new Date(toDate).toISOString();
-  }
-
-  // Construct URL with query parameters
-  const queryString = new URLSearchParams(params).toString();
-  const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/0${queryString ? '?' + queryString : ''}`;
-  const headers = { Authorization: `Bearer ${token}` };
-
-  this.http.get<PurchaseOrderData[]>(url, { headers }).subscribe({
-    next: response => {
-      if (reportType === 'all_pos') {
-        this.processAllPosData(response);
-      } else if (reportType === 'stage_wise') {
-        this.processStageWiseData(response);
-      }
-    },
-    error: err => {
-      console.error('Error fetching all PO data:', err);
-      this.toastService.showToast('error', 'Error loading purchase orders data');
-      this.allPosRowData = [];
-      this.stageWiseRowData = [];
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      this.toastService.showToast('error', 'Authentication token not found');
+      return;
     }
-  });
-}
-private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterType?: string): any {
-  let params: any = {};
-  
-  if (vendor?.id) {
-    params['vendorId'] = vendor.id.toString();
+
+    const vendor = this.reportForm.get('vendor')?.value;
+    const fromDate = this.reportForm.get('fromDate')?.value;
+    const toDate = this.reportForm.get('toDate')?.value;
+    const reportType = this.reportForm.get('reportType')?.value;
+
+    // Build query parameters
+    const params: any = {};
+    
+    if (vendor?.id) {
+      params.vendorId = vendor.id;
+    }
+    
+    if (reportType) {
+      params.FlterType = reportType; // Note: keeping the typo from backend parameter name
+    }
+    
+    if (fromDate) {
+      params.startDate = new Date(fromDate).toISOString();
+    }
+    
+    if (toDate) {
+      params.endDate = new Date(toDate).toISOString();
+    }
+
+    // Construct URL with query parameters
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${environment.apiUrl}/v1/PurchaseOrder/FilterPoData/0${queryString ? '?' + queryString : ''}`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    this.http.get<PurchaseOrderData[]>(url, { headers }).subscribe({
+      next: response => {
+        if (reportType === 'all_pos') {
+          this.processAllPosData(response);
+        } else if (reportType === 'stage_wise') {
+          this.processStageWiseData(response);
+        }
+      },
+      error: err => {
+        console.error('Error fetching all PO data:', err);
+        this.toastService.showToast('error', 'Error loading purchase orders data');
+        this.allPosRowData = [];
+        this.stageWiseRowData = [];
+      }
+    });
   }
-  
-  if (filterType) {
-    params['FlterType'] = filterType;
-  }
-  
-  if (fromDate) {
-    params['startDate'] = new Date(fromDate).toISOString();
-  }
-  
-  if (toDate) {
-    params['endDate'] = new Date(toDate).toISOString();
-  }
-  
-  return params;
-}
 
   private fetchAllVendorsData(): void {
     const token = localStorage.getItem('authToken');
@@ -747,72 +726,56 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
     });
   }
 
+  /**
+   * Process PO Stage Report Data
+   * Uses backend-provided calculations for daysComplete and remainingDays
+   * Validates against frontend calculations and logs discrepancies
+   */
   private processPoStageData(poData: PurchaseOrderData): void {
     const vendor = this.reportForm.get('vendor')?.value;
     
-    const actualDeliveryDate = new Date(poData.actualDeliveryDate);
-    const today = new Date();
-    const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
-    const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
-    
-    const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    let remainingDaysText = 'N/A';
-    if (shippingDate) {
-      const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+    // Frontend validation calculations (for logging/debugging only)
+    const validationResult = this.validateDateCalculations(poData);
+    if (validationResult.hasDiscrepancy) {
+      console.warn('Date calculation discrepancy detected:', validationResult);
     }
     
     const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
     const totalStages = poData.stageStatuses?.length || 0;
-    
-    const cpbgStatus = poData.cpbgDueDate ? 'Received' : 'Not Received';
-    const shippingStatus = this.calculateShippingDocumentStatus(poData.stageStatuses, poData.uploadedDocumentFlow);
-    const dlpDueDateText = poData.dlpDueDate ? this.formatDate(poData.dlpDueDate) : 'N/A';
     const orderStatus = completedStages === poData.totalassignedstages ? 'Completed' : 'In Progress';
 
     const reportData: PoStageReportData = {
       vendorName: vendor?.companyName || 'N/A',
       vendorCode: poData.vendorCode || 'N/A',
       poNumber: poData.pO_NO || 'N/A',
-      orderValue: poData.orderValue,
+      orderValue: poData.orderValue || 'N/A',
       stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${poData.totalassignedstages}` : 'No stages',
       acdCcd: this.formatDate(poData.actualDeliveryDate),
-      numberOfDaysComplete: poData.daysComplete,
-      remainingDays: poData.remainingDays,
-      cpbgDueDate: poData.cpbgDueDate
-  ? this.formatDate(poData.cpbgDueDate)
-  : 'N/A',
-      receiptOfShipping: poData.shippingDate
-  ? this.formatDate(poData.shippingDate)
-  : 'N/A',
-      dlpDueDate: poData.dlpDueDate
-  ? this.formatDate(poData.dlpDueDate)
-  : 'N/A',
+      numberOfDaysComplete: poData.daysComplete, // Use backend value
+      remainingDays: poData.remainingDays, // Use backend value
+      cpbgDueDate: poData.cpbgDueDate ? this.formatDate(poData.cpbgDueDate) : 'N/A',
+      receiptOfShipping: poData.shippingDate ? this.formatDate(poData.shippingDate) : 'N/A',
+      dlpDueDate: poData.dlpDueDate ? this.formatDate(poData.dlpDueDate) : 'N/A',
       orderStatus: orderStatus
     };
 
     this.poStageRowData = [reportData];
   }
 
+  /**
+   * Process All POs Report Data
+   * Uses backend-provided calculations consistently
+   */
   private processAllPosData(posData: PurchaseOrderData[]): void {
     this.allPosRowData = posData.map(poData => {
-      const actualDeliveryDate = new Date(poData.actualDeliveryDate);
-      const today = new Date();
-      const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
-      const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
-      
-      const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      let remainingDaysText = 'N/A';
-      if (shippingDate) {
-        const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+      // Optional: Validate calculations for debugging
+      const validationResult = this.validateDateCalculations(poData);
+      if (validationResult.hasDiscrepancy) {
+        console.warn(`Date discrepancy for PO ${poData.pO_NO}:`, validationResult);
       }
       
       const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
       const totalStages = poData.stageStatuses?.length || 0;
-     // const orderStatus = this.calculateOrderStatus(dlpDate);
       const orderStatus = poData.isClosed ? 'Closed' : 'Open';
       const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
 
@@ -820,36 +783,32 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
         vendorName: vendorName,
         vendorCode: poData.vendorCode || 'N/A',
         purchaseOrders: poData.pO_NO || 'N/A',
-        orderValue: poData.orderValue,
+        orderValue: poData.orderValue || 'N/A',
         stageCompleted: totalStages > 0 ? `Stage ${completedStages} of ${totalStages}` : 'No stages',
         acdCcd: this.formatDate(poData.actualDeliveryDate),
-        numberOfDaysComplete: poData.daysComplete,
-        remainingDays: poData.remainingDays,
+        numberOfDaysComplete: poData.daysComplete, // Use backend value
+        remainingDays: poData.remainingDays, // Use backend value
         orderStatus: orderStatus
       };
     });
   }
 
+  /**
+   * Process Stage Wise Report Data
+   * Uses backend-provided calculations consistently
+   */
   private processStageWiseData(posData: PurchaseOrderData[]): void {
     const stageWiseData: StageWiseReportData[] = [];
     
     posData.forEach(poData => {
-      const actualDeliveryDate = new Date(poData.actualDeliveryDate);
-      const today = new Date();
-      const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
-      const dlpDate = poData.dlpDueDate ? new Date(poData.dlpDueDate) : null;
-      
-      const daysDifference = Math.floor((today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      let remainingDaysText = 'N/A';
-      if (shippingDate) {
-        const remainingDays = Math.floor((shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        remainingDaysText = remainingDays < 0 ? `Delayed by ${Math.abs(remainingDays)} days` : `${remainingDays} days remaining`;
+      // Optional: Validate calculations for debugging
+      const validationResult = this.validateDateCalculations(poData);
+      if (validationResult.hasDiscrepancy) {
+        console.warn(`Date discrepancy for PO ${poData.pO_NO}:`, validationResult);
       }
       
       const completedStages = poData.stageStatuses?.filter(stage => stage.status === 'Complete').length || 0;
       const totalStages = poData.stageStatuses?.length || 0;
-      //const orderStatus = this.calculateOrderStatus(dlpDate);
       const orderStatus = poData.isClosed ? 'Completed' : 'Open';
       const vendorName = this.getVendorNameByCode(poData.vendorCode) || poData.vendName || 'N/A';
 
@@ -863,7 +822,7 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
           vendorName: vendorName,
           vendorCode: poData.vendorCode || 'N/A',
           purchaseOrders: poData.pO_NO || 'N/A',
-          orderValue: poData.orderValue,
+          orderValue: poData.orderValue || 'N/A',
           statusOfStage: this.getStageTypeName(stage.stageId),
           action: stageAction,
           pendingWith: pendingWith,
@@ -871,14 +830,60 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
           dateOfReturnByVendor: returnInfo.vendorReturn,
           dateOfReceipt: receiptDate,
           acdCcd: this.formatDate(poData.actualDeliveryDate),
-          numberOfDaysComplete: poData.daysComplete,
-          remainingDays: poData.remainingDays,
+          numberOfDaysComplete: poData.daysComplete, // Use backend value
+          remainingDays: poData.remainingDays, // Use backend value
           orderStatus: orderStatus
         });
       });
     });
     
     this.stageWiseRowData = stageWiseData;
+  }
+
+  /**
+   * Validate date calculations against backend values
+   * This helps identify discrepancies between frontend and backend logic
+   */
+  private validateDateCalculations(poData: PurchaseOrderData): {
+    hasDiscrepancy: boolean;
+    frontendDaysComplete: number;
+    backendDaysComplete: number;
+    frontendRemainingDays: string;
+    backendRemainingDays: string;
+    daysDifference: number;
+  } {
+    const actualDeliveryDate = new Date(poData.actualDeliveryDate);
+    const today = new Date();
+    const shippingDate = poData.shippingDate ? new Date(poData.shippingDate) : null;
+    
+    // Calculate days complete (from actual delivery to today)
+    const frontendDaysComplete = Math.floor(
+      (today.getTime() - actualDeliveryDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    // Calculate remaining days (from today to shipping date)
+    let frontendRemainingDays = 'N/A';
+    if (shippingDate) {
+      const remainingDays = Math.floor(
+        (shippingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      frontendRemainingDays = remainingDays < 0 
+        ? `Delayed by ${Math.abs(remainingDays)} days` 
+        : `${remainingDays} days remaining`;
+    }
+    
+    // Check for discrepancies (allow 1-day tolerance for timezone/rounding)
+    const daysDifference = Math.abs(frontendDaysComplete - poData.daysComplete);
+    const hasDiscrepancy = daysDifference > 1 || frontendRemainingDays !== poData.remainingDays;
+    
+    return {
+      hasDiscrepancy,
+      frontendDaysComplete,
+      backendDaysComplete: poData.daysComplete,
+      frontendRemainingDays,
+      backendRemainingDays: poData.remainingDays,
+      daysDifference
+    };
   }
 
   private processAllVendorsData(vendorsData: any[]): void {
@@ -894,30 +899,6 @@ private buildHttpParams(vendor: any, fromDate: string, toDate: string, filterTyp
       website: vendor.website || 'N/A',
       generalDetails: vendor.generalDetails || 'N/A'
     }));
-  }
-
-  private calculateOrderStatus(dlpDate: Date | null): string {
-    if (!dlpDate) return 'Open';
-    const today = new Date();
-    return dlpDate <= today ? 'Closed' : 'Open';
-  }
-
-  private calculateShippingDocumentStatus(stageStatuses: StageStatus[], uploadedDocuments: any[]): string {
-    const shippingStages = stageStatuses?.filter(stage => 
-      stage.stageId >= 8 && stage.stageId <= 12
-    ) || [];
-    
-    const hasShippingDocuments = uploadedDocuments?.some(doc => 
-      doc.stageId >= 8 && doc.stageId <= 12 && doc.status === 'Approved'
-    );
-    
-    if (hasShippingDocuments && shippingStages.some(stage => stage.status === 'Complete')) {
-      return 'Received';
-    } else if (shippingStages.some(stage => stage.status === 'InProgress')) {
-      return 'Partially Received';
-    } else {
-      return 'Pending';
-    }
   }
 
   private getReturnInformation(stage: StageStatus, uploadedDocuments: any[]): { userReturn: string, vendorReturn: string } {

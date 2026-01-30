@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,NgZone } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { ColDef, Module } from '@ag-grid-community/core';
@@ -90,7 +90,8 @@ export class AdditionalfieldselectionComponent implements OnInit {
     minWidth: 100,
   };
 
-  constructor(private http: HttpClient, private authService: AuthService, private utilService: UtilService) {}
+  constructor(private http: HttpClient, private authService: AuthService, private utilService: UtilService,
+    private ngZone: NgZone) {}
   
   allStages: any;
   allAdditionalfield: any;
@@ -432,13 +433,15 @@ export class AdditionalfieldselectionComponent implements OnInit {
     });
   }
 
-  checkboxRenderer(params: any): HTMLElement {
+  checkboxRenderer=(params: any): HTMLElement => {
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = params.value;
     input.addEventListener('change', () => {
+      this.ngZone.run(() => {
       params.value = input.checked;
       params.colDef.cellRendererParams.checkboxCallback(params);
+      });
     });
     return input;
   }
