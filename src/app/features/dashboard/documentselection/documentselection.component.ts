@@ -53,6 +53,13 @@ interface Stage {
   stageStatuses: any[];
 }
 
+// New interface for stage status
+interface StageStatus {
+  stageId: number;
+  quantityId: number | null;
+  status: 'Complete' | 'InProgress' | 'InComplete';
+}
+
 @Component({
   selector: 'app-documentselection',
   standalone: false,
@@ -71,9 +78,14 @@ export class DocumentselectionComponent implements OnInit {
   
   // PO related properties
   selectedPoNumber: string = '';
+  selectedPoId: number | null = null;
   purchaseOrders: PurchaseOrder[] = [];
   poControl = new FormControl('');
   filteredPOs$ = new BehaviorSubject<PurchaseOrder[]>([]);
+  
+  // Stage status tracking
+  stageStatuses: StageStatus[] = [];
+  completedStages: Set<number> = new Set();
   
   responseData: Array<{
     id: number;
@@ -154,6 +166,7 @@ export class DocumentselectionComponent implements OnInit {
   
     if (selectedPO) {
       this.selectedPoNumber = selectedPO.pO_NO;
+      this.selectedPoId = selectedPO.id;
       this.poControl.setValue(selectedPO.pO_NO, { emitEvent: false });
       this.onPoSelectionChange();
     }
@@ -201,11 +214,14 @@ export class DocumentselectionComponent implements OnInit {
       this.vendorControl.setValue(selectedVendor);
       this.onVendorChange(selectedVendor.vendorCode);
 
-      // Reset PO selection
+      // Reset PO selection and stage statuses
       this.selectedPoNumber = '';
+      this.selectedPoId = null;
       this.poControl.setValue('', { emitEvent: false });
       this.rowData = [];
       this.responseData = [];
+      this.stageStatuses = [];
+      this.completedStages.clear();
     }
   }
 
@@ -278,12 +294,51 @@ export class DocumentselectionComponent implements OnInit {
   }
 
   onPoSelectionChange(): void {
-    if (this.selectedPoNumber && this.allStages) {
-      this.fetchDocumentSelectionData();
+    if (this.selectedPoNumber && this.selectedPoId && this.allStages) {
+      this.fetchStageStatusForPO(this.selectedPoId);
     } else {
       this.rowData = [];
       this.responseData = [];
+      this.stageStatuses = [];
+      this.completedStages.clear();
     }
+  }
+
+  /**
+   * Fetch stage status for the selected PO
+   */
+  fetchStageStatusForPO(poId: number): void {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    const url = `${environment.apiUrl}/v1/StageStatus/StageStatusPo/${poId}`;
+    
+    this.http.get<StageStatus[]>(url, { headers }).subscribe({
+      next: (response) => {
+        this.stageStatuses = response;
+        
+        // Track completed stages
+        this.completedStages.clear();
+        response.forEach(status => {
+          if (status.status === 'Complete') {
+            this.completedStages.add(status.stageId);
+          }
+        });
+        
+        console.log('Stage statuses loaded:', this.stageStatuses);
+        console.log('Completed stages:', Array.from(this.completedStages));
+        
+        // Now fetch document selection data
+        this.fetchDocumentSelectionData();
+      },
+      error: (error) => {
+        console.error('Error fetching stage status:', error);
+        this.stageStatuses = [];
+        this.completedStages.clear();
+        // Continue with document selection even if stage status fails
+        this.fetchDocumentSelectionData();
+      },
+    });
   }
 
   fetchDocumentSelectionData(): void {
@@ -318,9 +373,8 @@ export class DocumentselectionComponent implements OnInit {
       next: (stages) => {
         this.allStages = stages;
         this.setupGridColumns(stages);
-        if (this.selectedPoNumber) {
-          this.fetchDocumentSelectionData();
-          this.fetchDocumentTypes(stages);
+        if (this.selectedPoNumber && this.selectedPoId) {
+          this.fetchStageStatusForPO(this.selectedPoId);
         }
       },
       error: (error) => {
@@ -337,12 +391,13 @@ export class DocumentselectionComponent implements OnInit {
 
     stages.forEach((stage) => {
       this.columnDefs.push({
-        headerName: stage.stageName, // Changed from stage.name to stage.stageName
+        headerName: stage.stageName,
         field: `stage${stage.id}`,
         cellRenderer: this.checkboxRenderer,
         editable: false,
         cellRendererParams: {
           checkboxCallback: this.onCheckboxChange.bind(this),
+          stageId: stage.id,
         },
       });
     });
@@ -390,6 +445,13 @@ export class DocumentselectionComponent implements OnInit {
     });
   }
 
+  /**
+   * Check if a stage is completed
+   */
+  isStageCompleted(stageId: number): boolean {
+    return this.completedStages.has(stageId);
+  }
+
   onCheckboxChange(params: any): void {
     if (!this.selectedPoNumber) {
       alert('Please select a PO number first');
@@ -400,6 +462,18 @@ export class DocumentselectionComponent implements OnInit {
     const stageField = colDef.field as string;
     const stageId = Number(stageField.replace('stage', ''));
     const documentId = data.id;
+
+    // Check if stage is completed - if yes, prevent modification
+    if (this.isStageCompleted(stageId)) {
+      alert('This stage is completed. No modifications are allowed.');
+      // Revert checkbox state
+      params.value = !value;
+      const checkbox = params.eGridCell.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        checkbox.checked = !value;
+      }
+      return;
+    }
 
     const targetRecord = this.responseData.find(
       (item) => item.stageId === stageId && 
@@ -483,12 +557,30 @@ export class DocumentselectionComponent implements OnInit {
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = params.value;
+    
+    // Get stageId from cellRendererParams
+    const stageId = params.colDef.cellRendererParams?.stageId;
+    
+    // Disable checkbox if stage is completed
+    if (stageId && this.isStageCompleted(stageId)) {
+      input.disabled = true;
+      input.style.cursor = 'not-allowed';
+      input.title = 'This stage is completed and cannot be modified';
+    }
+    
     input.addEventListener('change', () => {
+      // Double-check if stage is completed before allowing change
+      if (stageId && this.isStageCompleted(stageId)) {
+        input.checked = params.value;
+        return;
+      }
+      
       this.ngZone.run(() => {
         params.value = input.checked;
         params.colDef.cellRendererParams.checkboxCallback(params);
       });
     });
+    
     return input;
   }
 }
