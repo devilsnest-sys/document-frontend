@@ -206,8 +206,7 @@ export class OrderacknowledgementComponent {
     this.fetchAllPurchaseOrders();
     this.userId = this.authService.getUserId();
     
-    // Initialize with one staggered item by default
-    this.addStaggeredItem();
+    // Don't initialize with staggered item - only add when checkbox is checked
   }
 
   get staggeredDataList() {
@@ -236,7 +235,7 @@ export class OrderacknowledgementComponent {
     const staggeredGroup = this.fb.group({
       id: [0],
       quantity: ['', [Validators.required, Validators.min(1)]],
-      deliveryDateOfQuantity: ['', Validators.required],
+      deliveryDateOfQuantity: ['', [Validators.required, noPastDateValidator]],
       poId: [0]
     });
     
@@ -636,81 +635,104 @@ export class OrderacknowledgementComponent {
   }
 
   onSubmit(): void {
-    if (this.selectedFile) {
-      const token = localStorage.getItem('authToken');
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    // Validate staggered data if enabled
+    if (this.isStaggeredOrder) {
+      if (this.staggeredDataList.length === 0) {
+        this.ToastserviceService.showToast('error', 'Please add at least one staggered delivery item');
+        return;
+      }
+      
+      // Mark all staggered items as touched to show validation errors
+      this.staggeredDataList.controls.forEach(control => {
+        if (control instanceof FormGroup) {
+          this.markFormGroupTouched(control);
+        }
+      });
 
-      const staggeredData = this.isStaggeredOrder
-        ? this.staggeredDataList.value.map((item: any) => ({
-            id: 0,
-            quantity: parseInt(item.quantity),
-            deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
-            poId: 0
-          }))
-        : []; 
+      // Check if any staggered item is invalid
+      if (this.staggeredDataList.invalid) {
+        this.ToastserviceService.showToast('error', 'Please correct errors in staggered delivery items');
+        return;
+      }
+    }
 
-      // Create the JSON payload matching your required format
-      const jsonPayload = {
-        id: 0,
-        po_NO: this.poForm.value.poNo,
-        poDescription: this.poForm.value.poDescription,
-        poType: parseInt(this.poForm.value.poType),
-        incoterms: parseInt(this.poForm.value.incoterms),
-        poTypeName: 'purchaseOrder.poTypeName',
-        incotermName: 'purchaseOrder.incotermName',
-        contractualDeliveryDate: this.poForm.value.contractualDeliveryDate.toISOString(),
-        actualDeliveryDate: this.poForm.value.actualDeliveryDate.toISOString(),
-        contactPersonName: this.poForm.value.contactPersonName,
-        contactPersonEmailId: this.poForm.value.contactPersonEmailId,
-        contactNo: this.poForm.value.contactNumber,
-        createdAt: this.utilService.getISTISOString(),
-        createdBy: this.userId ?? 0,
-        updatedAt: this.utilService.getISTISOString(),
-        updatedBy: this.userId ?? 0,
-        isDeleted: false,
-        vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,
-        poFilePath: 'purchaseOrder.poFilePath',
-        vendorCode: this.poForm.value.vendorCode,
-        reminderSent: false,
-        vendName: 'purchaseOrder.vendName',
-        staggeredOrder: this.isStaggeredOrder,
-        orderValue: this.poForm.value.orderValue,
-        shippingDate: this.poForm.value.shippingDate ? new Date(this.poForm.value.shippingDate).toISOString() : null,
-        cpbgDueDate: this.poForm.value.cpbgDueDate
-          ? new Date(this.poForm.value.cpbgDueDate).toISOString()
-          : null,
-        dlpDueDate: this.poForm.value.dlpDueDate
-          ? new Date(this.poForm.value.dlpDueDate).toISOString()
-          : null,
-        stageStatuses: [],
-        staggeredDataList: staggeredData,
-        uploadedDocumentFlow: []
-      };
-
-      // Build FormData
-      const formData = new FormData();
-      formData.append('file', this.selectedFile, this.selectedFile.name);
-      formData.append('purchaseOrderJson', JSON.stringify(jsonPayload));
-
-      this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers })
-        .subscribe({
-          next: (response) => {
-            console.log('PO submitted successfully:', response);
-            this.ToastserviceService.showToast('success', 'PO Created Successfully');
-            this.fetchPo();
-            this.fetchAllPurchaseOrders(); // Refresh edit dropdown
-            this.resetForm();
-          },
-          error: (error) => {
-            console.error('Error submitting PO:', error);
-            this.ToastserviceService.showToast('error', 'PO Creation Error');
-          },
-        });
-
-    } else {
+    // Check main form validity and file selection
+    if (!this.poForm.valid || !this.selectedFile) {
       console.log('Form is invalid or file not selected');
       this.markFormGroupTouched(this.poForm);
+      this.ToastserviceService.showToast('error', 'Please fill all required fields');
+      return;
     }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    const staggeredData = this.isStaggeredOrder
+      ? this.staggeredDataList.value.map((item: any) => ({
+          id: 0,
+          quantity: parseInt(item.quantity),
+          deliveryDateOfQuantity: new Date(item.deliveryDateOfQuantity).toISOString(),
+          poId: 0
+        }))
+      : []; 
+
+    // Create the JSON payload matching your required format
+    const jsonPayload = {
+      id: 0,
+      po_NO: this.poForm.value.poNo,
+      poDescription: this.poForm.value.poDescription,
+      poType: parseInt(this.poForm.value.poType),
+      incoterms: parseInt(this.poForm.value.incoterms),
+      poTypeName: 'purchaseOrder.poTypeName',
+      incotermName: 'purchaseOrder.incotermName',
+      contractualDeliveryDate: this.poForm.value.contractualDeliveryDate.toISOString(),
+      actualDeliveryDate: this.poForm.value.actualDeliveryDate ? this.poForm.value.actualDeliveryDate.toISOString() : null,
+      contactPersonName: this.poForm.value.contactPersonName,
+      contactPersonEmailId: this.poForm.value.contactPersonEmailId,
+      contactNo: this.poForm.value.contactNumber,
+      createdAt: this.utilService.getISTISOString(),
+      createdBy: this.userId ?? 0,
+      updatedAt: this.utilService.getISTISOString(),
+      updatedBy: this.userId ?? 0,
+      isDeleted: false,
+      vendorId: this.selectedVendorId ? (this.selectedVendorId) : 0,
+      poFilePath: 'purchaseOrder.poFilePath',
+      vendorCode: this.poForm.value.vendorCode,
+      reminderSent: false,
+      vendName: 'purchaseOrder.vendName',
+      staggeredOrder: this.isStaggeredOrder,
+      orderValue: this.poForm.value.orderValue,
+      shippingDate: this.poForm.value.shippingDate ? new Date(this.poForm.value.shippingDate).toISOString() : null,
+      cpbgDueDate: this.poForm.value.cpbgDueDate
+        ? new Date(this.poForm.value.cpbgDueDate).toISOString()
+        : null,
+      dlpDueDate: this.poForm.value.dlpDueDate
+        ? new Date(this.poForm.value.dlpDueDate).toISOString()
+        : null,
+      stageStatuses: [],
+      staggeredDataList: staggeredData,
+      uploadedDocumentFlow: []
+    };
+
+    // Build FormData
+    const formData = new FormData();
+    formData.append('file', this.selectedFile, this.selectedFile.name);
+    formData.append('purchaseOrderJson', JSON.stringify(jsonPayload));
+
+    this.http.post<any>(`${environment.apiUrl}/v1/PurchaseOrder`, formData, { headers })
+      .subscribe({
+        next: (response) => {
+          console.log('PO submitted successfully:', response);
+          this.ToastserviceService.showToast('success', 'PO Created Successfully');
+          this.fetchPo();
+          this.fetchAllPurchaseOrders(); // Refresh edit dropdown
+          this.resetForm();
+        },
+        error: (error) => {
+          console.error('Error submitting PO:', error);
+          this.ToastserviceService.showToast('error', 'PO Creation Error');
+        },
+      });
   }
 
   onEditStaggeredChange(event: any): void {
@@ -732,7 +754,7 @@ export class OrderacknowledgementComponent {
     this.selectedFile = null;
     this.isStaggeredOrder = false;
     this.clearStaggeredItems();
-    this.addStaggeredItem(); // Add one default item
+    // Don't add default staggered item
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
