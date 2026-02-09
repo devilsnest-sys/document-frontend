@@ -16,8 +16,9 @@ export class LoginComponent implements OnInit {
     { value: 'vendor', label: 'Vendor' },
     { value: 'user', label: 'User' },
   ];
-hidePassword = true;
-isLoading = false;
+  hidePassword = true;
+  isLoading = false;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -38,82 +39,81 @@ isLoading = false;
     }
   }
 
-onSubmit() {
-  if (this.loginForm.valid) {
-    const { username, password, userType } = this.loginForm.value;
-    this.isLoading = true;
+  onSubmit() {
+    if (this.loginForm.valid) {
+      const { username, password, userType } = this.loginForm.value;
+      this.isLoading = true;
 
-    this.authService.login(username, password, userType).subscribe({
-      next: (response) => {
-        this.isLoading = false;
+      this.authService.login(username, password, userType).subscribe({
+        next: (response) => {
+          this.isLoading = false;
 
-        if (response?.token) {
-          this.authService.setToken(
-            response.token,
-            response.userName,
-            response.id,
-            userType,
-            response.role,
-            response.userForStage
-          );
+          if (response?.token) {
+            this.authService.setToken(
+              response.token,
+              response.userName,
+              response.id,
+              userType,
+              response.role,
+              response.userForStage
+            );
 
-          this.ToastserviceService.showToast(
-            'success',
-            'Login Successful'
-          );
+            this.ToastserviceService.showToast(
+              'success',
+              'Login Successful'
+            );
 
-          this.router.navigate(['/dashboard']);
-        }
-      },
+            this.router.navigate(['/dashboard']);
+          }
+        },
 
-      error: (error) => {
-        this.isLoading = false;
+        error: (error) => {
+          this.isLoading = false;
 
-        // ✅ 401 → Wrong username/password
-        if (error.status === 401) {
-          this.ToastserviceService.showToast(
-            'error',
-            'Login Failed',
-            error.error?.message || 'Invalid username or password.'
-          );
-        }
+          // ✅ 401 → Wrong username/password
+          if (error.status === 401) {
+            this.ToastserviceService.showToast(
+              'error',
+              'Login Failed',
+              error.error?.message || 'Invalid username or password.'
+            );
+          }
 
-        // ✅ 400 → Validation or bad request
-        else if (error.status === 400) {
-          this.ToastserviceService.showToast(
-            'error',
-            'Invalid Request',
-            error.error?.message || 'Please check your input.'
-          );
-        }
+          // ✅ 400 → Validation or bad request
+          else if (error.status === 400) {
+            this.ToastserviceService.showToast(
+              'error',
+              'Invalid Request',
+              error.error?.message || 'Please check your input.'
+            );
+          }
 
-        // ✅ 0 → Network / CORS / Server down
-        else if (error.status === 0) {
-          this.ToastserviceService.showToast(
-            'error',
-            'Network Error',
-            'Unable to connect to server. Please check your internet.'
-          );
-        }
+          // ✅ 0 → Network / CORS / Server down
+          else if (error.status === 0) {
+            this.ToastserviceService.showToast(
+              'error',
+              'Network Error',
+              'Unable to connect to server. Please check your internet.'
+            );
+          }
 
-        // ✅ 500 or anything else
-        else {
-          this.ToastserviceService.showToast(
-            'error',
-            'Server Error',
-            'Something went wrong. Please try again later.'
-          );
-        }
-      },
-    });
+          // ✅ 500 or anything else
+          else {
+            this.ToastserviceService.showToast(
+              'error',
+              'Server Error',
+              'Something went wrong. Please try again later.'
+            );
+          }
+        },
+      });
 
-  } else {
-    this.ToastserviceService.showToast(
-      'warning',
-      'Invalid Input',
-      'Please fill out the form correctly before submitting.'
-    );
+    } else {
+      this.ToastserviceService.showToast(
+        'warning',
+        'Invalid Input',
+        'Please fill out the form correctly before submitting.'
+      );
+    }
   }
-}
-
 }

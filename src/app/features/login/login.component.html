@@ -1,16 +1,71 @@
-<div class="login-container mt-5">
-  <div class="card">
-    <div class="card-header bg-dark text-white">
-      <h3 class="text-center">Login</h3>
+<div class="login-wrapper">
+  <div class="login-container">
+    <!-- Left Panel - Branding -->
+    <div class="branding-panel">
+      <div class="branding-content">
+        <div class="logo-section">
+          <div class="logo">
+            <span class="logo-text">PSP</span>
+          </div>
+          <div class="company-name">
+            <h1>PROCUREMENT<br>SOLUTIONS<br>PROVIDER LLP</h1>
+            <p class="tagline">A PROCUREMENT CONSULTING AND ADVISORY FIRM</p>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h2>PSP-Procurement Solutions Provider LLP</h2>
+          <p>
+            PSP LLP is a DPIIT-recognized startup offering expert consultancy and 
+            training in procurement, contract management, dispute resolution, Asset 
+            Integrity Management etc.
+          </p>
+          <p>
+            Founded by a seasoned professional from a premier gas company, PSP brings 
+            deep, cross-sector expertise in public procurement, asset integrity 
+            management, supply chain governance. With our sector-agnostic approach, 
+            we help clients in transforming procurement practices for improved 
+            transparency, efficiency, and accountability. We also extend support to 
+            maintain health of assets.
+          </p>
+
+          <div class="feature-highlight">
+            <h3>PSP Order Tracker</h3>
+            <p>
+              PSP Order Tracker is a powerful digital platform that streamlines and 
+              digitizes all post-PO activities for domestic and import orders—enabling 
+              faster communication, seamless coordination, and efficient document 
+              handling.
+            </p>
+          </div>
+
+          <div class="benefits-section">
+            <h4>Key Benefits of PSP Order Tracker</h4>
+            <ul>
+              <li>End-to-end digitization of post-PO activities with paperless operations</li>
+              <li>Real-time document upload, access, and tracking with clear process visibility</li>
+              <li>Complete audit trail with time-stamped communication for transparency and compliance</li>
+              <li>Faster decisions and higher productivity through easy document retrieval</li>
+              <li>Proactive import and compliance management to avoid delays and penalties</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="row">
-          <div class="col-md-12">
-            <!-- User Type -->
-            <mat-form-field appearance="fill" class="full-width">
+
+    <!-- Right Panel - Login Form -->
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="login-header">
+          <h2>Login</h2>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <!-- User Type -->
+          <div class="form-group">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>User Type</mat-label>
-              <mat-icon matPrefix>assignment_ind</mat-icon>
+              <mat-icon matPrefix class="field-icon">assignment_ind</mat-icon>
               <mat-select formControlName="userType" required>
                 <mat-option *ngFor="let type of userTypes" [value]="type.value">
                   {{ type.label }}
@@ -22,24 +77,50 @@
             </mat-form-field>
           </div>
 
-          <div class="col-md-12">
-            <!-- Username -->
-            <mat-form-field appearance="fill" class="full-width">
+          <!-- Username -->
+          <div class="form-group">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Username</mat-label>
-              <mat-icon matPrefix>person</mat-icon>
-              <input appTrimInput matInput id="username" type="text" formControlName="username" required />
+              <mat-icon matPrefix class="field-icon">person</mat-icon>
+              <input 
+                appTrimInput 
+                matInput 
+                id="username" 
+                type="text" 
+                formControlName="username" 
+                required 
+                autocomplete="username"
+              />
               <mat-error *ngIf="loginForm.get('username')?.errors?.['required']">
                 <small>Username is required.</small>
               </mat-error>
             </mat-form-field>
           </div>
 
-          <div class="col-md-12">
-            <!-- Password -->
-            <mat-form-field appearance="fill" class="full-width">
+          <!-- Password -->
+          <div class="form-group">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Password</mat-label>
-              <mat-icon matPrefix>lock</mat-icon>
-              <input appTrimInput matInput id="password" type="password" formControlName="password" required />
+              <mat-icon matPrefix class="field-icon">lock</mat-icon>
+              <input 
+                appTrimInput 
+                matInput 
+                id="password" 
+                [type]="hidePassword ? 'password' : 'text'" 
+                formControlName="password" 
+                required 
+                autocomplete="current-password"
+              />
+              <button 
+                mat-icon-button 
+                matSuffix 
+                type="button"
+                (click)="hidePassword = !hidePassword"
+                [attr.aria-label]="'Hide password'"
+                [attr.aria-pressed]="hidePassword"
+              >
+                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
               <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">
                 <small>Password is required.</small>
               </mat-error>
@@ -48,19 +129,31 @@
               </mat-error>
             </mat-form-field>
           </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="text-center mt-3">
-          <button mat-raised-button color="accent" type="submit" [disabled]="loginForm.invalid">
-            Login
-          </button>
-        </div>
-      </form>
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              class="login-button"
+              [disabled]="loginForm.invalid || isLoading"
+            >
+              <span *ngIf="!isLoading">Login</span>
+              <span *ngIf="isLoading" class="loading-spinner">
+                <!-- <mat-spinner diameter="20"></mat-spinner> -->
+                Logging in...
+              </span>
+            </button>
+          </div>
 
-      <div class="text-center mt-3">
-        <a mat-button routerLink="/resetpassword">Forgot Password?</a>
-        <!-- <a mat-button routerLink="/registration">Register</a> -->
+          <!-- Footer Links -->
+          <div class="form-footer">
+            <a mat-button routerLink="/resetpassword" class="forgot-link">
+              Forgot Password?
+            </a>
+          </div>
+        </form>
       </div>
     </div>
   </div>
