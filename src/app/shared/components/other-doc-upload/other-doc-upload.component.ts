@@ -2,7 +2,7 @@ import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environment/environment';
 import { catchError, finalize } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 import { ToastserviceService } from '../../../core/services/toastservice.service';
 import Swal from 'sweetalert2';
 import { UtilService } from '../../../core/services/util.service';
@@ -37,6 +37,12 @@ interface UploadedDocument {
   vendorNameAccToReviewDoc: string; // Added: Actual reviewer name
 }
 
+interface DocumentType {
+  id: number;
+  documentName: string;
+  isDeleted: boolean;
+}
+
 @Component({
   selector: 'app-other-doc-upload',
   standalone: false,
@@ -52,6 +58,7 @@ export class OtherDocUploadComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   userType: string | null = '';
+  private otherDocumentsDocumentTypeId: number | null = null;
 
   constructor(
     private http: HttpClient,
@@ -63,6 +70,7 @@ export class OtherDocUploadComponent implements OnInit {
     this.userType = localStorage.getItem('userType');
     console.log('OtherDocUpload initialized with PO ID:', this.poId, 'Stage ID:', this.stageId);
     console.log('Current User Type:', this.userType);
+    this.fetchOtherDocumentsDocumentTypeId();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -177,6 +185,16 @@ export class OtherDocUploadComponent implements OnInit {
 
     if (!result.isConfirmed) return;
 
+    const documentTypeId = await this.getOtherDocumentsDocumentTypeId();
+    if (!documentTypeId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Document Type Missing',
+        text: 'Unable to find "OTHER DOCUMENTS" document type. Please try again later.',
+      });
+      return;
+    }
+
     // Upload each document row
     this.isLoading = true;
     let successCount = 0;
@@ -186,7 +204,7 @@ export class OtherDocUploadComponent implements OnInit {
       row.isUploading = true;
       
       try {
-        await this.uploadDocumentRow(row);
+        await this.uploadDocumentRow(row, documentTypeId);
         successCount++;
         row.uploadProgress = 100;
       } catch (error) {
@@ -224,8 +242,42 @@ export class OtherDocUploadComponent implements OnInit {
     }
   }
 
+  private fetchOtherDocumentsDocumentTypeId(): void {
+    this.getOtherDocumentsDocumentTypeId().catch((error) => {
+      console.error('Error fetching OTHER DOCUMENTS document type:', error);
+    });
+  }
+
+  private async getOtherDocumentsDocumentTypeId(): Promise<number | null> {
+    if (this.otherDocumentsDocumentTypeId) {
+      return this.otherDocumentsDocumentTypeId;
+    }
+
+    const documentTypes = await firstValueFrom(
+      this.http
+        .get<DocumentType[]>(`${environment.apiUrl}/v1/DocumentType`, {
+          headers: this.getHeaders(),
+        })
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error fetching document types:', error);
+            return throwError(() => error);
+          })
+        )
+    );
+
+    const otherDocumentsType = documentTypes.find(
+      (documentType) =>
+        !documentType.isDeleted &&
+        documentType.documentName?.trim().toLowerCase() === 'other documents'
+    );
+
+    this.otherDocumentsDocumentTypeId = otherDocumentsType?.id ?? null;
+    return this.otherDocumentsDocumentTypeId;
+  }
+
   // Upload single document row with multiple files
-  private async uploadDocumentRow(row: DocumentRow): Promise<void> {
+  private async uploadDocumentRow(row: DocumentRow, documentTypeId: number): Promise<void> {
     for (const file of row.files) {
       const formData = new FormData();
       formData.append('file', file);
@@ -239,7 +291,7 @@ export class OtherDocUploadComponent implements OnInit {
       formData.append('uploadedDocumentName', `${row.documentName} - ${file.name}`);
       formData.append('uploadedDate', currentDate);
       formData.append('docUploadedBy', this.userType || '');
-      formData.append('documentTypeId', '3');
+      formData.append('documentTypeId', documentTypeId.toString());
       formData.append('status', 'Pending');
       formData.append('uploadedBy', currentUser);
       formData.append('stageId', this.stageId.toString());
